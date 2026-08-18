@@ -16,6 +16,7 @@ from whole_eye_mvp.standard_eye import (
     CORNEA_THICKNESS_MM,
     StandardEyeMeasurements,
     ZeroHoaReferenceRecord,
+    corneal_paraxial_focus_from_post_mm,
     paraxial_iol_plane_distance_mm,
     standard_eye_construction,
     validate_standard_eye_measurements,
@@ -42,6 +43,7 @@ def test_standard_eye_uses_liou_cornea_and_distinct_validation_apertures() -> No
 def test_paraxial_iol_plane_is_deterministic_start_for_real_footprint_gate() -> None:
     spec = standard_eye_construction(ScientificBaseline("MVP_2026_v1"))
     assert paraxial_iol_plane_distance_mm(spec) == pytest.approx(3.92355, abs=1e-4)
+    assert corneal_paraxial_focus_from_post_mm(spec) == pytest.approx(31.06443, abs=1e-4)
     assert spec.iol_vertex_mm == pytest.approx(4.42355, abs=1e-4)
     assert spec.iol_to_image_mm > 0
 
