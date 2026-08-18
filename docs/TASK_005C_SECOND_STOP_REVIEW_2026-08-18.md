@@ -143,7 +143,7 @@ uv run python scripts/build_task_005c_manual_diagnostics.py `
 3. `TASK005C_C_WAVEFRONT_BEST_FOCUS.zos`
 4. `TASK005C_DIAGNOSTIC_MANIFEST.json`
 
-生成过程不得创建 Zernike analysis，也不得把这些文件登记进 `project/locks`。
+生成过程不得创建 Zernike analysis，也不得把这些文件登记进 `project/locks`。manifest 显式记录 `formal_artifact=false`、`zernike_api_invoked_by_this_script=false`、`must_not_enter_project_locks=true`。
 
 诊断生成阶段继续遵守 STOP：不运行正式 005C builder、不运行 Zernike integration test、不运行全套 Zemax gates；每个 worker 只尝试一次。A 失败则停止；B/C 任一失败则保留此前已成功文件并报告，不循环重试。
 
