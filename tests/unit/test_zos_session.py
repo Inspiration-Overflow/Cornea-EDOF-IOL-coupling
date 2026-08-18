@@ -1,0 +1,136 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+from types import SimpleNamespace
+from typing import Any
+
+import pytest
+
+from whole_eye_mvp.zos import (
+    ZosConnectionError,
+    ZosEnvironmentError,
+    ZosLicenseError,
+    ZosModeError,
+    ZosSessionAdapter,
+    open_zos_session,
+)
+
+
+@dataclass
+class FakeApp:
+    IsValidLicenseForAPI: bool = True
+    LicenseStatus: str = "Premium"
+    Mode: str = "Server"
+    PrimarySystem: Any = None
+
+    def __post_init__(self) -> None:
+        if self.PrimarySystem is None:
+            self.PrimarySystem = SimpleNamespace(LDE=object())
+
+
+class FakeBackend:
+    def __init__(self, app: FakeApp | None = None) -> None:
+        self._zosapi = SimpleNamespace(name="fake-zosapi")
+        self.app = app if app is not None else FakeApp()
+        self.initialized_with: Path | None = None
+        self.close_calls = 0
+        self.raise_on_close = False
+
+    @property
+    def zosapi(self) -> Any:
+        return self._zosapi
+
+    def initialize(self, install_dir: Path) -> None:
+        self.initialized_with = install_dir
+
+    def create_application(self) -> FakeApp | None:
+        return self.app
+
+    def is_standalone_mode(self, app: FakeApp) -> bool:
+        return app.Mode == "Server"
+
+    def close_application(self, app: FakeApp) -> None:
+        self.close_calls += 1
+        if self.raise_on_close:
+            raise RuntimeError("close failed")
+
+
+@pytest.fixture
+def install_dir(tmp_path: Path) -> Path:
+    path = tmp_path / "OpticStudio"
+    path.mkdir()
+    return path
+
+
+@pytest.mark.unit
+def test_context_returns_primary_system_and_closes_once(install_dir: Path) -> None:
+    backend = FakeBackend()
+    adapter = ZosSessionAdapter(backend)
+
+    with open_zos_session(install_dir, adapter=adapter) as session:
+        assert session.app is backend.app
+        assert session.system is backend.app.PrimarySystem
+        assert session.zosapi is backend.zosapi
+        assert session.closed is False
+
+    assert session.closed is True
+    assert backend.close_calls == 1
+
+    session.close()
+    assert backend.close_calls == 1
+
+
+@pytest.mark.unit
+def test_missing_install_directory_is_typed_environment_error(tmp_path: Path) -> None:
+    adapter = ZosSessionAdapter(FakeBackend())
+
+    with pytest.raises(ZosEnvironmentError):
+        adapter.open(tmp_path / "missing")
+
+
+@pytest.mark.unit
+def test_license_failure_closes_before_raise(install_dir: Path) -> None:
+    backend = FakeBackend(FakeApp(IsValidLicenseForAPI=False, LicenseStatus="Invalid"))
+    adapter = ZosSessionAdapter(backend)
+
+    with pytest.raises(ZosLicenseError, match="Invalid"):
+        adapter.open(install_dir)
+
+    assert backend.close_calls == 1
+
+
+@pytest.mark.unit
+def test_wrong_application_mode_closes_before_raise(install_dir: Path) -> None:
+    backend = FakeBackend(FakeApp(Mode="Plugin"))
+    adapter = ZosSessionAdapter(backend)
+
+    with pytest.raises(ZosModeError, match="standalone/server"):
+        adapter.open(install_dir)
+
+    assert backend.close_calls == 1
+
+
+@pytest.mark.unit
+def test_missing_primary_system_closes_before_raise(install_dir: Path) -> None:
+    app = FakeApp()
+    app.PrimarySystem = None
+    backend = FakeBackend(app)
+    adapter = ZosSessionAdapter(backend)
+
+    with pytest.raises(ZosConnectionError, match="PrimarySystem"):
+        adapter.open(install_dir)
+
+    assert backend.close_calls == 1
+
+
+@pytest.mark.unit
+def test_none_application_is_typed_connection_error(install_dir: Path) -> None:
+    backend = FakeBackend()
+    backend.app = None
+    adapter = ZosSessionAdapter(backend)
+
+    with pytest.raises(ZosConnectionError, match="no standalone application"):
+        adapter.open(install_dir)
+
+    assert backend.close_calls == 0
