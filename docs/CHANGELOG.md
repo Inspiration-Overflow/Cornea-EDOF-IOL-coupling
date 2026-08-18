@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2026-08-17 — OpticStudio 2026 R1.00 本机联调
+
+- ZOS session 同时支持 2026 R1.00 根目录 DLL 布局和旧版 `ZOS-API/Libraries` 布局。
+- 在真实 Premium license 下通过主线程和 GUI-like worker thread 会话测试。
+- 实机确认 Binary 4、Even Asphere、Coordinate Break 参数列，并加入写入后回读测试；测试使用临时系统，不保存 `.zos` 文件。
+- 新增 Huygens PSF 专用 runner，将 ZOS-API 网格复制为纯 Python 不可变数据后再关闭 analysis。
+- 新增 Zernike Standard 专用 runner，严格读取 UTF-16 文本并计算 C4、C6 与 n=3…6 HOA RMS。
+- 生成 `uv.lock`，完成 Ruff 整理，并把真实 Zemax 测试入口限定为 `tests/zemax` 目录。
+- 未建立或冻结正式 A0/B0/C0、carrier、residual、manifest，也未运行代表三配置或 Run72。
+
 ## 2026-08-17 — RMD v1.1
 
 - 新增项目级开发约定：Python 包与虚拟环境统一使用 `uv` 管理。

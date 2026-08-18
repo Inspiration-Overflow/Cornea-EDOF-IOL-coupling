@@ -21,14 +21,17 @@ Python dependencies and environments are managed with **uv**. Automated tests us
 
 ```bash
 uv sync
-uv run pytest
+uv run pytest tests/unit
 uv run ruff check .
 ```
 
 Zemax integration tests require Windows, Ansys Zemax OpticStudio 2026 R1, and a valid ZOS-API license:
 
 ```bash
-uv run pytest -m zemax
+uv run pytest tests/zemax
 ```
+
+The Zemax tests are collected from `tests/zemax` directly so unrelated GUI and
+numerical-library imports do not enter the native ZOS-API process.
 
 The scientific and software requirements are defined in `docs/`; implementation must not silently change frozen scientific locks or the 18-carrier / 72-configuration MVP design.

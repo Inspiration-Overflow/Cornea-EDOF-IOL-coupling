@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping, Protocol, Sequence
+from typing import Protocol
 
 from .domain import NOMINAL_MAIN_555_V1, OpticState
 from .manifest import NominalConfig

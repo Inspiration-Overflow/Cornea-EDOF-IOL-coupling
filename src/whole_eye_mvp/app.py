@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import queue
 import threading
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Callable, Mapping, Protocol
+from typing import Protocol
 
 
 class WorkflowBusyError(RuntimeError):
@@ -66,7 +67,7 @@ class ActionSubmitter(Protocol):
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 class ActionDispatcher:
@@ -153,7 +154,7 @@ def threaded_submitter(dispatcher: ActionDispatcher) -> ActionSubmitter:
                 event_sink(
                     ProgressEvent(request.action, "rejected", str(exc), _now())
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001 - dispatcher already records boundary failures
                 # ActionDispatcher already emitted the typed failed event.
                 return
 
@@ -242,7 +243,7 @@ def launch_desktop_app(
         )
         try:
             submitter(request, sink)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - GUI boundary must display submitter failures
             status_var.set(f"Failed: {exc}")
 
     frame = ctk.CTkFrame(root)

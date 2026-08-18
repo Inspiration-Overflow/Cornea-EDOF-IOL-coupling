@@ -205,7 +205,7 @@ fixture 明确规定 `OTF_DL=1` 于这 9 个离散点，并按同一离散 measu
 - `zemax`：真实 Session、Assets/B0/Carrier/Analysis、sampling、MTF cross-check、lock/hash integration。
 - `gui`：GUI control/busy/naming/full-flow smoke。
 - 每个测试函数只使用明确 marker；不再用“001–013 excluding...”这类范围表达。
-- pre-merge command：`uv run pytest`；Zemax workstation 必须同时满足 `uv run pytest -m zemax`。
+- pre-merge command：`uv run pytest tests/unit`；Zemax workstation 必须同时满足 `uv run pytest tests/zemax`。Zemax 测试直接按目录收集，避免未选中的 GUI/数值库测试模块进入 ZOS-API 原生进程。
 
 ## TDD Completion Gate
 

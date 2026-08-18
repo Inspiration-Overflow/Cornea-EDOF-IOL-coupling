@@ -8,9 +8,12 @@ a real session is opened so pure unit tests remain independent of OpticStudio.
 from __future__ import annotations
 
 import importlib
+import threading
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Protocol
+from types import TracebackType
+from typing import Any, Protocol, Self
 
 from .errors import (
     ZosCloseError,
@@ -21,6 +24,52 @@ from .errors import (
     ZosModeError,
     ZosSessionError,
 )
+
+
+def _find_first_file(*candidates: Path) -> Path:
+    """Return the first installed API file from an ordered layout list."""
+
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    checked = ", ".join(str(candidate) for candidate in candidates)
+    raise ZosEnvironmentError(f"Missing ZOS-API file; checked: {checked}")
+
+
+@dataclass(frozen=True, slots=True)
+class _PythonNetBootstrapState:
+    install_dir: Path
+    zosapi: Any
+
+
+class _PythonNetBootstrapRegistry:
+    """Own one Python.NET/ZOS assembly bootstrap identity per Python process."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._state: _PythonNetBootstrapState | None = None
+
+    def get_or_initialize(
+        self,
+        install_dir: Path,
+        loader: Callable[[Path], Any],
+    ) -> Any:
+        resolved = install_dir.expanduser().resolve()
+        with self._lock:
+            if self._state is not None:
+                if self._state.install_dir != resolved:
+                    raise ZosEnvironmentError(
+                        "Python.NET/ZOS-API is already initialized in this process from "
+                        f"{self._state.install_dir}; refusing to switch to {resolved}. "
+                        "Start a new Python process to use another OpticStudio installation."
+                    )
+                return self._state.zosapi
+            zosapi = loader(resolved)
+            self._state = _PythonNetBootstrapState(resolved, zosapi)
+            return zosapi
+
+
+_PYTHONNET_BOOTSTRAP = _PythonNetBootstrapRegistry()
 
 
 class ZosBackend(Protocol):
@@ -70,10 +119,15 @@ class ZosSession:
         finally:
             self._closed = True
 
-    def __enter__(self) -> ZosSession:
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> bool:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> bool:
         self.close()
         return False
 
@@ -92,9 +146,17 @@ class PythonNetZosBackend:
         return self._zosapi
 
     def initialize(self, install_dir: Path) -> None:
-        helper = install_dir / "ZOS-API" / "Libraries" / "ZOSAPI_NetHelper.dll"
-        if not helper.is_file():
-            raise ZosEnvironmentError(f"Missing ZOSAPI_NetHelper.dll: {helper}")
+        self._zosapi = _PYTHONNET_BOOTSTRAP.get_or_initialize(
+            install_dir,
+            self._load_zosapi,
+        )
+
+    @staticmethod
+    def _load_zosapi(install_dir: Path) -> Any:
+        helper = _find_first_file(
+            install_dir / "ZOSAPI_NetHelper.dll",
+            install_dir / "ZOS-API" / "Libraries" / "ZOSAPI_NetHelper.dll",
+        )
 
         try:
             clr = importlib.import_module("clr")
@@ -120,15 +182,17 @@ class PythonNetZosBackend:
 
         try:
             zemax_dir = Path(str(initializer.GetZemaxDirectory()))
-            interfaces = zemax_dir / "ZOSAPI_Interfaces.dll"
-            api = zemax_dir / "ZOSAPI.dll"
-            missing = [path for path in (interfaces, api) if not path.is_file()]
-            if missing:
-                missing_text = ", ".join(str(path) for path in missing)
-                raise ZosEnvironmentError(f"Missing ZOS-API library/libraries: {missing_text}")
+            interfaces = _find_first_file(
+                zemax_dir / "ZOSAPI_Interfaces.dll",
+                install_dir / "ZOSAPI_Interfaces.dll",
+            )
+            api = _find_first_file(
+                zemax_dir / "ZOSAPI.dll",
+                install_dir / "ZOSAPI.dll",
+            )
             clr.AddReference(str(interfaces))
             clr.AddReference(str(api))
-            self._zosapi = importlib.import_module("ZOSAPI")
+            return importlib.import_module("ZOSAPI")
         except ZosSessionError:
             raise
         except Exception as exc:

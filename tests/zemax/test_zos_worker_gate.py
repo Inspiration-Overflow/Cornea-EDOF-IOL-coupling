@@ -10,7 +10,6 @@ import pytest
 
 from whole_eye_mvp.zos import open_zos_session
 
-
 INSTALL_ENV = "WHOLE_EYE_ZOS_INSTALL_DIR"
 
 
@@ -28,6 +27,16 @@ def test_session_opens_primary_system_and_closes() -> None:
     with open_zos_session(install_dir) as session:
         assert session.system is not None
         assert session.system.LDE is not None
+
+
+@pytest.mark.zemax
+def test_repeated_sessions_reuse_process_bootstrap_without_native_failure() -> None:
+    install_dir = _install_dir()
+
+    for _ in range(10):
+        with open_zos_session(install_dir) as session:
+            session.system.New(False)
+            assert session.system.LDE.NumberOfSurfaces >= 2
 
 
 @pytest.mark.zemax
