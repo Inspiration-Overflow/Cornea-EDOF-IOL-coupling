@@ -23,7 +23,7 @@ CORNEA_POST = "STD_CORNEA_POST"
 IOL_REF = "IOL_ANT_REFERENCE"
 IMAGE_REF = "IMAGE_REFERENCE"
 
-# Norrby et al. (Applied Optics 2007), Liou cornea row.  The published
+# Norrby et al. (Applied Optics 2007), Liou cornea row. The published
 # c[4,0]=+0.258 um is explicitly normalized to a 6-mm entrance pupil.
 CORNEA_FRONT_RADIUS_MM = 7.77
 CORNEA_FRONT_CONIC = -0.18
@@ -32,6 +32,7 @@ CORNEA_BACK_CONIC = -0.60
 CORNEA_THICKNESS_MM = 0.50
 CORNEA_INDEX = 1.376
 CORNEAL_SA_PUPIL_MM = 6.0
+STANDARD_EYE_CALIBRATION_WAVELENGTH_NM = 546.0
 
 # Implementation reference only: keep a normal-eye axial scale while the scientific
 # baseline continues to be defined solely by its frozen acceptance anchors.
@@ -88,12 +89,26 @@ class StandardEyeConstruction:
             raise ValueError("corneal thickness must be positive")
         if self.cornea_index <= 1 or self.eye.medium_index <= 1:
             raise ValueError("refractive indices must exceed one")
-        if self.eye.aperture_mm <= 0 or self.corneal_sa_pupil_mm <= self.eye.aperture_mm:
-            raise ValueError("6-mm corneal-SA pupil and 3-mm carrier aperture are distinct")
+        if self.eye.aperture_mm <= 0 or self.corneal_sa_pupil_mm <= 0:
+            raise ValueError("standard-eye calibration pupil must be positive")
+        if not math.isclose(
+            self.eye.aperture_mm,
+            self.corneal_sa_pupil_mm,
+            rel_tol=0.0,
+            abs_tol=1.0e-12,
+        ):
+            raise ValueError(
+                "standard-eye C40, footprint, and carrier SA calibration must share the 6-mm pupil"
+            )
+        if not math.isclose(
+            self.eye.wavelength_nm,
+            STANDARD_EYE_CALIBRATION_WAVELENGTH_NM,
+            rel_tol=0.0,
+            abs_tol=1.0e-12,
+        ):
+            raise ValueError("standard-eye calibration wavelength must be 546 nm")
         if self.eye.iol_footprint_mm <= 0 or self.eye.iol_footprint_tolerance_mm <= 0:
             raise ValueError("IOL footprint target/tolerance must be positive")
-        if self.eye.wavelength_nm <= 0:
-            raise ValueError("standard-eye wavelength must be positive")
         if self.reference_axial_length_mm <= self.cornea_thickness_mm:
             raise ValueError("reference axial length is invalid")
 
@@ -169,10 +184,27 @@ class ZeroHoaReferenceRecord:
     center_thickness_mm: float
     material: str
     iol_position_mm: float
+    calibration_aperture_mm: float = CORNEAL_SA_PUPIL_MM
+    calibration_wavelength_nm: float = STANDARD_EYE_CALIBRATION_WAVELENGTH_NM
     optical_model: str = "ideal_paraxial_zero_hoa"
 
     @classmethod
-    def from_carrier(cls, carrier: ProvisionalCarrier) -> ZeroHoaReferenceRecord:
+    def from_carrier(
+        cls,
+        carrier: ProvisionalCarrier,
+        *,
+        standard_eye_spec: BaselineStandardEyeSpec | None = None,
+    ) -> ZeroHoaReferenceRecord:
+        aperture = (
+            CORNEAL_SA_PUPIL_MM
+            if standard_eye_spec is None
+            else standard_eye_spec.aperture_mm
+        )
+        wavelength = (
+            STANDARD_EYE_CALIBRATION_WAVELENGTH_NM
+            if standard_eye_spec is None
+            else standard_eye_spec.wavelength_nm
+        )
         return cls(
             reference_id=f"ZERO_HOA_{carrier.key.carrier_id}",
             carrier_id=carrier.key.carrier_id,
@@ -182,9 +214,16 @@ class ZeroHoaReferenceRecord:
             center_thickness_mm=carrier.center_thickness_mm,
             material=carrier.material,
             iol_position_mm=carrier.iol_position_mm,
+            calibration_aperture_mm=aperture,
+            calibration_wavelength_nm=wavelength,
         )
 
-    def validate_against(self, carrier: ProvisionalCarrier) -> None:
+    def validate_against(
+        self,
+        carrier: ProvisionalCarrier,
+        *,
+        standard_eye_spec: BaselineStandardEyeSpec | None = None,
+    ) -> None:
         if self.optical_model != "ideal_paraxial_zero_hoa":
             raise ValueError("ZERO_HOA must use an ideal paraxial optical element")
         if (
@@ -207,6 +246,30 @@ class ZeroHoaReferenceRecord:
             raise ValueError(
                 "ZERO_HOA must preserve carrier power/envelope/material/position metadata"
             )
+        expected_aperture = (
+            CORNEAL_SA_PUPIL_MM
+            if standard_eye_spec is None
+            else standard_eye_spec.aperture_mm
+        )
+        expected_wavelength = (
+            STANDARD_EYE_CALIBRATION_WAVELENGTH_NM
+            if standard_eye_spec is None
+            else standard_eye_spec.wavelength_nm
+        )
+        if not math.isclose(
+            self.calibration_aperture_mm,
+            expected_aperture,
+            rel_tol=0.0,
+            abs_tol=1.0e-12,
+        ):
+            raise ValueError("ZERO_HOA calibration pupil does not match the standard eye")
+        if not math.isclose(
+            self.calibration_wavelength_nm,
+            expected_wavelength,
+            rel_tol=0.0,
+            abs_tol=1.0e-12,
+        ):
+            raise ValueError("ZERO_HOA calibration wavelength does not match the standard eye")
 
 
 @dataclass(frozen=True, slots=True)
@@ -512,14 +575,14 @@ def _measure(session: ZosSession, spec: StandardEyeConstruction) -> StandardEyeM
     wavelength_nm = float(system.SystemData.Wavelengths.GetWavelength(1).Wavelength) * 1000
     field = system.SystemData.Fields.GetField(1)
 
-    original_aperture = calibration_aperture
+    # C40 is a cornea-only oracle. Temporarily move the fixed image reference to the
+    # corneal paraxial focus, but keep the saved 6-mm calibration pupil unchanged.
     original_iol_to_image = float(rows[2].Thickness)
     corneal_focus_from_post = corneal_paraxial_focus_from_post_mm(spec)
     validation_iol_to_image = corneal_focus_from_post - float(rows[1].Thickness)
     if validation_iol_to_image <= 0:
         raise StandardEyeError("corneal paraxial focus lies before the IOL reference plane")
     try:
-        aperture.ApertureValue = spec.corneal_sa_pupil_mm
         rows[2].Thickness = validation_iol_to_image
         c40_um = ZernikeStandardRunner(system, session.zosapi).run(
             ZernikeStandardSettings(sample_size=32, maximum_terms=37)
@@ -527,7 +590,6 @@ def _measure(session: ZosSession, spec: StandardEyeConstruction) -> StandardEyeM
         footprint = _footprint_mm(session, 3)
     finally:
         rows[2].Thickness = original_iol_to_image
-        aperture.ApertureValue = original_aperture
 
     return StandardEyeMeasurements(
         wavelength_nm=wavelength_nm,
