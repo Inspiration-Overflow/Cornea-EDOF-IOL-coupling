@@ -8,10 +8,10 @@
 
 - project: Corneal Archetypes × Nondiffractive EDOF IOL Whole-Eye Zemax Automation
 - document_id: URD-0001
-- version: 1.3
+- version: 1.4
 - status: approved-for-ADD
 - owner: project owner
-- last_updated: 2026-08-17
+- last_updated: 2026-08-18
 - scope_level: MVP
 - primary_platform: Windows
 - optical_engine: Ansys Zemax OpticStudio 2026 R1, Sequential Mode
@@ -292,28 +292,30 @@ Vivity、TECNIS PureSee、LuxSmart 只可作为公开机制锚点。软件、文
 
 它不作为 LB/ATC 主全眼研究基座。
 
-MVP 标准眼最小验收锚点：
+MVP 标准眼最小验收锚点统一在 **6.0 mm entrance pupil** 下定义：
 
 - 模型角膜正球差目标：
   \[
-  \boxed{C_4^0\approx+0.258\ \mu\mathrm{m}}
+  \boxed{C_4^0(6\ \mathrm{mm})\approx+0.258\ \mu\mathrm{m}}
   \]
 - IOL 前表面附近实际光束覆盖：
   \[
-  \boxed{D_{\rm IOL,footprint}=5.15\pm0.10\ \mathrm{mm}}
+  \boxed{D_{\rm IOL,footprint}(6\ \mathrm{mm})=5.15\pm0.10\ \mathrm{mm}}
   \]
 - IOL 周围模型介质：
   \[
   \boxed{n=1.336}
   \]
-- 主校准孔径：
+- IOL 基础球差 / `Q(P)` 主校准孔径：
   \[
-  \boxed{3.0\ \mathrm{mm}}
+  \boxed{EPD_{\rm SA-cal}=6.0\ \mathrm{mm}}
   \]
 - 单色校准波长约：
   \[
   \boxed{546\ \mathrm{nm}}
   \]
+
+这里的 6 mm 是**标准眼设计/标定条件**，用于把角膜生理正球差、IOL 实际光束覆盖和平台基础球差放在同一瞳孔归一化条件下。它不同于主实验的性能评估瞳孔：72 个 nominal 配置仍只使用 EPD3 与 EPD5。3 mm 作为较小明视瞳孔保留在性能矩阵中，但不再承担 `SA_base` 或 `Q(P)` 的绝对球差设计标定，以避免小瞳孔本身较长景深与较弱球差表现混入 carrier 设计定义。
 
 具体表面参数可由实现阶段选择合理的工程处方，但一旦该标准眼通过上述检查就必须冻结，所有平台后续共用同一份标准眼。
 
@@ -323,22 +325,22 @@ MVP 标准眼最小验收锚点：
 \boxed{ZERO\_HOA\_PARAXIAL\_REFERENCE}
 \]
 
-定义。该参考态保留 carrier 的 paraxial power/几何/材料/位置，但将 IOL 的 aspheric/HOA/residual 项置零。平台 `SA_base` 使用“候选 carrier 全眼 \(C_4^0\) − ZERO_HOA 参考态全眼 \(C_4^0\)”计算，而不是把某个孤立表面系数直接当作 IOL SA。
+定义。该参考态保留 carrier 的 paraxial power/几何/材料/位置，但将 IOL 的 aspheric/HOA/residual 项置零。平台 `SA_base` 使用“候选 carrier 全眼 \(C_4^0\) − ZERO_HOA 参考态全眼 \(C_4^0\)”计算，而不是把某个孤立表面系数直接当作 IOL SA。候选 carrier 与 ZERO_HOA reference 必须在同一个 6 mm 标准眼校准状态下比较。
 
 ### 三个平台的基础球差目标
 
-三类 IOL 不强制共享同一个基础 carrier，而保留平台特异基础球差：
+三类 IOL 不强制共享同一个基础 carrier，而保留平台特异基础球差；以下目标均定义于 `STD_IOL_EYE_2024`、EPD=6.0 mm、约 546 nm：
 
 \[
-\boxed{SA_{\rm base,WFS}^{STD}\approx-0.20\ \mu\mathrm{m}}
+\boxed{SA_{\rm base,WFS}^{STD}(6\ \mathrm{mm})\approx-0.20\ \mu\mathrm{m}}
 \]
 
 \[
-\boxed{SA_{\rm base,RAD}^{STD}\approx-0.27\ \mu\mathrm{m}}
+\boxed{SA_{\rm base,RAD}^{STD}(6\ \mathrm{mm})\approx-0.27\ \mu\mathrm{m}}
 \]
 
 \[
-\boxed{SA_{\rm base,HOA}^{STD}\approx0}
+\boxed{SA_{\rm base,HOA}^{STD}(6\ \mathrm{mm})\approx0}
 \]
 
 这些值是本项目的工程 surrogate 目标，不是孤立 IOL 表面的固定 Zernike 数值，也不是商业制造参数。
@@ -374,8 +376,8 @@ MVP 工程流程：
 3. 暂设主要 conic 为 \(Q=0\)，不加入 EDOF residual；
 4. 调整基础曲率，使单焦 carrier 的最佳远焦位于固定视网膜；
 5. 得到当前 \(P_{ijk}\) 与基础几何；
-6. 将该 carrier 放入 `STD_IOL_EYE_2024`；
-7. 固定基础 power/几何，优化 conic，使基础球差达到该平台目标；
+6. 将该 carrier 放入 `STD_IOL_EYE_2024`，使用冻结的 6.0 mm 标准眼校准孔径；
+7. 固定基础 power/几何，优化 conic，使相对于同 power `ZERO_HOA_PARAXIAL_REFERENCE` 的基础球差达到该平台 6 mm 目标；
 8. 将 carrier 放回实际 Base + Cornea 检查远焦；
 9. 若 conic 引起明显远焦偏移，允许进行 1–2 次小量工程回查：更新基础 power 后必须重新求对应 conic；
 10. 满足合理远焦和基础球差要求后，冻结该 physical carrier。
@@ -483,6 +485,8 @@ nominal 主实验统一：
 - 不引入角膜治疗区偏心；
 - 不引入瞳孔中心漂移；
 - 不加入微单视额外 defocus target。
+
+EPD3 与 EPD5 是**性能评估条件**而不是 standard-eye carrier SA calibration condition。EPD3 保留较小明视瞳孔下的实际性能与天然景深效应，EPD5 用于更充分暴露角膜/IOL 球差与 EDOF 机制；两者均不反向改变 6 mm 下冻结的 carrier 基础球差定义。
 
 ---
 
@@ -623,20 +627,20 @@ MVP GUI 不提供：
 | URD-REQ-003 | OpticStudio 安装目录必须可在 GUI 中配置；默认支持 2026 R1.00 常规安装路径。 | must |
 | URD-REQ-004 | 软件必须使用 Sequential Mode 完成本 MVP 的模型生成和分析。 | must |
 | URD-REQ-005 | 软件必须生成/保存 `LB_AL2395` 和 `ATC_M3_AL24477` 两个主基座，并检查 AL、STOP、IOL 参考位置和介质。 | must |
-| URD-REQ-006 | 软件必须生成/保存 `STD_IOL_EYE_2024`，并校验 +0.258 μm 角膜球差目标、5.15±0.10 mm IOL footprint、n=1.336、3 mm 主校准孔径和约 546 nm 校准条件；平台 IOL SA 必须相对 `ZERO_HOA_PARAXIAL_REFERENCE` 定义。 | must |
+| URD-REQ-006 | 软件必须生成/保存 `STD_IOL_EYE_2024`，并在 6.0 mm entrance pupil 下校验 +0.258 μm 角膜球差目标、5.15±0.10 mm IOL footprint、n=1.336 和约 546 nm 校准条件；平台 IOL `SA_base` 与 `Q(P)` 必须在同一 6 mm 标准眼下相对 `ZERO_HOA_PARAXIAL_REFERENCE` 定义。 | must |
 | URD-REQ-007 | 软件必须生成平台独立的 `REF_MONO_CORNEA_LOCK`，供 B0 first scan 使用；它不进入 72 配置。 | must |
 | URD-REQ-008 | 软件必须生成并冻结 A0，其 nominal 科学目标符合本 URD 第 2.2 节。 | must |
 | URD-REQ-009 | 软件必须生成五个 B 候选并在 `LB_AL2395 + REF_MONO_CORNEA_LOCK` 下完成第一轮扫描；按第 2.2 节 `Q_lock`/A0 阈值/gate/ranking 生成可复现推荐，用户确认或记录 override reason 后写入 B0 lock。 | must |
 | URD-REQ-010 | 软件必须生成并冻结 C0，固定 `D_near=3.0 mm`、`ADD=+1.75 D`、`D_OZ=6.5 mm`、`w_T=0.75 mm`。 | must |
 | URD-REQ-011 | A0/B0/C0 冻结后，主实验流程不得因 WFS/RAD/HOA 结果自动重新优化角膜。 | must |
-| URD-REQ-012 | WFS/RAD/HOA 必须保留平台特异 carrier，基础球差工程目标分别约 −0.20/−0.27/0 μm。 | must |
+| URD-REQ-012 | WFS/RAD/HOA 必须保留平台特异 carrier；其基础球差工程目标分别约 −0.20/−0.27/0 μm，并统一定义于 `STD_IOL_EYE_2024` 的 6.0 mm calibration pupil。 | must |
 | URD-REQ-013 | 对每个 `Base × Cornea × Platform`，必须求独立的 `P_ijk`，并在标准眼求对应 `Q_k(P_ijk)`；不得跨 power 机械复制同一 conic。 | must |
 | URD-REQ-014 | power–conic 求解允许少量工程回查，但 physical carrier 一旦冻结后不得因 EDOF residual 再单独改变 EDOF power/conic。 | must |
 | URD-REQ-015 | 软件必须建立 `MONO_WFS/RAD/HOA` 与相应 EDOF 状态；同一平台 pair 的 carrier 参数必须完全相同，唯一设计差异为冻结 residual。 | must |
 | URD-REQ-016 | EDOF residual 的冻结记录必须明确其平台 ID，并通过实际 payload 验证其 piston/global-defocus 去除；在真实 carrier 使用前还必须对每个平台实际 power 集合的 low/median/high 代表点完成跨 power 校准 gate；加入 residual 后的焦移以 `ΔF_residual` 输出。 | must |
 | URD-REQ-017 | 软件必须生成恰好 18 个唯一 physical carrier locks。 | must |
 | URD-REQ-018 | 软件必须生成恰好 72 个唯一 nominal analysis configurations。 | must |
-| URD-REQ-019 | 72 个主配置必须全部为 555 nm、EPD 3/5 mm、centered、tilt=0、decentration=0、无角膜偏心、无微单视附加 defocus。 | must |
+| URD-REQ-019 | 72 个主配置必须全部为 555 nm、EPD 3/5 mm、centered、tilt=0、decentration=0、无角膜偏心、无微单视附加 defocus；EPD3/EPD5 只作为性能评估条件，不改变 6 mm carrier SA calibration。 | must |
 | URD-REQ-020 | 软件必须使用 Zemax 作为光学计算和主要数值 oracle；贯焦只通过分析层的物方/入射 vergence 改变实现，固定 retina、IOL power/conic、ELP 和实体面型；VSOTF/视觉加权指标基于 Zemax 光学结果，不引入第二套光学传播引擎。 | must |
 | URD-REQ-021 | 每个 nominal 配置至少保存 through-focus MTF、MTFa、VSOTF、Huygens PSF、最佳远焦、DOF 数据、全眼 C4^0/C6^0、HOA RMS 和关键 footprint；贯焦结果同时保存 retina-anchored 原始 vergence 轴与只用于曲线形态比较的 shape-recentered 轴，后者不得改变任何实体模型。 | must |
 | URD-REQ-022 | 软件必须自动形成每个平台 `EDOF − MONO` 的 matched-pair 差值结果表。 | must |
@@ -704,13 +708,13 @@ CSV 必须包含稳定的配置 ID，不依赖人工从文件名猜测实验条�
 | --- | --- | --- |
 | URD-AC-001 | REQ-001~003 | 有效安装路径和 API license 下，GUI 能成功连接 OpticStudio、取得 Primary System，并在结束时关闭 Application；无效路径/license 时明确失败。 |
 | URD-AC-002 | REQ-005 | 两个主基座分别记录 AL=23.950 mm 和 24.477 mm，并满足 3.15 mm STOP、4.50 mm IOL 前表面参考位置的项目定义。 |
-| URD-AC-003 | REQ-006 | `STD_IOL_EYE_2024` 的 validation CSV 显示模型角膜 C4^0 约 +0.258 μm、IOL footprint 位于 5.15±0.10 mm、介质 n=1.336、主校准孔径 3 mm、校准波长约 546 nm，并可构造同 power/geometry 的 `ZERO_HOA_PARAXIAL_REFERENCE`。 |
+| URD-AC-003 | REQ-006 | `STD_IOL_EYE_2024` 的 validation CSV 显示 EPD=6.0 mm 校准状态、模型角膜 `C4^0≈+0.258 μm @ 6 mm`、IOL footprint `5.15±0.10 mm @ 6 mm`、介质 n=1.336、校准波长约 546 nm，并可构造同 power/geometry 的 `ZERO_HOA_PARAXIAL_REFERENCE`。 |
 | URD-AC-004 | REQ-007~011 | 软件可生成 REF_MONO、A0、五个 B 候选、C0；B0 first scan 输出 `Q_lock`、A0 阈值、distance gates 和确定性推荐，用户确认/override reason 后锁定；主实验后 A0/B0/C0 lock 不变化。 |
 | URD-AC-005 | REQ-010 | C0 lock 明确记录 3.0 mm 中央近用区、+1.75 D ADD、6.5 mm OZ 和 0.75 mm 过渡宽度。 |
-| URD-AC-006 | REQ-012~014 | WFS/RAD/HOA carrier 记录各自基础 SA target；每个实际 P_ijk 有对应求得 conic，程序不存在“所有 power 共用一个 Q”的静默路径。 |
+| URD-AC-006 | REQ-012~014 | WFS/RAD/HOA carrier 在 6.0 mm standard-eye calibration pupil 下记录各自基础 SA target；每个实际 P_ijk 有对应求得 conic，程序不存在“所有 power 共用一个 Q”的静默路径。 |
 | URD-AC-007 | REQ-015~016 | 任一 matched pair 中 MONO 与 EDOF 的 carrier power、R、Q、CT、材料、位置完全相同；EDOF residual 是唯一设计差异；residual payload 通过 piston/defocus 与 low/median/high power gate；输出包含 ΔF_residual。 |
 | URD-AC-008 | REQ-017 | physical carrier lock CSV 恰好包含 18 个唯一 `Base × Cornea × Platform` 组合。 |
-| URD-AC-009 | REQ-018~019 | nominal manifest 恰好包含 72 个唯一配置，并且全部满足 555 nm、EPD3/EPD5、centered、tilt=0、decentration=0。 |
+| URD-AC-009 | REQ-018~019 | nominal manifest 恰好包含 72 个唯一配置，并且全部满足 555 nm、EPD3/EPD5、centered、tilt=0、decentration=0；其 EPD3/EPD5 仅用于性能评估。 |
 | URD-AC-010 | REQ-020~022 | 每个成功配置都存在统一的 Zemax 光学结果；贯焦不改变实体模型，并同时输出 retina-anchored 与 shape-recentered 坐标；最终结果 CSV 可形成同平台 EDOF−MONO 配对差值。 |
 | URD-AC-011 | REQ-021~024 | 成功配置存在 CSV 记录、可追溯 `.zos` 和对应关键图像，且能从配置 ID 找到 Base/Cornea/Platform/State/Pupil/carrier 参数。 |
 | URD-AC-012 | REQ-025 | 人为制造一个配置失败后，GUI 显示 failed 而非 completed，并允许只重跑该配置。 |
@@ -786,6 +790,7 @@ CSV 必须包含稳定的配置 ID，不依赖人工从文件名猜测实验条�
 | URD-DEC-006 | 主实验使用三套平台匹配 MONO controls，而不是一个共同球差中性单焦对照。 |
 | URD-DEC-007 | nominal 主数据集为 18 physical carriers 和 72 analysis configurations。 |
 | URD-DEC-008 | MVP 不实现 Pause/Cancel；长任务串行执行，失败恢复依赖任务/配置级 Rerun。 |
+| URD-DEC-009 | `STD_IOL_EYE_2024` 的角膜 `C4^0`、IOL footprint、`SA_base` 与 `Q(P)`/`ZERO_HOA` 校准统一使用 6.0 mm entrance pupil；主实验 EPD3/EPD5 仅用于性能评估，不反向改变 carrier 设计。 |
 
 ---
 
@@ -796,7 +801,7 @@ CSV 必须包含稳定的配置 ID，不依赖人工从文件名猜测实验条�
 - [x] 两个轴向基座定义完整。
 - [x] A0/B0/C0 的 nominal 规则与冻结规则完整。
 - [x] `REF_MONO_CORNEA_LOCK` 的用途和边界明确。
-- [x] `STD_IOL_EYE_2024` 的 MVP 验收锚点明确。
+- [x] `STD_IOL_EYE_2024` 的 MVP 验收锚点明确，且 6 mm 设计/标定条件与 EPD3/EPD5 性能条件已分离。
 - [x] WFS/RAD/HOA 基础 carrier 与 SA 目标明确。
 - [x] power–conic 规则和 matched MONO/EDOF 规则明确。
 - [x] 18 physical carriers / 72 nominal configurations 明确。
@@ -804,7 +809,7 @@ CSV 必须包含稳定的配置 ID，不依赖人工从文件名猜测实验条�
 - [x] CustomTkinter 极简 GUI 范围明确。
 - [x] CSV + `.zos` + 图像输出明确。
 - [x] Out of Scope 与后续扩展分离。
-- [x] 四个原 Open Questions 已关闭。
+- [x] 原 Open Questions 与 standard-eye calibration pupil 决策已关闭。
 
 ## Checkpoint Result
 
