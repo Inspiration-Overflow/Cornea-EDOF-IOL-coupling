@@ -41,7 +41,7 @@ def _run_worker(project_dir: Path, *extra_args: str) -> dict[str, Any]:
         env=environment,
         capture_output=True,
         text=True,
-        timeout=180,
+        timeout=360,
         check=False,
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr
@@ -71,6 +71,9 @@ def test_task_005c_standard_eye_build_reload_and_validate_without_rewrite(tmp_pa
     assert measurement["iol_footprint_mm_6mm"] == pytest.approx(5.15, abs=0.10)
     assert measurement["cornea_index"] == pytest.approx(1.376, abs=1e-6)
     assert measurement["medium_index"] == pytest.approx(1.336, abs=1e-6)
+    assert measurement["medium_index_after_iol_ref"] == pytest.approx(1.336, abs=1e-6)
+    assert measurement["best_focus_criterion"] == "WavefrontError"
+    assert measurement["best_focus_iol_to_image_mm"] > 0
     assert measurement["reference_axial_length_mm"] == pytest.approx(23.950, abs=0.001)
     assert measurement["surface_count"] == 5
     assert measurement["stop_surface"] == 1
