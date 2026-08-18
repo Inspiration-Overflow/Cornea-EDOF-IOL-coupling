@@ -32,11 +32,14 @@ def test_session_opens_primary_system_and_closes() -> None:
 @pytest.mark.zemax
 def test_repeated_sessions_reuse_process_bootstrap_without_native_failure() -> None:
     install_dir = _install_dir()
+    application_ids: set[int] = set()
 
     for _ in range(10):
         with open_zos_session(install_dir) as session:
+            application_ids.add(id(session.app))
             session.system.New(False)
             assert session.system.LDE.NumberOfSurfaces >= 2
+    assert len(application_ids) == 1
 
 
 @pytest.mark.zemax

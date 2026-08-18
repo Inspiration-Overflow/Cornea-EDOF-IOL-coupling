@@ -160,11 +160,36 @@ NOMINAL_MAIN_555_V1 = AnalysisSettings(
 @dataclass(frozen=True, slots=True)
 class BaselineBaseSpec:
     base_id: str
+    source_model_id: str
+    source_refraction_d: float | None
     axial_length_mm: float
     post_cornea_to_stop_mm: float
     post_cornea_to_iol_ant_mm: float
     aqueous_index: float
     vitreous_index: float
+
+    def validate(self) -> None:
+        if not self.base_id.strip() or not self.source_model_id.strip():
+            raise ValueError("base_id and source_model_id are required")
+        finite_values = (
+            self.axial_length_mm,
+            self.post_cornea_to_stop_mm,
+            self.post_cornea_to_iol_ant_mm,
+            self.aqueous_index,
+            self.vitreous_index,
+        )
+        if not all(math.isfinite(value) for value in finite_values):
+            raise ValueError("base prescription values must be finite")
+        if self.source_refraction_d is not None and not math.isfinite(self.source_refraction_d):
+            raise ValueError("source refraction must be finite when provided")
+        if not (
+            0 < self.post_cornea_to_stop_mm
+            < self.post_cornea_to_iol_ant_mm
+            < self.axial_length_mm
+        ):
+            raise ValueError("base axial landmarks must be positive and strictly ordered")
+        if self.aqueous_index <= 1 or self.vitreous_index <= 1:
+            raise ValueError("base medium indices must be greater than one")
 
 
 @dataclass(frozen=True, slots=True)
@@ -208,8 +233,26 @@ class NominalConditionSpec:
 
 
 BASELINE_BASE_SPECS = (
-    BaselineBaseSpec(BaseId.LB_AL2395, 23.950, 3.150, 4.500, 1.336, 1.336),
-    BaselineBaseSpec(BaseId.ATC_M3_AL24477, 24.477, 3.150, 4.500, 1.336, 1.336),
+    BaselineBaseSpec(
+        base_id=BaseId.LB_AL2395,
+        source_model_id="Liou_Brennan_1997",
+        source_refraction_d=None,
+        axial_length_mm=23.950,
+        post_cornea_to_stop_mm=3.150,
+        post_cornea_to_iol_ant_mm=4.500,
+        aqueous_index=1.336,
+        vitreous_index=1.336,
+    ),
+    BaselineBaseSpec(
+        base_id=BaseId.ATC_M3_AL24477,
+        source_model_id="Atchison_2006_Model_1",
+        source_refraction_d=-3.0,
+        axial_length_mm=24.477,
+        post_cornea_to_stop_mm=3.150,
+        post_cornea_to_iol_ant_mm=4.500,
+        aqueous_index=1.336,
+        vitreous_index=1.336,
+    ),
 )
 BASELINE_STANDARD_EYE_SPEC = BaselineStandardEyeSpec(
     "STD_IOL_EYE_2024", 0.258, 5.15, 0.10, 1.336, 3.0, 546.0

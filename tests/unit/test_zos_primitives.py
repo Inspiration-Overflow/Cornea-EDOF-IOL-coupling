@@ -43,6 +43,7 @@ class Row:
         self.Thickness = 0
         self.Material = ""
         self.Comment = ""
+        self.IsStop = False
         self.RadiusCell = Cell()
         self.cells = {}
 
@@ -156,7 +157,7 @@ def test_sequential_editor_sets_surfaces_and_parameters(tmp_path) -> None:
     assert row.type_settings == ("settings", "EVEN")
     assert row.Radius == 7.8 and row.Conic == -0.2
     assert row.cells["P2"].DoubleValue == 0.001 and row.RadiusCell.variable
-    assert system.LDE.StopSurface == 2 and system.saved[-1].endswith("x.zos")
+    assert system.LDE.GetSurfaceAt(2).IsStop and system.saved[-1].endswith("x.zos")
 
 
 @pytest.mark.unit

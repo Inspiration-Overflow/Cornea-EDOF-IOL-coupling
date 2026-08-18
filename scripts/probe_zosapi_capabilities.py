@@ -6,6 +6,7 @@ standalone session, inspects API metadata, and closes without saving.
 
 from __future__ import annotations
 
+import importlib
 import json
 import os
 import tempfile
@@ -47,6 +48,75 @@ def _public_method_names(value: Any) -> list[str]:
             if bool(method.IsPublic)
         }
     )
+
+
+def _public_methods(value: Any, method_name: str) -> list[dict[str, Any]]:
+    methods: list[dict[str, Any]] = []
+    for method in value.GetType().GetMethods():
+        if not bool(method.IsPublic) or str(method.Name) != method_name:
+            continue
+        methods.append(
+            {
+                "return_type": str(method.ReturnType.FullName),
+                "parameters": [
+                    {
+                        "name": str(parameter.Name),
+                        "type": str(parameter.ParameterType.FullName),
+                        "is_out": bool(parameter.IsOut),
+                    }
+                    for parameter in method.GetParameters()
+                ],
+            }
+        )
+    return methods
+
+
+def _material_model_metadata(system: Any, zosapi: Any) -> dict[str, Any]:
+    system.New(False)
+    system.SystemData.Wavelengths.GetWavelength(1).Wavelength = 0.555
+    row = system.LDE.GetSurfaceAt(1)
+    cell = row.MaterialCell
+    solve = cell.CreateSolveType(zosapi.Editors.SolveType.MaterialModel)
+    material_model = solve._S_MaterialModel
+    material_model.IndexNd = 1.336
+    material_model.AbbeVd = 1.0e8
+    material_model.dPgF = 0.0
+    solve_status = cell.SetSolveData(solve)
+    system_module = importlib.import_module("System")
+    indices = system_module.Array[system_module.Double]([0.0])
+    index_result = system.LDE.GetIndex(1, 1, indices)
+    return {
+        "material_value_after_solve": str(cell.Value),
+        "solve_status": str(solve_status),
+        "index_result_type": str(type(index_result)),
+        "index_result": int(index_result),
+        "indices": [float(value) for value in indices],
+        "lde_stop_methods": [
+            name for name in _public_method_names(system.LDE) if "Stop" in name
+        ],
+        "surface_stop_methods": [
+            name for name in _public_method_names(row) if "Stop" in name
+        ],
+        "surface_properties": _public_properties(row),
+        "material_cell_properties": _public_properties(cell),
+        "material_cell_methods": {
+            name: _public_methods(cell, name)
+            for name in ("CreateSolveType", "GetSolveData", "SetSolveData")
+        },
+        "material_solve_runtime_type": str(solve.GetType().FullName),
+        "material_model_interface_type": str(material_model.GetType().FullName),
+        "material_model_interface_properties": _public_properties(material_model),
+        "material_solve_properties": _public_properties(solve),
+        "material_solve_methods": _public_method_names(solve),
+        "lde_methods": {
+            name: _public_methods(system.LDE, name)
+            for name in ("GetIndex", "GetIndexModel", "GetIndexData")
+        },
+        "wavelength_properties": _public_properties(system.SystemData.Wavelengths),
+        "wavelength_methods": _public_method_names(system.SystemData.Wavelengths),
+        "field_properties": _public_properties(system.SystemData.Fields),
+        "field_methods": _public_method_names(system.SystemData.Fields),
+    }
 
 
 def _surface_parameters(system: Any, zosapi: Any, surface_type_name: str) -> list[dict[str, Any]]:
@@ -169,6 +239,7 @@ def main() -> None:
     with open_zos_session(Path(install_dir)) as session:
         payload = {
             "license_status": str(session.app.LicenseStatus),
+            "material_model": _material_model_metadata(session.system, session.zosapi),
             "surface_parameters": {
                 name: _surface_parameters(session.system, session.zosapi, name)
                 for name in SURFACE_TYPES

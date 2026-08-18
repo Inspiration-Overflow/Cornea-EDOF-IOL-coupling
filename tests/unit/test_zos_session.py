@@ -15,7 +15,11 @@ from whole_eye_mvp.zos import (
     ZosSessionAdapter,
     open_zos_session,
 )
-from whole_eye_mvp.zos.session import _find_first_file, _PythonNetBootstrapRegistry
+from whole_eye_mvp.zos.session import (
+    _find_first_file,
+    _PythonNetApplicationRegistry,
+    _PythonNetBootstrapRegistry,
+)
 
 
 @dataclass
@@ -184,3 +188,43 @@ def test_pythonnet_bootstrap_is_process_idempotent_and_rejects_install_switch(
     with pytest.raises(ZosEnvironmentError, match="refusing to switch"):
         registry.get_or_initialize(second, loader)
     assert calls == [first.resolve()]
+
+
+@pytest.mark.unit
+def test_pythonnet_application_is_reused_serially_and_closed_once_at_shutdown() -> None:
+    class Application:
+        def __init__(self) -> None:
+            self.close_calls = 0
+
+        def CloseApplication(self) -> None:
+            self.close_calls += 1
+
+    app = Application()
+
+    class Connection:
+        def CreateNewApplication(self) -> Application:
+            return app
+
+    connection_calls = 0
+
+    def connection_factory() -> Connection:
+        nonlocal connection_calls
+        connection_calls += 1
+        return Connection()
+
+    zosapi = SimpleNamespace(ZOSAPI_Connection=connection_factory)
+    registry = _PythonNetApplicationRegistry()
+
+    first = registry.acquire(zosapi)
+    with pytest.raises(ZosConnectionError, match="already active"):
+        registry.acquire(zosapi)
+    registry.release(first)
+    second = registry.acquire(zosapi)
+    registry.release(second)
+
+    assert first is second is app
+    assert connection_calls == 1
+    assert app.close_calls == 0
+    registry.shutdown()
+    registry.shutdown()
+    assert app.close_calls == 1

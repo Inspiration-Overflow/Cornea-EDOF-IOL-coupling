@@ -27,6 +27,8 @@ project/locks/
 project/manifests/
 project/results/
 project/logs/
+project/environments/
+project/project.json
 *.zos
 *.zmx
 

@@ -7,9 +7,11 @@ a real session is opened so pure unit tests remain independent of OpticStudio.
 
 from __future__ import annotations
 
+import atexit
 import importlib
 import threading
 from collections.abc import Callable
+from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import TracebackType
@@ -72,6 +74,58 @@ class _PythonNetBootstrapRegistry:
 _PYTHONNET_BOOTSTRAP = _PythonNetBootstrapRegistry()
 
 
+@dataclass(slots=True)
+class _PythonNetApplicationState:
+    connection: Any
+    app: Any
+    leased: bool = False
+
+
+class _PythonNetApplicationRegistry:
+    """Keep one standalone OpticStudio application alive per Python process."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._state: _PythonNetApplicationState | None = None
+        atexit.register(self.shutdown)
+
+    def acquire(self, zosapi: Any) -> Any:
+        with self._lock:
+            if self._state is None:
+                connection = zosapi.ZOSAPI_Connection()
+                app = connection.CreateNewApplication()
+                if app is None:
+                    raise ZosConnectionError(
+                        "ZOS-API returned no standalone application."
+                    )
+                self._state = _PythonNetApplicationState(connection, app)
+            if self._state.leased:
+                raise ZosConnectionError(
+                    "another ZOS-API session is already active in this Python process"
+                )
+            self._state.leased = True
+            return self._state.app
+
+    def release(self, app: Any) -> None:
+        with self._lock:
+            if self._state is None or self._state.app is not app:
+                raise ZosCloseError("attempted to release an unknown OpticStudio application")
+            self._state.leased = False
+
+    def shutdown(self) -> None:
+        with self._lock:
+            state = self._state
+            self._state = None
+        if state is None:
+            return
+        # Interpreter shutdown cannot report a recoverable error to a caller.
+        with suppress(Exception):
+            state.app.CloseApplication()
+
+
+_PYTHONNET_APPLICATION = _PythonNetApplicationRegistry()
+
+
 class ZosBackend(Protocol):
     """Small test seam around the external Python.NET/ZOS-API runtime."""
 
@@ -89,10 +143,12 @@ class ZosBackend(Protocol):
 
 @dataclass(slots=True)
 class ZosSession:
-    """Handles owned by one standalone OpticStudio session.
+    """Exclusive handles for one logical OpticStudio session.
 
-    A session owns exactly one standalone application.  ``close`` is idempotent so
-    cleanup remains safe when an exception is raised during a workflow.
+    The Python.NET backend keeps one standalone application alive for the process
+    and lends it to at most one session at a time.  ``close`` releases that lease;
+    the application itself is closed once when the Python process exits.  Test
+    backends may close their application immediately.
     """
 
     app: Any
@@ -103,12 +159,12 @@ class ZosSession:
 
     @property
     def closed(self) -> bool:
-        """Whether the application has already been closed by this session."""
+        """Whether this logical session has already been released."""
 
         return self._closed
 
     def close(self) -> None:
-        """Close the owned OpticStudio application once."""
+        """Release this session once."""
 
         if self._closed:
             return
@@ -137,7 +193,6 @@ class PythonNetZosBackend:
 
     def __init__(self) -> None:
         self._zosapi: Any | None = None
-        self._connection: Any | None = None
 
     @property
     def zosapi(self) -> Any:
@@ -200,8 +255,9 @@ class PythonNetZosBackend:
 
     def create_application(self) -> Any:
         try:
-            self._connection = self.zosapi.ZOSAPI_Connection()
-            return self._connection.CreateNewApplication()
+            return _PYTHONNET_APPLICATION.acquire(self.zosapi)
+        except ZosSessionError:
+            raise
         except Exception as exc:
             raise ZosConnectionError("Failed to create a standalone OpticStudio application.") from exc
 
@@ -209,7 +265,7 @@ class PythonNetZosBackend:
         return bool(app.Mode == self.zosapi.ZOSAPI_Mode.Server)
 
     def close_application(self, app: Any) -> None:
-        app.CloseApplication()
+        _PYTHONNET_APPLICATION.release(app)
 
 
 class ZosSessionAdapter:

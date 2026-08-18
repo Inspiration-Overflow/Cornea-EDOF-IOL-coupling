@@ -28,10 +28,10 @@ uv run ruff check .
 Zemax integration tests require Windows, Ansys Zemax OpticStudio 2026 R1, and a valid ZOS-API license:
 
 ```bash
-uv run pytest tests/zemax
+uv run python scripts/run_zemax_gates.py
 ```
 
-The Zemax tests are collected from `tests/zemax` directly so unrelated GUI and
-numerical-library imports do not enter the native ZOS-API process.
+Each Zemax test file runs in a fresh Python.NET process. This avoids cross-file
+CLR type-loading order effects while preserving each subprocess exit code.
 
 The scientific and software requirements are defined in `docs/`; implementation must not silently change frozen scientific locks or the 18-carrier / 72-configuration MVP design.

@@ -72,7 +72,7 @@ Zemax 测试必须直接从 `tests/zemax` 收集。本机在收集完整测试�
 当前 API smoke 回归命令：
 
 ```powershell
-uv run pytest tests/zemax
+uv run python scripts/run_zemax_gates.py
 ```
 
 ## 3. TASK-005：基础科学资产
