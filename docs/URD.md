@@ -2,7 +2,7 @@
 
 > **文档角色：** 用户需求文档（User Requirement Document, URD）。  
 > **文档原则：** 本文件为独立、完整、自包含的 MVP 需求基线。实现人员不需要阅读任何旧版 URD、科学设计文档或讨论记录，即可理解本软件的研究目的、科学模型、实验矩阵、软件范围与验收条件。  
-> **边界：** 本文件定义“软件必须完成什么、科学模型必须遵守什么、什么算成功”；内部模块拆分、类设计、具体 ZOS-API 调用方式和测试代码留给后续 ADD/MDD/TDD。
+> **边界：** 本文件定义“软件必须完成什么、科学模型必须遵守什么、什么算成功”；内部模块拆分、类设计、具体 ZOS-API 调用方式和测试代码留给后续 ADD/MDD。
 
 ## Metadata
 
@@ -18,6 +18,7 @@
 - automation: Python + ZOS-API
 - user_interface: CustomTkinter 极简桌面 GUI
 - primary_outputs: CSV + `.zos` + 图像
+- architecture_impact_of_v1_4: none; existing ADD/MDD decomposition remains valid because only the standard-eye calibration condition changed
 
 ---
 
@@ -810,6 +811,7 @@ CSV 必须包含稳定的配置 ID，不依赖人工从文件名猜测实验条�
 - [x] CSV + `.zos` + 图像输出明确。
 - [x] Out of Scope 与后续扩展分离。
 - [x] 原 Open Questions 与 standard-eye calibration pupil 决策已关闭。
+- [x] 本次 v1.4 仅改变 standard-eye calibration 科学条件，不改变现有 ADD/MDD 架构拆分与 lock boundary。
 
 ## Checkpoint Result
 
