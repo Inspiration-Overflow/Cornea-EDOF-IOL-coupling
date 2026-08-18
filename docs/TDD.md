@@ -1,6 +1,6 @@
 # TDD — 角膜屈光术后 × 非衍射 EDOF IOL Zemax 自动化研究软件
 
-> **Check Plan / Test-Driven Document。** 目标不是增加测试数量，而是让少量关键 oracle 能发现“模型做错、指标算错、72 个结果漏跑”。来源：`URD-0001 v1.4`、`ADD-0001 v1.4`、`MDD-0001 v1.3`。
+> **Check Plan / Test-Driven Document。** 目标不是增加测试数量，而是让少量关键 oracle 能发现“模型做错、指标算错、72 个结果漏跑”。来源：`URD-0001 v1.4`、`ADD-0001 v1.4`、`MDD-0001 v1.3`。URD v1.4 仅改变 standard-eye calibration 科学条件，不改变既有 ADD/MDD 架构拆分。
 
 ## Metadata
 
@@ -224,4 +224,4 @@ fixture 明确规定 `OTF_DL=1` 于这 9 个离散点，并按同一离散 measu
 - [x] retina-anchored / shape-recentered 双坐标和 analysis-vergence 贯焦因果边界已冻结。
 - [x] residual scientific payload + low/median/high actual-power calibration 仍是唯一显式 STOP gate。
 
-**Result:** `TDD-0001 v1.3` 已将 standard-eye carrier SA calibration 从 3 mm 修订为 6 mm，并保持既有测试 ID、主实验 EPD3/EPD5 与 TDD-999 边界不变。
+**Result:** `TDD-0001 v1.3` 已将 standard-eye carrier SA calibration 从 3 mm 修订为 6 mm，并保持既有 ADD/MDD 架构、测试 ID、主实验 EPD3/EPD5 与 TDD-999 边界不变。
