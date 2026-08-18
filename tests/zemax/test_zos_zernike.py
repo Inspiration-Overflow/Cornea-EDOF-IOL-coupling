@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from whole_eye_mvp.domain import NOMINAL_MAIN_555_V1
 from whole_eye_mvp.zos import (
     ZernikeStandardRunner,
     ZernikeStandardSettings,
@@ -27,7 +28,7 @@ def _install_dir() -> Path:
 
 
 @pytest.mark.zemax
-def test_zernike_standard_returns_complete_finite_coefficients() -> None:
+def test_zernike_standard_returns_complete_finite_coefficients_at_frozen_settings() -> None:
     with open_zos_session(_install_dir()) as session:
         configured_reference = os.environ.get(REFERENCE_ENV)
         reference = (
@@ -38,11 +39,10 @@ def test_zernike_standard_returns_complete_finite_coefficients() -> None:
         assert reference.is_file(), f"OpticStudio reference file is missing: {reference}"
         session.system.LoadFile(str(reference), False)
 
-        result = ZernikeStandardRunner(session.system, session.zosapi).run(
-            ZernikeStandardSettings(32, maximum_terms=37)
-        )
+        settings = ZernikeStandardSettings.from_analysis_settings(NOMINAL_MAIN_555_V1)
+        result = ZernikeStandardRunner(session.system, session.zosapi).run(settings)
 
-        assert len(result.coefficients) == 37
+        assert len(result.coefficients) == NOMINAL_MAIN_555_V1.zernike_maximum_terms
         assert result.wavelength_um > 0
         assert all(math.isfinite(item.value_waves) for item in result.coefficients)
         assert math.isfinite(result.c40_um)
