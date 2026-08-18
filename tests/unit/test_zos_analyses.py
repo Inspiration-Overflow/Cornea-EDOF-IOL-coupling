@@ -5,6 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from whole_eye_mvp.domain import NOMINAL_MAIN_555_V1
 from whole_eye_mvp.zos import (
     HuygensPsfError,
     HuygensPsfRunner,
@@ -46,14 +47,22 @@ class Values:
 
 
 class Grid:
-    def __init__(self, rows: list[list[float]]) -> None:
+    def __init__(
+        self,
+        rows: list[list[float]],
+        *,
+        dx: float = 0.5,
+        dy: float = 0.5,
+        min_x: float | None = None,
+        min_y: float | None = None,
+    ) -> None:
         self.Values = Values(rows)
         self.Ny = len(rows)
         self.Nx = len(rows[0])
-        self.MinX = -1.0
-        self.MinY = -1.0
-        self.Dx = 0.5
-        self.Dy = 0.5
+        self.Dx = dx
+        self.Dy = dy
+        self.MinX = -0.5 * self.Nx * dx if min_x is None else min_x
+        self.MinY = -0.5 * self.Ny * dy if min_y is None else min_y
         self.XLabel = "X"
         self.YLabel = "Y"
         self.ValueLabel = "Intensity"
@@ -61,10 +70,10 @@ class Grid:
 
 
 class Results:
-    def __init__(self, rows: list[list[float]], *, valid: bool = True) -> None:
+    def __init__(self, grid: Grid, *, valid: bool = True) -> None:
         self.IsValid = valid
         self.NumberOfDataGrids = 1
-        self.grid = Grid(rows)
+        self.grid = grid
 
     def GetDataGrid(self, index: int) -> Grid:
         assert index == 0
@@ -72,9 +81,9 @@ class Results:
 
 
 class Analysis:
-    def __init__(self, rows: list[list[float]]) -> None:
+    def __init__(self, grid: Grid) -> None:
         self.settings = Settings()
-        self.results = Results(rows)
+        self.results = Results(grid)
         self.ran = False
         self.closed = False
 
@@ -92,8 +101,8 @@ class Analysis:
 
 
 class Analyses:
-    def __init__(self, rows: list[list[float]]) -> None:
-        self.analysis = Analysis(rows)
+    def __init__(self, grid: Grid) -> None:
+        self.analysis = Analysis(grid)
 
     def New_HuygensPsf(self) -> Analysis:
         return self.analysis
@@ -103,7 +112,12 @@ def fake_zosapi() -> SimpleNamespace:
     return SimpleNamespace(
         Analysis=SimpleNamespace(
             AnalysisIDM=SimpleNamespace(HuygensPsf="HPSF"),
-            SampleSizes=SimpleNamespace(S_32x32="S32", S_64x64="S64"),
+            SampleSizes=SimpleNamespace(
+                S_32x32="S32",
+                S_64x64="S64",
+                S_128x128="S128",
+                S_256x256="S256",
+            ),
             Settings=SimpleNamespace(
                 HuygensPsfTypes=SimpleNamespace(Linear="LINEAR"),
                 Psf=SimpleNamespace(IAS_HuygensPsf=lambda value: value),
@@ -112,15 +126,19 @@ def fake_zosapi() -> SimpleNamespace:
     )
 
 
+def square_rows(size: int, value: float = 1.0) -> list[list[float]]:
+    return [[value for _ in range(size)] for _ in range(size)]
+
+
 @pytest.mark.unit
 def test_huygens_psf_copies_grid_and_applies_explicit_settings() -> None:
-    analyses = Analyses([[1.0, 2.0], [3.0, 4.0]])
+    analyses = Analyses(Grid(square_rows(32)))
     runner = HuygensPsfRunner(SimpleNamespace(Analyses=analyses), fake_zosapi())
-    grid = runner.run(HuygensPsfSettings(32, 64, 0.5, wavelength_number=2, field_number=3))
+    grid = runner.run(HuygensPsfSettings(32, 32, 0.5, wavelength_number=2, field_number=3))
 
     configured = analyses.analysis.settings
     assert configured.PupilSampleSize == "S32"
-    assert configured.ImageSampleSize == "S64"
+    assert configured.ImageSampleSize == "S32"
     assert configured.ImageDelta == 0.5
     assert configured.Type == "LINEAR"
     assert configured.Normalize is True
@@ -128,10 +146,24 @@ def test_huygens_psf_copies_grid_and_applies_explicit_settings() -> None:
     assert configured.UsePolarization is False
     assert configured.Wavelength.selected == 2
     assert configured.Field.selected == 3
-    assert grid.values == ((1.0, 2.0), (3.0, 4.0))
-    assert grid.shape == (2, 2)
-    assert grid.total_energy == 10.0
+    assert grid.shape == (32, 32)
+    assert grid.total_energy == 1024.0
     assert analyses.analysis.ran and analyses.analysis.closed
+
+
+@pytest.mark.unit
+def test_zos_analysis_settings_are_derived_from_frozen_analysis_settings() -> None:
+    psf = HuygensPsfSettings.from_analysis_settings(NOMINAL_MAIN_555_V1)
+    zernike = ZernikeStandardSettings.from_analysis_settings(NOMINAL_MAIN_555_V1)
+
+    assert psf.pupil_sampling == 128
+    assert psf.image_sampling == 256
+    assert psf.image_delta_um == 0.5
+    assert psf.normalize is True and psf.use_centroid is False
+    assert zernike.sample_size == 128
+    assert zernike.maximum_terms == 37
+    assert zernike.reference_opd_to_vertex is False
+    assert zernike.normalized_radius == 1.0
 
 
 @pytest.mark.unit
@@ -152,12 +184,25 @@ def test_huygens_psf_rejects_invalid_settings_before_opening_analysis(
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("bad_value", (math.nan, math.inf, 0.0))
-def test_huygens_psf_rejects_invalid_result_and_still_closes(bad_value: float) -> None:
-    analyses = Analyses([[bad_value]])
+@pytest.mark.parametrize(
+    "grid,error",
+    (
+        (Grid([[math.nan]]), "non-finite"),
+        (Grid([[math.inf]]), "non-finite"),
+        (Grid([[-1.0]]), "negative"),
+        (Grid(square_rows(32), dx=0.25, dy=0.25), "ImageDelta"),
+        (Grid(square_rows(32), min_x=100.0), "centered"),
+        (Grid(square_rows(64)), "shape mismatch"),
+    ),
+)
+def test_huygens_psf_rejects_invalid_result_and_still_closes(
+    grid: Grid,
+    error: str,
+) -> None:
+    analyses = Analyses(grid)
     runner = HuygensPsfRunner(SimpleNamespace(Analyses=analyses), fake_zosapi())
 
-    with pytest.raises(HuygensPsfError):
+    with pytest.raises(HuygensPsfError, match=error):
         runner.run(HuygensPsfSettings(32, 32, 0.5))
 
     assert analyses.analysis.closed
@@ -189,7 +234,9 @@ def test_zernike_text_parser_converts_waves_and_uses_standard_term_groups() -> N
 def test_zernike_text_parser_rejects_missing_duplicate_and_invalid_settings() -> None:
     complete = "\n".join(f"Z {term} 0.0 : term" for term in range(1, 29))
     with pytest.raises(ZernikeStandardError, match="missing"):
-        parse_zernike_standard_text(complete.rsplit("\n", 1)[0], maximum_terms=28, wavelength_um=0.5)
+        parse_zernike_standard_text(
+            complete.rsplit("\n", 1)[0], maximum_terms=28, wavelength_um=0.5
+        )
     with pytest.raises(ZernikeStandardError, match="duplicate"):
         parse_zernike_standard_text(
             complete + "\nZ 28 0.0 : duplicate", maximum_terms=28, wavelength_um=0.5
