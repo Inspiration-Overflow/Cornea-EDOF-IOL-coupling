@@ -1,6 +1,6 @@
 # TASK-005C — `STD_IOL_EYE_2024` 与 `ZERO_HOA_PARAXIAL_REFERENCE` 实施规格
 
-> 状态：**科学文档已修订为 6 mm calibration；由此产生的 scientific baseline 版本升级已明确。代码随后按本文修订，之后等待 Codex / OpticStudio 2026 R1 实机验证。**
+> 状态：**科学文档已先行修订为 6 mm calibration；scientific baseline 已升级为 `MVP_2026_v2`；Web 代码/测试已按文档完成修订，等待 Codex / OpticStudio 2026 R1 实机验证。**
 >
 > 本文是 RMD-TASK-005 的 005C 子阶段实施规格。它执行 `URD-0001 v1.4` 与 `TDD-0001 v1.3`，不重新定义主实验矩阵。
 
@@ -214,17 +214,11 @@ URD/TDD 冻结的是 `5.15 ± 0.10 mm` real-ray footprint，并没有事先冻�
 2. reduced-angle paraxial trace 通过 Liou 两面角膜；
 3. 求后角膜之后的距离 `d`，使 IOL reference plane 上半径为 `5.15/2=2.575 mm`。
 
-解析起点约：
+解析起点约：`d ≈ 3.92355 mm`。
 
-`d ≈ 3.92355 mm`
+该距离只是工程 seed，**不是科学 oracle**。正式验收只认 OpticStudio real-ray footprint `5.15 ± 0.10 mm`。
 
-该距离只是工程 seed，**不是科学 oracle**。
-
-正式验收只认 OpticStudio real-ray footprint：
-
-`5.15 ± 0.10 mm`。
-
-若实机 real-ray 显示 seed 有偏差，Codex 可在不改变 5.15 mm target 的前提下，将实现层距离改成确定性 real-ray solve 的结果；必须回传准确距离与 commit，不得为了保留 `3.92355 mm` 而牺牲 footprint target。
+若实机 real-ray 显示 seed 有偏差，Codex 可在不改变 5.15 mm target 的前提下，将实现层距离改成确定性 real-ray solve 的结果；必须回传准确距离与 commit。
 
 ### 6.3 IMAGE reference
 
@@ -328,41 +322,43 @@ pupils 仍为 `EPD3` 与 `EPD5`。
 
 ---
 
-## 10. 代码修订范围
+## 10. Web 代码实现（已完成，待实机验证）
 
-文档冻结后，Web 代码只做以下必要修改：
+本分支已完成以下代码修改：
 
 - `src/whole_eye_mvp/domain.py`
   - `BASELINE_STANDARD_EYE_SPEC.aperture_mm: 3.0 → 6.0`；
-  - 增加当前 scientific baseline ID=`MVP_2026_v2`，供脚本默认使用；
-  - 不改变 EPD3/EPD5 nominal conditions。
+  - `CURRENT_SCIENTIFIC_BASELINE_ID = MVP_2026_v2`；
+  - `NOMINAL_MAIN_555_v1` 与 `CORNEA_LOCK_B0_555_v1` 的 pupils 继续为 `(3.0, 5.0)`。
 - `src/whole_eye_mvp/standard_eye.py`
-  - saved calibration aperture 使用 6.0 mm；
-  - C40 / footprint 统一在 6 mm 验证；
-  - `ZeroHoaReferenceRecord` 携带/验证 6 mm calibration identity。
+  - saved calibration aperture=6.0 mm；
+  - C40 / footprint 在同一 6 mm pupil 下验证；
+  - 角膜 C40 测量仅临时改变 IMAGE reference，完成后恢复，不改变保存的 6 mm aperture；
+  - `ZeroHoaReferenceRecord` 显式保存/验证 calibration aperture 与 wavelength identity。
 - `tests/unit/test_standard_eye.py`
-  - standard-eye aperture oracle 改为 6 mm；
-  - 增加 EPD3/EPD5 与 standard-eye calibration 解耦测试。
+  - standard-eye 6 mm oracle；
+  - EPD3/EPD5 performance 与 6 mm calibration 解耦回归测试；
+  - wrong-pupil ZERO_HOA rejection。
+- `tests/unit/test_domain_store.py`
+  - v2 baseline ID；
+  - 3 mm legacy semantics 在同 v2 project 上触发 baseline content mismatch。
+- `tests/unit/test_science_assets.py`
+  - frozen standard-eye aperture anchor 更新到 6 mm。
 - `tests/zemax/test_zos_standard_eye.py`
   - saved/reloaded `.zos` 必须读取 EPD=6 mm；
   - validate-only 前后 hash exact。
 - `scripts/build_task_005b_base_assets.py`、`scripts/build_task_005c_standard_eye.py`
-  - 默认 baseline ID 改为 `MVP_2026_v2`。
+  - 默认 baseline ID 为 `MVP_2026_v2`。
 
-不修改：
+Web 环境不具备真实 OpticStudio，因此上述代码**尚不能标记为实机 PASS**。
 
-- 005B base 几何规格；
-- A0/B/C 科学定义；
-- B0 EPD3/EPD5 selection；
-- main 72 manifest；
-- residual policy；
-- TDD-999。
+不修改：005B base 几何、A0/B/C、B0 EPD3/EPD5 selection、72 manifest、residual policy、TDD-999。
 
 ---
 
 ## 11. Codex / OpticStudio 实机验证包
 
-代码修订完成后，使用**新 project 目录**：
+使用**新 project 目录**：
 
 ```powershell
 uv sync
@@ -372,7 +368,6 @@ uv run ruff check .
 uv run python -m compileall -q src tests scripts
 uv lock --check
 
-# 新 baseline project；不要删除/覆盖旧 v1 project
 $P = "project_mvp_2026_v2"
 
 uv run python scripts/build_task_005b_base_assets.py --project-dir $P --baseline-id MVP_2026_v2
@@ -428,7 +423,7 @@ TASK-005C 只有在以下全部满足后才完成：
 - [x] TDD v1.3 已冻结对应 oracle；
 - [x] RMD v1.3 已同步执行条件；
 - [x] scientific baseline versioning 风险已识别；正式后续使用 `MVP_2026_v2`，旧 v1 project 保留不覆盖；
-- [ ] Web 代码/测试全部改为 6 mm / v2；
+- [x] Web 代码/测试全部改为 6 mm / v2；
 - [ ] unit / Ruff / compileall / uv lock check PASS；
 - [ ] v2 005B 双基座重新生成/登记并通过 readback；
 - [ ] real OpticStudio 005C gate PASS；
