@@ -147,9 +147,23 @@ uv run python scripts/build_task_005c_manual_diagnostics.py `
 
 诊断生成阶段继续遵守 STOP：不运行正式 005C builder、不运行 Zernike integration test、不运行全套 Zemax gates；每个 worker 只尝试一次。A 失败则停止；B/C 任一失败则保留此前已成功文件并报告，不循环重试。若中途 STOP，manifest 仍保存已成功文件列表并记录 `completed_all_variants=false` 与 error。
 
-随后由项目负责人在 OpticStudio GUI 中使用统一 Zernike Standard Coefficients 设置人工读取 Z11/C40。
+### Codex 回传
 
-详细步骤见：
+只回传：
+
+- 最新 head；
+- OpticStudio 版本/license；
+- Python version；
+- 输出目录；
+- A/B/C 的 SHA-256；
+- A/B/C 的 `medium_index_after_iol_ref`；
+- A/B/C 的 `IOL_REF→IMAGE` thickness；
+- manifest 内容/路径；
+- 任何 stderr 或残留进程数。
+
+**Codex 不运行 Zernike analysis。** GUI Z11/C40 由项目负责人本人读取。
+
+详细人工检查步骤见：
 
 ```text
 docs/TASK_005C_MANUAL_OPTICSTUDIO_DIAGNOSTICS.md
