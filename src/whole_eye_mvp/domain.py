@@ -56,7 +56,7 @@ class AnalysisSettings:
     mtfa_max_cpd: float = 60.0
     vsotf_max_cpd: float = 60.0
     mtf_sample_frequencies_cpd: tuple[float, ...] = (10.0, 20.0, 30.0, 40.0, 50.0, 60.0)
-    zernike_sample_size: int = 128
+    zernike_sample_size: int = 32
     zernike_maximum_terms: int = 37
     zernike_reference_opd_to_vertex: bool = False
     zernike_center_x: float = 0.0
