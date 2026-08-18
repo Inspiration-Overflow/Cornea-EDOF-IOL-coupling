@@ -145,6 +145,8 @@ uv run python scripts/build_task_005c_manual_diagnostics.py `
 
 生成过程不得创建 Zernike analysis，也不得把这些文件登记进 `project/locks`。
 
+诊断生成阶段继续遵守 STOP：不运行正式 005C builder、不运行 Zernike integration test、不运行全套 Zemax gates；每个 worker 只尝试一次。A 失败则停止；B/C 任一失败则保留此前已成功文件并报告，不循环重试。
+
 随后由项目负责人在 OpticStudio GUI 中使用统一 Zernike Standard Coefficients 设置人工读取 Z11/C40。
 
 详细步骤见：
