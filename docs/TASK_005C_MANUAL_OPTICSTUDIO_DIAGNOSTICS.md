@@ -280,7 +280,30 @@ C_WAVEFRONT_BEST_FOCUS:
 
 ---
 
-## 6. 结果解释规则
+## 6. Codex 回传格式
+
+若三个文件全部成功生成，只需回传：
+
+```text
+head = ...
+OpticStudio = 2026 R1.00 / Premium
+Python = ...
+output_dir = ...
+
+A sha256 = ...
+B sha256 = ...
+C sha256 = ...
+manifest = ...
+
+A/B/C medium_index_after_iol_ref = ...
+A/B/C IOL_REF→IMAGE = ...
+```
+
+不要由 Codex 打开 Zernike analysis，也不要替项目负责人读取 GUI C40。
+
+---
+
+## 7. 结果解释规则
 
 1. 若 DIAG-C GUI C40 落入 `0.258±0.005 µm`：
    - Liou/Norrby → OpticStudio 的科学映射基本成立；
@@ -295,6 +318,6 @@ C_WAVEFRONT_BEST_FOCUS:
 
 ---
 
-## 7. 当前结论
+## 8. 当前结论
 
 第二轮实机失败仍不足以改变科学 baseline。下一步最小、信息量最高的动作不是继续自动 Zernike，而是生成三个没有 Zernike API 调用的 diagnostic `.zos`，由项目负责人在 OpticStudio GUI 内人工统一读取 Z11/C40。
