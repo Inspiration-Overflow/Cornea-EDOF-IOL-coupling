@@ -8,6 +8,7 @@ import pytest
 
 from whole_eye_mvp.domain import (
     CORNEA_LOCK_B0_555_V1,
+    CURRENT_SCIENTIFIC_BASELINE_ID,
     NOMINAL_MAIN_555_V1,
     ArtifactRecord,
     RunEnvironment,
@@ -40,17 +41,19 @@ def test_settings_grids_and_optical_sampling_are_frozen_and_exact() -> None:
 
 @pytest.mark.unit
 def test_project_round_trip_supports_spaces_unicode_and_full_baseline_hash() -> None:
-    # pytest tmp_path is not needed here; this test is parameterized below by fixture injection.
-    baseline = ScientificBaseline("MVP_2026_v1")
+    baseline = ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID)
+    assert CURRENT_SCIENTIFIC_BASELINE_ID == "MVP_2026_v2"
     assert len(baseline.base_specs) == 2
     assert len(baseline.cornea_specs) == 3
     assert len(baseline.platform_specs) == 3
     assert baseline.standard_eye_spec.eye_id == "STD_IOL_EYE_2024"
+    assert baseline.standard_eye_spec.aperture_mm == 6.0
+    assert baseline.nominal_condition.pupils_mm == (3.0, 5.0)
 
 
 @pytest.mark.unit
 def test_project_round_trip_path_and_baseline_content_mismatch(tmp_path: Path) -> None:
-    baseline = ScientificBaseline("MVP_2026_v1")
+    baseline = ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID)
     store = open_project_store(tmp_path / "项目 data", baseline)
     assert store.root.name == "项目 data"
     reopened = open_project_store(store.root, baseline)
@@ -62,6 +65,13 @@ def test_project_round_trip_path_and_baseline_content_mismatch(tmp_path: Path) -
     )
     with pytest.raises(BaselineMismatch, match="contents differ"):
         open_project_store(store.root, modified)
+
+    old_3mm_semantics = replace(
+        baseline,
+        standard_eye_spec=replace(baseline.standard_eye_spec, aperture_mm=3.0),
+    )
+    with pytest.raises(BaselineMismatch, match="contents differ"):
+        open_project_store(store.root, old_3mm_semantics)
 
 
 @pytest.mark.unit
