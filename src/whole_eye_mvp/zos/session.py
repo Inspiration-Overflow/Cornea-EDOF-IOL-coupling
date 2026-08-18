@@ -8,6 +8,8 @@ a real session is opened so pure unit tests remain independent of OpticStudio.
 from __future__ import annotations
 
 import importlib
+import threading
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import TracebackType
@@ -32,6 +34,42 @@ def _find_first_file(*candidates: Path) -> Path:
             return candidate
     checked = ", ".join(str(candidate) for candidate in candidates)
     raise ZosEnvironmentError(f"Missing ZOS-API file; checked: {checked}")
+
+
+@dataclass(frozen=True, slots=True)
+class _PythonNetBootstrapState:
+    install_dir: Path
+    zosapi: Any
+
+
+class _PythonNetBootstrapRegistry:
+    """Own one Python.NET/ZOS assembly bootstrap identity per Python process."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._state: _PythonNetBootstrapState | None = None
+
+    def get_or_initialize(
+        self,
+        install_dir: Path,
+        loader: Callable[[Path], Any],
+    ) -> Any:
+        resolved = install_dir.expanduser().resolve()
+        with self._lock:
+            if self._state is not None:
+                if self._state.install_dir != resolved:
+                    raise ZosEnvironmentError(
+                        "Python.NET/ZOS-API is already initialized in this process from "
+                        f"{self._state.install_dir}; refusing to switch to {resolved}. "
+                        "Start a new Python process to use another OpticStudio installation."
+                    )
+                return self._state.zosapi
+            zosapi = loader(resolved)
+            self._state = _PythonNetBootstrapState(resolved, zosapi)
+            return zosapi
+
+
+_PYTHONNET_BOOTSTRAP = _PythonNetBootstrapRegistry()
 
 
 class ZosBackend(Protocol):
@@ -108,6 +146,13 @@ class PythonNetZosBackend:
         return self._zosapi
 
     def initialize(self, install_dir: Path) -> None:
+        self._zosapi = _PYTHONNET_BOOTSTRAP.get_or_initialize(
+            install_dir,
+            self._load_zosapi,
+        )
+
+    @staticmethod
+    def _load_zosapi(install_dir: Path) -> Any:
         helper = _find_first_file(
             install_dir / "ZOSAPI_NetHelper.dll",
             install_dir / "ZOS-API" / "Libraries" / "ZOSAPI_NetHelper.dll",
@@ -147,7 +192,7 @@ class PythonNetZosBackend:
             )
             clr.AddReference(str(interfaces))
             clr.AddReference(str(api))
-            self._zosapi = importlib.import_module("ZOSAPI")
+            return importlib.import_module("ZOSAPI")
         except ZosSessionError:
             raise
         except Exception as exc:
