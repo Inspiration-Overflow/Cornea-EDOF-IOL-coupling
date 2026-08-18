@@ -1,33 +1,47 @@
 # RMD 执行状态
 
-> `RMD-0001` 的执行伴随记录。`docs/RMD.md` 继续作为实现顺序、STOP 条件和验收规则的来源；本文件记录截至 2026-08-18 的真实代码状态，不修改科学规范。
+> `RMD-0001` 的执行伴随记录。`docs/RMD.md` 继续作为实现顺序、STOP 条件和验收规则的来源；本文件记录截至 2026-08-18 的真实代码/实机状态，不重新定义科学规范。
 
 ## 当前结论
 
-当前仓库已经在本机 **OpticStudio 2026 R1.00 + Premium license** 下完成第一批 ZOS-API 适配：主线程与 worker thread 会话、三种顺序面型的实际参数列、Huygens PSF 网格读取、Zernike Standard 系数读取均已通过真实运行。TASK-005B 的两个正式轴向基座已经生成、回读、验证并登记本地 lock；A0/B0/C0、标准眼、carrier/residual、三代表配置和 Run72 仍未执行。
+当前仓库已经在本机 **OpticStudio 2026 R1.00 + Premium license** 下完成第一批 ZOS-API 适配：主线程与 worker thread 会话、三种顺序面型实际参数列、Huygens PSF 网格读取、Zernike Standard 系数读取均已通过真实运行。TASK-005B 的两个轴向基座已在当时的 `MVP_2026_v1` baseline 下生成、回读、验证并登记本地 lock。
 
-随后根据独立 code review 在 `fix/zosapi-pre-science-hardening` 分支完成第二轮 pre-science hardening：Binary 4 不再写入 OpticStudio 计算型 `Par4`；Huygens PSF 增加 shape/spacing/center/intensity 契约；Huygens/Zernike 采集参数进入 frozen settings hash；Python.NET/ZOS DLL bootstrap 改为进程级幂等；项目新建光学系统时显式 `MakeSequential()`。本分支已在同一台工作站完成复测。详细见 `docs/audit/zosapi_pre_science_hardening_2026-08-18.md`。
-
-2026-08-18 当前 hardening 分支验证：
+2026-08-18 在 TASK-005C 设计复核中，项目负责人决定把 `STD_IOL_EYE_2024` 的 carrier 基础球差 / `Q(P)` 校准瞳孔由 3 mm 修订为 **6 mm**；主实验 EPD3/EPD5 不变。该修改改变了 `ScientificBaseline.standard_eye_spec.aperture_mm`，因此当前科学 baseline 正式升级为：
 
 ```text
-pytest tests/unit                         -> 94 passed
-pytest tests/zemax                        -> 6 passed in 175.14 s
-pytest test_zos_worker_gate.py (worker)   -> 1 passed, 2 deselected
-ruff check .                              -> PASS
-python -m compileall -q src tests scripts -> PASS
-uv lock --check                           -> PASS
+MVP_2026_v2
 ```
 
-worker-first 使用全新的 Python 进程，并以完整测试函数名选择用例：
+`ProjectStore` 继续对完整 scientific baseline 计算 hash，并拒绝“同 baseline ID、不同内容”。项目不会为了复用旧目录而跳过该检查。
 
-```powershell
-uv run pytest tests/zemax/test_zos_worker_gate.py -k worker_thread_session_risk_gate -vv
-```
+因此当前资产状态必须区分：
 
-`-k worker` 会匹配测试文件名并选中该文件内全部三个测试，因此不能作为 worker-first 的精确命令。当前 session stress gate 包含同一 Python 进程连续 10 次逻辑 session→New→release；Huygens/Zernike 实机 smoke 直接从 `NOMINAL_MAIN_555_v1` 派生采集参数。
+- `MVP_2026_v1` 的两个 TASK-005B `.zos` / SHA / validation CSV：**保留为历史实机证据，仍证明 005B 轴向几何实现正确**；
+- `MVP_2026_v2` 的正式科学链：**尚未在 OpticStudio 工作站生成**；Codex 下一次验证必须在新 project 目录先重新生成/登记两枚相同几何的 005B base locks，再生成 005C standard-eye lock；
+- 旧 v1 project 不删除、不覆盖、不原地迁移。
 
-TASK-005B 完成后的当前验证：
+A0/B0/C0、当前 v2 标准眼、carrier/residual、三代表配置和 Run72 均仍未正式实机执行。
+
+---
+
+## 已完成的 ZOS-API / pre-science hardening
+
+根据独立 code review 已完成两轮基础加固：
+
+- Binary 4 不写 OpticStudio 计算型 `Par4`；
+- Huygens PSF 增加 shape/spacing/center/intensity 契约；
+- Huygens/Zernike 采集参数进入 frozen settings hash；
+- Python.NET/ZOS DLL bootstrap 进程级幂等；
+- 新建光学系统显式 `MakeSequential()`；
+- 单个 Python 进程只创建一个 OpticStudio application，逻辑 session 串行租用，进程退出时关闭一次；
+- Zemax 总 gate 按测试文件使用独立 Python.NET 进程。
+
+详细见：
+
+- `docs/audit/code_review_hardening_2026-08-17.md`
+- `docs/audit/zosapi_pre_science_hardening_2026-08-18.md`
+
+### TASK-005B v1 最后一次实机验证
 
 ```text
 pytest tests/unit                         -> 98 passed
@@ -37,78 +51,112 @@ python -m compileall -q src tests scripts -> PASS
 uv lock --check                           -> PASS
 ```
 
-Zemax gate 现按测试文件使用独立 Python.NET 进程；单个进程内复用一个 OpticStudio application，并在进程退出时关闭一次。详细记录见 `docs/TASK_005B_BASE_ASSET_IMPLEMENTATION.md`。
+v1 正式本地资产历史证据：
 
-当前执行注意事项：
+```text
+BASE_LB_PSEUDOPHAKIC.zos
+SHA-256 3213828f34dcf6371af870af4c0d7cf085fcf4d8ec64d6d78929470a72f54c8c
 
-- `uv.lock` 已生成；TASK-005B 当前分支已通过 `uv lock --check`。
+BASE_ATC_M3_PSEUDOPHAKIC.zos
+SHA-256 217fc7417bd9ceaf6a8d69f48b33253b951204805bdae758d8eb94017c2e843c
+
+TASK_005B_BASE_VALIDATION.csv
+SHA-256 3b7373fce0a1dd8c4ff944055a0d430d4b97946e9479f6997e622450e37ae18f
+```
+
+这些 SHA **不升级为 v2 lock**；v2 重新生成时以几何/readback oracle 为准，不要求文件字节 hash 与 v1 完全相同。
+
+---
+
+## TASK-005C Web 端当前状态
+
+Draft PR：**#22 `feat: prepare TASK-005C standard eye for OpticStudio validation`**。
+
+文档已先于代码完成修订：
+
+- `URD-0001 v1.4`：standard-eye `C4^0`、IOL footprint、`SA_base`、`Q(P)`/`ZERO_HOA` 统一 EPD=6 mm；主实验 EPD3/EPD5 不变；
+- `TDD-0001 v1.3`：对应 TDD-TEST-003 / 006 / 305 统一 6 mm oracle；
+- `RMD-0001 v1.3`：执行规则同步；
+- `docs/TASK_005C_STANDARD_EYE_IMPLEMENTATION.md`：记录文献依据、v2 baseline、v1/v2 资产边界与 Codex 执行包。
+
+随后代码已按文档修订，但**尚未获得本地 OpticStudio 测试结果**：
+
+- `BASELINE_STANDARD_EYE_SPEC.aperture_mm = 6.0`；
+- `CURRENT_SCIENTIFIC_BASELINE_ID = MVP_2026_v2`；
+- `NOMINAL_MAIN_555_v1.pupils_mm` 与 `CORNEA_LOCK_B0_555_v1.pupils_mm` 继续为 `(3.0, 5.0)`；
+- `STD_IOL_EYE_2024.zos` 构建保存态定义为 EPD=6 mm；
+- 6 mm 下测 `C4^0=+0.258±0.005 µm` 与 IOL footprint=`5.15±0.10 mm`；
+- `ZERO_HOA` identity 记录 standard-eye calibration pupil=6 mm、wavelength≈546 nm；
+- 005B/005C CLI 默认使用 `MVP_2026_v2`；
+- 单元测试增加“6 mm calibration 与 EPD3/EPD5 performance 不混用”及 baseline hash regression。
+
+PR #22 继续保持 Draft；在 Codex 实机证据返回前不得 merge。
+
+---
+
+## 当前执行注意事项
+
+- `uv.lock` 已生成；上一正式实机分支通过 `uv lock --check`，005C 新代码仍需重跑。
 - 2026 R1.00 把 `ZOSAPI_NetHelper.dll`、`ZOSAPI.dll`、`ZOSAPI_Interfaces.dll` 放在安装根目录；session 同时保留旧版 `ZOS-API/Libraries` 布局支持。
-- hardening 后 CLR/ZOS assembly load 在同一 Python process 内只允许初始化一次；后续 session 必须复用同一 OpticStudio install identity。若需要切换安装目录，必须启动新的 Python process。
-- 本机 Zemax 总 gate 使用 `uv run python scripts/run_zemax_gates.py`。把不同测试文件放进同一个 pytest/CLR 进程会受 `ZemaxEngine.dll` 类型加载顺序影响，因此不再作为总 gate。
-- 父集成分支个别成功会话曾在 stderr 出现 `FRU__delta_init(): Attempt to start when running!`。当前 10 次 session stress gate 通过，捕获的测试输出未再次出现该警告；这只说明本次复跑未复现，不表示已证明原生运行时不存在该问题。
-- GUI display smoke、Huygens MTF 交叉验证、footprint 与 Prescription Data 接口仍待完成。
+- CLR/ZOS assembly load 在同一 Python process 内只初始化一次；后续逻辑 session 必须复用同一 OpticStudio install identity。切换安装目录必须使用新 Python process。
+- 本机 Zemax 总 gate 使用 `uv run python scripts/run_zemax_gates.py`；不同测试文件不放入同一个 CLR 进程。
+- 父集成分支个别成功会话曾在 stderr 出现 `FRU__delta_init(): Attempt to start when running!`；后续长流程继续记录 native stderr。
+- GUI display smoke、Huygens MTF 交叉验证、Prescription Data 等仍待后续 task。
+
+---
 
 ## RMD task 状态
 
-| RMD task | Git | 当前状态 | 本地 OpticStudio 阶段仍需完成 |
-| --- | --- | --- | --- |
-| TASK-001 Project Setup | scaffold commit `b53dd798` | **hardening 分支本机完成**：`uv.lock` 已生成；94 个 unit、Ruff、compileall 通过 | 合并后保持 locked-env 检查 |
-| TASK-002 ZOS session | PR #2 + 本次适配 + pre-science hardening + TASK-005B | **本机通过**：2026 R1.00、Premium license、process-idempotent bootstrap、process-singleton application、10 次逻辑 session 和独立 worker-first session 均通过 | 长批次继续观察原生 stderr/`0xc0000139` |
-| TASK-003 Domain + ProjectStore | PR #3 | **离线完成并加固**：完整 baseline hash、create-once RunEnvironment、schema v2、artifact/run provenance；analysis acquisition settings 现已进入 settings hash | 与真实 `.zos` artifact 一起做一次集成回放 |
-| TASK-004 metric engine | PR #4 | **离线完成**：complex OTF、MTF、MTFa、VSOTF、DOF、frequency、delta | 用真实 Huygens PSF/MTF 做 TDD-209/403 交叉验证 |
-| TASK-005 scientific assets | PR #5 + TASK-005A/005B | **双基座完成**：两个正式 `.zos` 已生成、独立进程回读、语义校验和 SHA-256 lock 通过；未引入源模型天然角膜/GRIN/曲面视网膜 | 继续建立 STD eye、ZERO_HOA、REF_MONO、A0、B candidates、C0、Coordinate Return |
-| TASK-006 B0 | PR #6 | **算法完成并加固**：严格 17-plane grid、achieved ΔC4、80/70% gate、DOF rank、morphology/override、settings-bound scan hash | 运行真实五点 B scan；人工 morphology decision；写唯一 B0 lock |
-| TASK-007 carrier science gate | PR #7 + #13 | **fail-closed 门控完成**：finite carrier、evidence-backed residual、actual-carrier low/median/high、policy hash | 实际求 18 个 P/Q；STD-eye achieved-SA 回放；提供 3 个 residual payload；确定并冻结 residual 数值 tolerance policy；真实 low/median/high 校准；解除 TDD-999 |
-| TASK-008 carrier/pair locks + manifest | PR #8 + #13 | **生成器/CSV/provenance 加固完成**；不会在 gate 前产出正式清单 | TASK-007 通过后生成正式 18 lock、36 pair、72 manifest 并复核 hash |
-| TASK-009 analysis | PR #9 + #13 + 本次适配 + pre-science hardening | **hardening 分支 API smoke 通过**：frozen nominal 256×256 Huygens PSF 与 32×32/37 项 Zernike Standard 均通过 | footprint/Prescription/Huygens MTF；先跑 3 个代表配置；通过 sampling/MTF cross-check |
-| TASK-010 GUI | PR #10 | **hardening 后线程假设已复核**：独立 worker-first session 和 10 次 stress 均通过；无 raw ZOSAPI import | 本地 GUI display/full-flow smoke；当前没有 `gui` marker 实测用例 |
-| TASK-011 nominal acceptance | PR #11 | **manifest-bound 验收判定器完成**：72/36/1080 + repeatability | 只有 TASK-009 代表配置通过后才运行真实 Run72 和 repeatability |
+| RMD task | 当前状态 | 本地 OpticStudio 阶段仍需完成 |
+| --- | --- | --- |
+| TASK-001 Project Setup | **完成并加固** | 保持 locked-env 检查 |
+| TASK-002 ZOS session | **实机通过**：2026 R1、process-idempotent bootstrap、process-singleton application、worker/stress gate 通过 | 长批次继续观察原生 stderr |
+| TASK-003 Domain + ProjectStore | **离线完成并加固**：完整 baseline hash / schema / provenance；当前 v2 版本化继续复用该 fail-closed 机制 | 在 v2 real project 再做一次集成回放 |
+| TASK-004 metric engine | **离线完成**：complex OTF、MTF、MTFa、VSOTF、DOF 等 | 用真实 Huygens PSF/MTF 做 TDD-209/403 |
+| TASK-005 scientific assets | **005A 完成；005B v1 实机完成；005C Web 修订完成待实机** | 新建 v2 project → 重新登记 005B 双 base → build/validate `STD_IOL_EYE_2024` 6 mm → 后续 REF_MONO/A0/B/C/Coordinate Return |
+| TASK-006 B0 | **算法完成并加固** | TASK-005 完成后运行真实五点 B scan；人工 morphology decision；写 B0 lock |
+| TASK-007 carrier science gate | **fail-closed 门控完成** | 在 6 mm STD eye 实际求 18 P/Q；ZERO_HOA achieved-SA 回放；3 residual payload；tolerance policy；low/median/high 校准；解除 TDD-999 |
+| TASK-008 carrier/pair + manifest | **生成器完成** | TASK-007 通过后生成正式 18 lock、36 pair、72 manifest |
+| TASK-009 analysis | **API smoke/hardening 完成** | footprint/Prescription/Huygens MTF；3 代表配置；sampling/MTF cross-check |
+| TASK-010 GUI | **scaffold/thread boundary 已复核** | GUI display/full-flow smoke |
+| TASK-011 nominal acceptance | **验收判定器完成** | 只有 TASK-009 代表配置通过后运行 Run72/repeatability |
 
-## 独立 code review 后的加固
-
-第一轮详细记录见：`docs/audit/code_review_hardening_2026-08-17.md`。第二轮 ZOS-API pre-science hardening 见：`docs/audit/zosapi_pre_science_hardening_2026-08-18.md`。
-
-第一轮没有改变 URD/MDD/TDD 的科学阈值，而是将已有契约落实为 fail-closed 代码：
-
-- NaN/Inf carrier 不再穿透科学容差；
-- residual 不能仅凭 metadata flag 和三个 `passed=True` 标签形成 formal lock；
-- B0 complete 必须满足冻结 17-plane scan、唯一候选和 achieved ΔC4 oracle；
-- analysis result 必须与请求 config/run 一致，并重算 distance peak / shape axis；
-- formal RunEnvironment 必须与真实 baseline/settings/manifest/lock-set 一致；
-- final acceptance 必须对应真实 manifest ID 集合，而不只是计数达到 72/36/1080；
-- ZOS analysis result 在 Close 前转换为纯 Python 数据；
-- Tk UI 更新只在主线程执行。
-
-第二轮继续保持同一原则：
-
-- Binary 4 `Par4` 只作为 OpticStudio 诊断输出，不由项目写入；
-- Huygens PSF 的 shape、sampling、几何中心和 intensity 语义进入 parser contract；
-- Huygens/Zernike 关键采集选项进入 `AnalysisSettings`，改变即改变 settings hash；
-- `AnalysisSettings` 的关键数值拒绝 NaN/Inf；
-- Python.NET/ZOS assembly bootstrap 在进程内幂等且拒绝跨安装目录复用；
-- 项目新建 optical system 后显式 `MakeSequential()`，不把 application server mode 误当作 optical system mode。
-
-## 额外离线加固 Git 记录
-
-- PR #12：锁文件篡改、settings serialization hash、商业产品命名、CSV schema/version、rerun ID 回归测试。
-- PR #13：正式 carrier lock 门控、18/72 CSV 导出、单配置失败隔离、失败项定向 rerun。
-- PR #14：ZOS-API 顺序模式薄原语；把 surface editing 与 analysis lifecycle 收缩到少量 late-bound 调用。
-- PR #15：记录 RMD 执行状态和本地 OpticStudio 验证顺序。
-- 第一轮 code-review hardening：修复 fail-open 科学门槛、身份/provenance 与 GUI/ZOS lifecycle 问题。
-- 第二轮 pre-science hardening：修复 Binary4 诊断列语义、Huygens grid 契约、acquisition provenance 与 Python.NET 进程生命周期问题。
+---
 
 ## 仍然有效的 STOP 条件
 
-以下条件没有因为代码已写完或 code review 已修复而解除：
+1. PR #22 的 005C 新代码在本地 OpticStudio 通过前不得 merge。
+2. 不得通过修改/忽略 baseline hash 来把 v2 scientific contents 写入旧 `MVP_2026_v1` project；必须使用新 v2 project。
+3. 若 6 mm standard-eye validation 只有改回 3 mm 或改变 `+0.258 / −0.20 / −0.27 / 0.00 µm` 才能通过，立即返回 Web 科学审查。
+4. `TDD-TEST-999` 未解除前，不允许生成正式 EDOF carrier/pair locks，也不允许 Run72。
+5. 3 个代表配置未通过 sampling convergence 与独立 MTF cross-check 前，不允许 Run72。
+6. A0/B0/C0、STD eye、residual 或 carrier 一旦正式 lock，任何下游流程不得改其 hash。
+7. 合成测试数据只用于代码合同，不能进入正式 locks/manifests/论文结果。
 
-1. `TDD-TEST-401` 已在 hardening 分支通过完整 Zemax 组和独立 worker-first 进程复核；后续长流程仍需保留失败记录和原生 stderr。
-2. `TDD-TEST-999` 未解除前，不允许生成真实正式 EDOF carrier/pair locks，也不允许真实 Run72。
-3. 3 个代表配置未通过 sampling convergence 与独立 MTF cross-check 前，不允许 Run72。
-4. A0/B0/C0、STD eye、residual 或 carrier 一旦正式 lock，任何下游流程不得改其 hash。
-5. 当前合成测试数据只用于验证代码合同，不能进入正式 `project/locks`、`project/manifests` 或论文结果。
+---
 
-## Git 执行记录
+## 下一次 Codex 执行入口
 
-RMD 主实现均通过独立分支 → PR → squash merge 进入 `main`：PR #2–#15；第一轮 code-review hardening 已按独立分支和 PR 合并。第一批真实 ZOS-API 适配位于 `codex/zosapi-2026-r1-integration`，第二轮修订位于其子分支 `fix/zosapi-pre-science-hardening`。
+在 `feat/task-005c-standard-eye` 最新提交上，使用新的目录，例如：
 
-本文件的状态含义是：**离线实现、第一轮 code review、第一批真实 ZOS-API 适配和第二轮 pre-science hardening 实机复测均已完成；TASK-005B 双基座已完成并验证；下一阶段仍受 TDD-999 和三代表配置条件约束。**
+```powershell
+$P = "project_mvp_2026_v2"
+
+uv sync
+uv run pytest tests/unit/test_standard_eye.py -vv
+uv run pytest tests/unit
+uv run ruff check .
+uv run python -m compileall -q src tests scripts
+uv lock --check
+
+uv run python scripts/build_task_005b_base_assets.py --project-dir $P --baseline-id MVP_2026_v2
+uv run python scripts/build_task_005b_base_assets.py --project-dir $P --baseline-id MVP_2026_v2 --validate-only
+
+uv run pytest tests/zemax/test_zos_standard_eye.py -vv
+uv run python scripts/run_zemax_gates.py
+
+uv run python scripts/build_task_005c_standard_eye.py --project-dir $P --baseline-id MVP_2026_v2
+uv run python scripts/build_task_005c_standard_eye.py --project-dir $P --baseline-id MVP_2026_v2 --validate-only
+```
+
+本文件当前状态含义：**v1 的 TASK-005B 实机证据保留有效；当前正式 scientific baseline 已升级为 v2；005C 文档与 Web 代码已完成 6 mm 修订，但 v2 双基座登记和 standard-eye 实机验证尚未执行。**
