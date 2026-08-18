@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from whole_eye_mvp.domain import NOMINAL_MAIN_555_V1
 from whole_eye_mvp.zos import HuygensPsfRunner, HuygensPsfSettings, open_zos_session
 
 INSTALL_ENV = "WHOLE_EYE_ZOS_INSTALL_DIR"
@@ -23,7 +24,7 @@ def _install_dir() -> Path:
 
 
 @pytest.mark.zemax
-def test_huygens_psf_returns_finite_positive_grid() -> None:
+def test_huygens_psf_returns_finite_positive_grid_at_frozen_nominal_settings() -> None:
     with open_zos_session(_install_dir()) as session:
         configured_reference = os.environ.get(REFERENCE_ENV)
         reference = (
@@ -34,12 +35,11 @@ def test_huygens_psf_returns_finite_positive_grid() -> None:
         assert reference.is_file(), f"OpticStudio reference file is missing: {reference}"
         session.system.LoadFile(str(reference), False)
 
-        grid = HuygensPsfRunner(session.system, session.zosapi).run(
-            HuygensPsfSettings(32, 32, 0.5)
-        )
+        settings = HuygensPsfSettings.from_analysis_settings(NOMINAL_MAIN_555_V1)
+        grid = HuygensPsfRunner(session.system, session.zosapi).run(settings)
 
-        assert grid.shape == (32, 32)
-        assert grid.dx == pytest.approx(0.5)
-        assert grid.dy == pytest.approx(0.5)
+        assert grid.shape == (NOMINAL_MAIN_555_V1.huygens_image_sampling,) * 2
+        assert grid.dx == pytest.approx(NOMINAL_MAIN_555_V1.huygens_image_delta_um)
+        assert grid.dy == pytest.approx(NOMINAL_MAIN_555_V1.huygens_image_delta_um)
         assert grid.total_energy > 0
         assert all(math.isfinite(value) for row in grid.values for value in row)
