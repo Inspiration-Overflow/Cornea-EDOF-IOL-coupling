@@ -183,7 +183,8 @@ manifest 至少记录脚本能够可靠取得的：
 - variant ID；
 - focus method：`fixed_reference` / `paraxial_diagnostic` / `quickfocus_wavefront_error`；
 - `formal_artifact=false`；
-- `zernike_api_invoked_by_this_script=false`。
+- `zernike_api_invoked_by_this_script=false`；
+- `must_not_enter_project_locks=true`。
 
 OpticStudio 产品版本与 edition/license 名称仍由 Codex 在运行报告中人工记录（例如 `2026 R1.00 / Premium`），不因为某个 ZOS-API 属性在不同版本不可用而阻断诊断文件生成。
 
