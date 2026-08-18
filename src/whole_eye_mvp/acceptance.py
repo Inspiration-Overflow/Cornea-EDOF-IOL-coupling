@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Mapping, Sequence
+
+from .manifest import ManifestBundle
 
 
 class AcceptanceError(RuntimeError):
@@ -33,34 +36,76 @@ class AcceptanceSummary:
     passed: bool
 
 
-def validate_nominal_acceptance(results: Sequence[ResultEnvelope], paired_delta_keys: Sequence[str]) -> AcceptanceSummary:
-    completed = [r for r in results if r.completed]
-    ids = [r.config_id for r in completed]
+def validate_nominal_acceptance(
+    results: Sequence[ResultEnvelope],
+    paired_delta_keys: Sequence[str],
+    *,
+    manifest: ManifestBundle,
+) -> AcceptanceSummary:
+    configs = manifest.nominal_configs
+    if len(configs) != 72 or len({config.config_id for config in configs}) != 72:
+        raise AcceptanceError("acceptance requires the exact 72-row nominal manifest bundle")
+    expected_ids = {config.config_id for config in configs}
+    expected_pairs = {config.pair_key for config in configs}
+    if len(expected_pairs) != 36:
+        raise AcceptanceError("nominal manifest must contain exactly 36 pair keys")
+
+    completed = [result for result in results if result.completed]
+    ids = [result.config_id for result in completed]
     if len(ids) != len(set(ids)):
         raise AcceptanceError("duplicate completed config ID")
-    if len(completed) != 72:
-        raise AcceptanceError(f"expected 72 completed configs, got {len(completed)}")
-    rows = sum(r.through_focus_rows for r in completed)
-    if rows != 1080 or any(r.through_focus_rows != 15 for r in completed):
+    if set(ids) != expected_ids or len(completed) != 72:
+        raise AcceptanceError("completed config IDs do not exactly match the nominal manifest")
+    pair_by_config = {result.config_id: result.pair_key for result in completed}
+    for config in configs:
+        if pair_by_config.get(config.config_id) != config.pair_key:
+            raise AcceptanceError("completed result pair key differs from nominal manifest")
+
+    rows = sum(result.through_focus_rows for result in completed)
+    if rows != 1080 or any(result.through_focus_rows != 15 for result in completed):
         raise AcceptanceError("expected exactly 15 through-focus rows per config / 1080 total")
-    expected_pairs = {r.pair_key for r in completed}
-    actual_pairs = set(paired_delta_keys)
-    if len(expected_pairs) != 36 or actual_pairs != expected_pairs or len(paired_delta_keys) != 36:
-        raise AcceptanceError("expected exactly 36 complete matched-pair deltas")
+    actual_pairs = list(paired_delta_keys)
+    if len(actual_pairs) != 36 or len(set(actual_pairs)) != 36 or set(actual_pairs) != expected_pairs:
+        raise AcceptanceError("paired deltas do not exactly match the 36 manifest pair keys")
     return AcceptanceSummary(72, 36, 1080, True)
 
 
-def validate_repeatability(first: Mapping[str, RepeatabilityPoint], second: Mapping[str, RepeatabilityPoint], *, relative_metric_tolerance: float = 0.001, zernike_tolerance_um: float = 0.001) -> None:
+def validate_repeatability(
+    first: Mapping[str, RepeatabilityPoint],
+    second: Mapping[str, RepeatabilityPoint],
+    *,
+    relative_metric_tolerance: float = 0.001,
+    zernike_tolerance_um: float = 0.001,
+) -> None:
     if first.keys() != second.keys():
         raise AcceptanceError("repeatability result key sets differ")
+    if relative_metric_tolerance < 0 or zernike_tolerance_um < 0:
+        raise AcceptanceError("repeatability tolerances must be non-negative")
     for key in first:
         a, b = first[key], second[key]
+        values = (
+            a.mtfa,
+            a.vsotf,
+            a.c40_um,
+            a.c60_um,
+            a.distance_peak_grid_d,
+            b.mtfa,
+            b.vsotf,
+            b.c40_um,
+            b.c60_um,
+            b.distance_peak_grid_d,
+        )
+        if not all(math.isfinite(value) for value in values):
+            raise AcceptanceError(f"{key} repeatability values must be finite")
         for name in ("mtfa", "vsotf"):
             av, bv = getattr(a, name), getattr(b, name)
             scale = max(abs(av), abs(bv), 1e-15)
             if abs(av - bv) / scale > relative_metric_tolerance:
                 raise AcceptanceError(f"{key} {name} repeatability exceeds tolerance")
-        if abs(a.c40_um - b.c40_um) > zernike_tolerance_um or abs(a.c60_um - b.c60_um) > zernike_tolerance_um:
+        if (
+            abs(a.c40_um - b.c40_um) > zernike_tolerance_um
+            or abs(a.c60_um - b.c60_um) > zernike_tolerance_um
+        ):
             raise AcceptanceError(f"{key} Zernike repeatability exceeds tolerance")
         if a.distance_peak_grid_d != b.distance_peak_grid_d:
             raise AcceptanceError(f"{key} distance-peak grid sample changed")

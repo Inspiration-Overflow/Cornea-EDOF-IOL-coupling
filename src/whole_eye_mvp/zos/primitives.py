@@ -2,11 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, TypeVar
 
 
 class ZosPrimitiveError(RuntimeError):
     pass
+
+
+T = TypeVar("T")
 
 
 @dataclass(slots=True)
@@ -81,7 +84,12 @@ class SequentialEditor:
 
 @dataclass(slots=True)
 class SystemAnalysisRunner:
-    """Generic analysis lifecycle; analysis-specific settings remain explicit."""
+    """Generic analysis lifecycle that snapshots results before closing the analysis.
+
+    ZOS-API result proxies are analysis-owned.  Callers therefore provide a parser
+    that converts the live result object into a pure Python value while the analysis
+    is still open.  Returning a live result after ``Close`` is intentionally forbidden.
+    """
 
     system: Any
     zosapi: Any
@@ -93,18 +101,21 @@ class SystemAnalysisRunner:
             raise ZosPrimitiveError(f"unknown analysis ID: {analysis_id_name}") from exc
         return self.system.Analyses.New_Analysis(analysis_id)
 
-    def run(self, analysis: Any) -> Any:
+    def run_and_parse(self, analysis: Any, parser: Callable[[Any], T]) -> T:
+        if not callable(parser):
+            raise TypeError("analysis parser must be callable")
         analysis.ApplyAndWaitForCompletion()
-        return analysis.GetResults()
+        results = analysis.GetResults()
+        return parser(results)
 
     def close(self, analysis: Any) -> None:
         close = getattr(analysis, "Close", None)
         if callable(close):
             close()
 
-    def run_by_id(self, analysis_id_name: str) -> Any:
+    def run_by_id(self, analysis_id_name: str, parser: Callable[[Any], T]) -> T:
         analysis = self.open_analysis(analysis_id_name)
         try:
-            return self.run(analysis)
+            return self.run_and_parse(analysis, parser)
         finally:
             self.close(analysis)

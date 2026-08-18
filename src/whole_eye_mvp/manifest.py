@@ -2,10 +2,17 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from dataclasses import asdict, dataclass
 from typing import Sequence
 
-from .carriers import CarrierKey, ProvisionalCarrier, ScientificInvariantError, expected_carrier_keys, validate_provisional_carrier
+from .carriers import (
+    CarrierKey,
+    ProvisionalCarrier,
+    ScientificInvariantError,
+    expected_carrier_keys,
+    validate_provisional_carrier,
+)
 from .domain import OpticState
 
 
@@ -13,6 +20,9 @@ from .domain import OpticState
 class CarrierLock:
     carrier: ProvisionalCarrier
     residual_id: str
+    residual_sha256: str
+    residual_validation_policy_id: str
+    residual_validation_policy_hash: str
     delta_f_residual_d: float
     lock_hash: str
 
@@ -30,6 +40,11 @@ class NominalConfig:
     platform_id: str
     optic_state: str
     pupil_mm: float
+    carrier_lock_hash: str
+    residual_id: str | None = None
+    residual_sha256: str | None = None
+    residual_validation_policy_id: str | None = None
+    residual_validation_policy_hash: str | None = None
     wavelength_nm: float = 555.0
     field_deg: float = 0.0
     cornea_decentration_mm: float = 0.0
@@ -49,6 +64,26 @@ class ManifestBundle:
     manifest_hash: str
 
 
+def compute_carrier_lock_hash(
+    carrier: ProvisionalCarrier,
+    residual_id: str,
+    residual_sha256: str,
+    residual_validation_policy_id: str,
+    residual_validation_policy_hash: str,
+    delta_f_residual_d: float,
+) -> str:
+    payload = {
+        "carrier": asdict(carrier),
+        "residual_id": residual_id,
+        "residual_sha256": residual_sha256,
+        "residual_validation_policy_id": residual_validation_policy_id,
+        "residual_validation_policy_hash": residual_validation_policy_hash,
+        "delta_f_residual_d": float(delta_f_residual_d),
+    }
+    text = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
 def _validate_locks(locks: Sequence[CarrierLock]) -> None:
     expected = set(expected_carrier_keys())
     keys = [lock.carrier.key for lock in locks]
@@ -56,25 +91,107 @@ def _validate_locks(locks: Sequence[CarrierLock]) -> None:
         raise ScientificInvariantError("formal manifest requires exactly 18 unique carrier locks")
     for lock in locks:
         validate_provisional_carrier(lock.carrier)
-        if not lock.residual_id or not lock.lock_hash:
-            raise ScientificInvariantError("formal carrier lock must include residual_id and lock_hash")
+        if not lock.residual_id.strip() or not lock.residual_sha256.strip():
+            raise ScientificInvariantError("formal carrier lock must include residual identity/hash")
+        if not lock.residual_validation_policy_id.strip() or not lock.residual_validation_policy_hash.strip():
+            raise ScientificInvariantError(
+                "formal carrier lock must include residual validation policy ID/hash"
+            )
+        if not math.isfinite(lock.delta_f_residual_d):
+            raise ScientificInvariantError("formal carrier lock delta-F must be finite")
+        expected_hash = compute_carrier_lock_hash(
+            lock.carrier,
+            lock.residual_id,
+            lock.residual_sha256,
+            lock.residual_validation_policy_id,
+            lock.residual_validation_policy_hash,
+            lock.delta_f_residual_d,
+        )
+        if lock.lock_hash != expected_hash:
+            raise ScientificInvariantError("formal carrier lock hash does not match lock contents")
+
+
+def compute_lock_set_hash(locks: Sequence[CarrierLock]) -> str:
+    _validate_locks(locks)
+    ordered_hashes = sorted(lock.lock_hash for lock in locks)
+    text = json.dumps(ordered_hashes, separators=(",", ":"))
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
 
 
 def build_manifests(locks: Sequence[CarrierLock]) -> ManifestBundle:
     _validate_locks(locks)
-    ordered = tuple(sorted(locks, key=lambda x: (x.carrier.key.base_id, x.carrier.key.cornea_id, x.carrier.key.platform_id)))
+    ordered = tuple(
+        sorted(
+            locks,
+            key=lambda item: (
+                item.carrier.key.base_id,
+                item.carrier.key.cornea_id,
+                item.carrier.key.platform_id,
+            ),
+        )
+    )
     configs: list[NominalConfig] = []
     for lock in ordered:
         key: CarrierKey = lock.carrier.key
         for state in (OpticState.MONO, OpticState.EDOF):
             for pupil in (3.0, 5.0):
-                cid = f"CFG_{key.base_id}_{key.cornea_id}_{key.platform_id}_{state}_EPD{int(pupil)}"
-                configs.append(NominalConfig(cid, lock.carrier_id, key.base_id, key.cornea_id, key.platform_id, state, pupil))
-    if len(configs) != 72 or len({c.config_id for c in configs}) != 72:
+                config_id = (
+                    f"CFG_{key.base_id}_{key.cornea_id}_{key.platform_id}_{state}_EPD{int(pupil)}"
+                )
+                is_edof = state == OpticState.EDOF
+                configs.append(
+                    NominalConfig(
+                        config_id=config_id,
+                        carrier_id=lock.carrier_id,
+                        base_id=key.base_id,
+                        cornea_id=key.cornea_id,
+                        platform_id=key.platform_id,
+                        optic_state=state,
+                        pupil_mm=pupil,
+                        carrier_lock_hash=lock.lock_hash,
+                        residual_id=lock.residual_id if is_edof else None,
+                        residual_sha256=lock.residual_sha256 if is_edof else None,
+                        residual_validation_policy_id=(
+                            lock.residual_validation_policy_id if is_edof else None
+                        ),
+                        residual_validation_policy_hash=(
+                            lock.residual_validation_policy_hash if is_edof else None
+                        ),
+                    )
+                )
+    if len(configs) != 72 or len({config.config_id for config in configs}) != 72:
         raise ScientificInvariantError("nominal manifest must contain 72 unique configs")
+    for config in configs:
+        if config.optic_state == OpticState.MONO:
+            if any(
+                value is not None
+                for value in (
+                    config.residual_id,
+                    config.residual_sha256,
+                    config.residual_validation_policy_id,
+                    config.residual_validation_policy_hash,
+                )
+            ):
+                raise ScientificInvariantError("MONO config must not carry an EDOF residual")
+        else:
+            if not all(
+                value
+                for value in (
+                    config.residual_id,
+                    config.residual_sha256,
+                    config.residual_validation_policy_id,
+                    config.residual_validation_policy_hash,
+                )
+            ):
+                raise ScientificInvariantError("EDOF config must carry residual provenance")
     payload = {
-        "carrier_locks": [{"carrier_id": x.carrier_id, "key": asdict(x.carrier.key), "lock_hash": x.lock_hash, "residual_id": x.residual_id} for x in ordered],
-        "configs": [asdict(c) for c in configs],
+        "carrier_locks": [asdict(lock) for lock in ordered],
+        "configs": [asdict(config) for config in configs],
     }
     text = json.dumps(payload, sort_keys=True, separators=(",", ":"))
-    return ManifestBundle(ordered, tuple(configs), hashlib.sha256(text.encode()).hexdigest())
+    return ManifestBundle(
+        ordered,
+        tuple(configs),
+        hashlib.sha256(text.encode("utf-8")).hexdigest(),
+    )
