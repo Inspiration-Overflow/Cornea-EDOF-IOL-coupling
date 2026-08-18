@@ -37,12 +37,12 @@ C_4^0(6\,\mathrm{mm})=+0.258\pm0.005\ \mu m
 ## 3. 已通过项目
 
 ```text
-uv sync                                  -> PASS
-pytest tests/unit/test_standard_eye.py   -> 5 passed
-pytest tests/unit                        -> 103 passed
-ruff check .                             -> PASS
+uv sync                                   -> PASS
+pytest tests/unit/test_standard_eye.py    -> 5 passed
+pytest tests/unit                         -> 103 passed
+ruff check .                              -> PASS
 python -m compileall -q src tests scripts -> PASS
-uv lock --check                          -> PASS
+uv lock --check                           -> PASS
 ```
 
 TASK-005B v2 `--validate-only`：两枚基座均 PASS，文件和 CSV hash 保持不变。
@@ -127,13 +127,22 @@ A procedure imported by 'ZemaxEngine.dll' could not be loaded.
 TASK_005C_MANUAL_OPTICSTUDIO_DIAGNOSTICS
 ```
 
-由 Codex 生成三个 diagnostic-only `.zos`：
+由 Codex 运行：
+
+```powershell
+uv run python scripts/build_task_005c_manual_diagnostics.py `
+  --baseline-id MVP_2026_v2 `
+  --output-dir project_mvp_2026_v2/diagnostics/task005c_manual
+```
+
+脚本只生成三个 diagnostic-only `.zos` 和一个 manifest：
 
 1. `TASK005C_A_FIXED_REFERENCE.zos`
 2. `TASK005C_B_PARAXIAL_FOCUS.zos`
 3. `TASK005C_C_WAVEFRONT_BEST_FOCUS.zos`
+4. `TASK005C_DIAGNOSTIC_MANIFEST.json`
 
-生成过程不得创建 Zernike analysis。
+生成过程不得创建 Zernike analysis，也不得把这些文件登记进 `project/locks`。
 
 随后由项目负责人在 OpticStudio GUI 中使用统一 Zernike Standard Coefficients 设置人工读取 Z11/C40。
 
