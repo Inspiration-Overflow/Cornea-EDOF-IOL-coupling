@@ -85,6 +85,17 @@ def _git_head() -> str:
     return completed.stdout.strip() or "unknown"
 
 
+def _safe_attr_text(value: Any, name: str) -> str:
+    try:
+        result = getattr(value, name)
+    except Exception:  # noqa: BLE001 - optional provenance must not block diagnostics
+        return "unavailable"
+    try:
+        return str(result)
+    except Exception:  # noqa: BLE001 - optional provenance must not block diagnostics
+        return "unavailable"
+
+
 def _index_at_surface(system: Any, surface: int) -> float:
     count = int(system.SystemData.Wavelengths.NumberOfWavelengths)
     system_module = importlib.import_module("System")
@@ -135,9 +146,9 @@ def _quick_focus_wavefront(session: Any) -> None:
 
 def _application_payload(session: Any) -> dict[str, Any]:
     return {
-        "license_status": str(getattr(session.app, "LicenseStatus", "unknown")),
-        "api_mode": str(getattr(session.app, "Mode", "unknown")),
-        "opticstudio_instance": str(getattr(session.app, "OpticStudioInstance", "unknown")),
+        "license_status": _safe_attr_text(session.app, "LicenseStatus"),
+        "api_mode": _safe_attr_text(session.app, "Mode"),
+        "opticstudio_instance": _safe_attr_text(session.app, "OpticStudioInstance"),
     }
 
 
