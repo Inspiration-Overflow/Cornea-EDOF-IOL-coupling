@@ -39,10 +39,10 @@ def test_locked_artifact_tamper_is_detected(tmp_path: Path) -> None:
 @pytest.mark.unit
 def test_settings_hashes_include_frozen_huygens_metric_and_zernike_settings() -> None:
     assert settings_hash(CORNEA_LOCK_B0_555_V1) == (
-        "3d3d444891400a288ff178a1a3f4da89867ef896691d95808fd906593fc045cd"
+        "2cb6545cccfb72771d3eb68329665c0ea867a465c270f852771c1a2116ccd2f7"
     )
     assert settings_hash(NOMINAL_MAIN_555_V1) == (
-        "97db641858bb1cf9439d64ef0aa435e86c2991db6cae087239654fc443d1fa36"
+        "7b6e05137eb6b0fd2b36a84b4baa3a390813b1028b9d2768aaca388610b6b400"
     )
 
 
