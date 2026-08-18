@@ -102,6 +102,7 @@ Codex 在配置好的 Windows + OpticStudio 工作站默认负责：
 - **Zemax rule:** unit tests 不依赖 OpticStudio；`zemax` marker 只在配置好的 Windows workstation 上运行。
 - **science lock rule:** 下游只读上游 locks；任何需要“修正上游 lock 才让测试通过”的情况立即 STOP。
 - **standard-eye rule:** TASK-005C/007 必须执行 URD-0001 v1.4 / TDD-0001 v1.3 的 6.0 mm standard-eye SA calibration；主实验 EPD3/EPD5 不得被当作 `SA_base`/`Q(P)` 设计条件。
+- **architecture carry-forward:** 本次 3→6 mm 修改只改变 URD 科学数值与 TDD oracle，不改变既有 FR/DP/module/API/lock-boundary 拆分；因此 `ADD-0001 v1.4` 与 `MDD-0001 v1.3` 继续作为有效架构基线，不为纯数值修订制造无必要版本级联。
 - **carrier rule:** RMD-TASK-007 可以生成**provisional** carrier power/Q records，但 `TDD-TEST-999` 未解除前不得写正式 EDOF carrier/pair locks。
 - **result rule:** 先通过 3 个代表配置 integration，再运行 72；禁止一上来跑完整矩阵来调试。
 
