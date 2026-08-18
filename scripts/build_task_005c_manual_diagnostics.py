@@ -315,6 +315,36 @@ def _run_worker(
     return _parse_worker_payload(completed.stdout)
 
 
+def _write_partial_manifest(
+    output_dir: Path,
+    args: argparse.Namespace,
+    completed_files: list[dict[str, Any]],
+    *,
+    error: str | None,
+) -> Path:
+    manifest = {
+        "task": "TASK-005C-manual-diagnostics",
+        "formal_artifact": False,
+        "baseline_id": args.baseline_id,
+        "git_head": _git_head(),
+        "python_version": platform.python_version(),
+        "install_dir": str(args.install_dir),
+        "diagnostic_files": completed_files,
+        "manual_zernike_required": True,
+        "zernike_api_invoked_by_this_script": False,
+        "must_not_enter_project_locks": True,
+        "completed_all_variants": error is None and len(completed_files) == 3,
+        "error": error,
+    }
+    manifest_path = output_dir / MANIFEST_NAME
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    print(json.dumps(manifest, ensure_ascii=False, indent=2))
+    return manifest_path
+
+
 def main() -> None:
     args = _parser().parse_args()
     if args.worker_action is not None:
@@ -346,29 +376,20 @@ def main() -> None:
     fixed_path = output_dir / FIXED_NAME
     paraxial_path = output_dir / PARAXIAL_NAME
     wavefront_path = output_dir / WAVEFRONT_NAME
+    completed_files: list[dict[str, Any]] = []
 
-    fixed = _run_worker(args, "fixed", fixed_path)
-    paraxial = _run_worker(args, "paraxial", paraxial_path, source=fixed_path)
-    wavefront = _run_worker(args, "wavefront", wavefront_path, source=fixed_path)
+    try:
+        fixed = _run_worker(args, "fixed", fixed_path)
+        completed_files.append(fixed)
+        paraxial = _run_worker(args, "paraxial", paraxial_path, source=fixed_path)
+        completed_files.append(paraxial)
+        wavefront = _run_worker(args, "wavefront", wavefront_path, source=fixed_path)
+        completed_files.append(wavefront)
+    except DiagnosticBuildError as exc:
+        _write_partial_manifest(output_dir, args, completed_files, error=str(exc))
+        raise SystemExit(1) from exc
 
-    manifest = {
-        "task": "TASK-005C-manual-diagnostics",
-        "formal_artifact": False,
-        "baseline_id": args.baseline_id,
-        "git_head": _git_head(),
-        "python_version": platform.python_version(),
-        "install_dir": str(args.install_dir),
-        "diagnostic_files": [fixed, paraxial, wavefront],
-        "manual_zernike_required": True,
-        "zernike_api_invoked_by_this_script": False,
-        "must_not_enter_project_locks": True,
-    }
-    manifest_path = output_dir / MANIFEST_NAME
-    manifest_path.write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    print(json.dumps(manifest, ensure_ascii=False, indent=2))
+    _write_partial_manifest(output_dir, args, completed_files, error=None)
 
 
 if __name__ == "__main__":
