@@ -120,14 +120,9 @@ def standard_eye_construction(baseline: ScientificBaseline) -> StandardEyeConstr
     return result
 
 
-def paraxial_iol_plane_distance_mm(spec: StandardEyeConstruction) -> float:
-    """Return a deterministic starting geometry for the 5.15-mm real-ray gate.
-
-    The formula uses reduced-angle paraxial tracing through the frozen model cornea.
-    It is an implementation construction rule, not an ISO-specified axial distance.
-    The formal asset still must pass the real OpticStudio footprint oracle.
-    """
-
+def _paraxial_post_cornea_ray(
+    spec: StandardEyeConstruction,
+) -> tuple[float, float]:
     spec.validate()
     y = spec.corneal_sa_pupil_mm / 2.0
     nu = 0.0
@@ -140,10 +135,27 @@ def paraxial_iol_plane_distance_mm(spec: StandardEyeConstruction) -> float:
     )
     if abs(nu) < 1.0e-15:
         raise ValueError("model cornea does not converge the marginal ray")
+    return y, nu
+
+
+def paraxial_iol_plane_distance_mm(spec: StandardEyeConstruction) -> float:
+    """Return a deterministic starting geometry for the 5.15-mm real-ray gate."""
+
+    y, nu = _paraxial_post_cornea_ray(spec)
     target_y = spec.eye.iol_footprint_mm / 2.0
     distance = (target_y - y) * spec.eye.medium_index / nu
     if not math.isfinite(distance) or distance <= 0:
         raise ValueError("invalid paraxial IOL-plane distance")
+    return distance
+
+
+def corneal_paraxial_focus_from_post_mm(spec: StandardEyeConstruction) -> float:
+    """Return the cornea-only paraxial focus behind the posterior corneal vertex."""
+
+    y, nu = _paraxial_post_cornea_ray(spec)
+    distance = -y * spec.eye.medium_index / nu
+    if not math.isfinite(distance) or distance <= 0:
+        raise ValueError("invalid paraxial corneal focus")
     return distance
 
 
@@ -501,13 +513,20 @@ def _measure(session: ZosSession, spec: StandardEyeConstruction) -> StandardEyeM
     field = system.SystemData.Fields.GetField(1)
 
     original_aperture = calibration_aperture
+    original_iol_to_image = float(rows[2].Thickness)
+    corneal_focus_from_post = corneal_paraxial_focus_from_post_mm(spec)
+    validation_iol_to_image = corneal_focus_from_post - float(rows[1].Thickness)
+    if validation_iol_to_image <= 0:
+        raise StandardEyeError("corneal paraxial focus lies before the IOL reference plane")
     try:
         aperture.ApertureValue = spec.corneal_sa_pupil_mm
+        rows[2].Thickness = validation_iol_to_image
         c40_um = ZernikeStandardRunner(system, session.zosapi).run(
             ZernikeStandardSettings(sample_size=32, maximum_terms=37)
         ).c40_um
         footprint = _footprint_mm(session, 3)
     finally:
+        rows[2].Thickness = original_iol_to_image
         aperture.ApertureValue = original_aperture
 
     return StandardEyeMeasurements(
