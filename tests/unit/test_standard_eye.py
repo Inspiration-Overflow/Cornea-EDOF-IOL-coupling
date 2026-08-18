@@ -116,7 +116,9 @@ def test_zero_hoa_reference_preserves_carrier_and_6mm_calibration_identity() -> 
     reference = ZeroHoaReferenceRecord.from_carrier(
         carrier, standard_eye_spec=baseline.standard_eye_spec
     )
-    reference.validate_against(carrier, standard_eye_spec=baseline.standard_eye_spec)
+    reference.validate_against(
+        carrier, standard_eye_spec=baseline.standard_eye_spec
+    )
     assert reference.power_d == carrier.power_d
     assert reference.optical_model == "ideal_paraxial_zero_hoa"
     assert reference.calibration_aperture_mm == 6.0
@@ -124,8 +126,12 @@ def test_zero_hoa_reference_preserves_carrier_and_6mm_calibration_identity() -> 
 
     other = replace(carrier, power_d=21.0, q_source_power_d=21.0)
     with pytest.raises(ValueError, match="preserve carrier"):
-        reference.validate_against(other, standard_eye_spec=baseline.standard_eye_spec)
+        reference.validate_against(
+            other, standard_eye_spec=baseline.standard_eye_spec
+        )
 
     wrong_pupil = replace(reference, calibration_aperture_mm=3.0)
     with pytest.raises(ValueError, match="calibration pupil"):
-        wrong_pupil.validate_against(carrier, standard_eye_spec=baseline.standard_eye_spec)
+        wrong_pupil.validate_against(
+            carrier, standard_eye_spec=baseline.standard_eye_spec
+        )
