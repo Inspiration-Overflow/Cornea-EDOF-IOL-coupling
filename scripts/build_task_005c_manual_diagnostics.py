@@ -152,7 +152,13 @@ def _application_payload(session: Any) -> dict[str, Any]:
     }
 
 
-def _geometry_payload(session: Any, *, variant: str, focus_method: str, path: Path) -> dict[str, Any]:
+def _geometry_payload(
+    session: Any,
+    *,
+    variant: str,
+    focus_method: str,
+    path: Path,
+) -> dict[str, Any]:
     system = session.system
     lde = system.LDE
     if int(lde.NumberOfSurfaces) != 5:
