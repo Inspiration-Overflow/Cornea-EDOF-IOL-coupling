@@ -26,7 +26,7 @@ def test_frozen_scientific_anchors_match_mvp_spec() -> None:
     assert LB_BASE.post_cornea_to_stop_mm == pytest.approx(3.150, abs=0.001)
     assert LB_BASE.post_cornea_to_iol_ant_mm == pytest.approx(4.500, abs=0.001)
     assert STD_IOL_EYE.corneal_c40_um == pytest.approx(0.258, abs=0.005)
-    assert STD_IOL_EYE.aperture_mm == 3.0 and STD_IOL_EYE.wavelength_nm == 546.0
+    assert STD_IOL_EYE.aperture_mm == 6.0 and STD_IOL_EYE.wavelength_nm == 546.0
     assert A0_SPEC.treatment_d == -3.0 and A0_SPEC.target_delta_c40_um == 0.13
     assert B_CANDIDATE_DELTA_C40_UM == (0.10, 0.15, 0.20, 0.25, 0.30)
     assert [p.standard_eye_sa_target_um for p in PLATFORM_SPECS] == [-0.20, -0.27, 0.0]
