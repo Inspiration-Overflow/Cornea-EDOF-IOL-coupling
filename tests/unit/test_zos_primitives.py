@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from whole_eye_mvp.zos.primitives import (
+    Binary4Zone,
     SequentialEditor,
     SystemAnalysisRunner,
     ZosPrimitiveError,
@@ -12,10 +13,23 @@ from whole_eye_mvp.zos.primitives import (
     even_asphere_parameter_number,
 )
 
+BINARY_HEADERS = {
+    "P1": "# Radial Zones",
+    "P2": "# Aspheric Terms",
+    "P3": "# Phase Terms",
+    "P4": "Sine(delta0)",
+    "P13": "Radial Aperture 1",
+    "P14": "Radius 1",
+    "P15": "Conic 1",
+    "P16": "Order 1",
+}
+
 
 class Cell:
-    def __init__(self):
+    def __init__(self, header: str = ""):
         self.DoubleValue = None
+        self.IntegerValue = None
+        self.Header = header
         self.variable = False
 
     def MakeSolveVariable(self):
@@ -39,7 +53,7 @@ class Row:
         self.type_settings = settings
 
     def GetSurfaceCell(self, column):
-        return self.cells.setdefault(column, Cell())
+        return self.cells.setdefault(column, Cell(BINARY_HEADERS.get(column, "")))
 
 
 class LDE:
@@ -97,21 +111,26 @@ class System:
     def __init__(self):
         self.LDE = LDE()
         self.new_calls = []
+        self.make_sequential_calls = 0
         self.saved = []
         self.Analyses = Analyses()
 
     def New(self, save_if_needed):
         self.new_calls.append(save_if_needed)
 
+    def MakeSequential(self):
+        self.make_sequential_calls += 1
+
     def SaveAs(self, path):
         self.saved.append(path)
 
 
+SURFACE_COLUMNS = {f"Par{index}": f"P{index}" for index in range(1, 17)}
 ZOS = SimpleNamespace(
     Editors=SimpleNamespace(
         LDE=SimpleNamespace(
-            SurfaceType=SimpleNamespace(EvenAspheric="EVEN"),
-            SurfaceColumn=SimpleNamespace(Par1="P1", Par2="P2"),
+            SurfaceType=SimpleNamespace(EvenAspheric="EVEN", Binary4="BINARY4"),
+            SurfaceColumn=SimpleNamespace(**SURFACE_COLUMNS),
         )
     ),
     Analysis=SimpleNamespace(AnalysisIDM=SimpleNamespace(HuygensPsf="HPSF")),
@@ -133,6 +152,7 @@ def test_sequential_editor_sets_surfaces_and_parameters(tmp_path) -> None:
     editor.set_stop_surface(2)
     editor.save_as(tmp_path / "x.zos")
     assert system.new_calls == [False]
+    assert system.make_sequential_calls == 1
     assert row.type_settings == ("settings", "EVEN")
     assert row.Radius == 7.8 and row.Conic == -0.2
     assert row.cells["P2"].DoubleValue == 0.001 and row.RadiusCell.variable
@@ -145,7 +165,7 @@ def test_unknown_surface_parameter_and_type_are_typed_errors() -> None:
     with pytest.raises(ZosPrimitiveError):
         editor.change_surface_type(1, "NoSuchSurface")
     with pytest.raises(ZosPrimitiveError):
-        editor.set_parameter(1, 9, 1.0)
+        editor.set_parameter(1, 255, 1.0)
 
 
 @pytest.mark.unit
@@ -171,5 +191,20 @@ def test_verified_binary4_and_even_asphere_column_mappings() -> None:
     assert even_asphere_parameter_number(16) == 8
     with pytest.raises(ValueError):
         binary4_zone_columns(0, 8, 0)
+    with pytest.raises(ValueError, match="at most 20"):
+        binary4_zone_columns(1, 21, 0)
     with pytest.raises(ValueError):
         even_asphere_parameter_number(5)
+
+
+@pytest.mark.unit
+def test_binary4_par4_is_verified_but_never_written() -> None:
+    system = System()
+    editor = SequentialEditor(system, ZOS)
+    row = editor.configure_binary4(1, (Binary4Zone(1.5, 7.8, -0.2),))
+
+    assert row.cells["P1"].IntegerValue == 1
+    assert row.cells["P2"].IntegerValue == 0
+    assert row.cells["P3"].IntegerValue == 0
+    assert row.cells["P4"].DoubleValue is None
+    assert row.cells["P13"].DoubleValue == pytest.approx(1.5)

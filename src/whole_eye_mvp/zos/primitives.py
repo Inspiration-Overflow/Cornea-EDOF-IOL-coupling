@@ -46,6 +46,8 @@ def binary4_zone_columns(
         raise ValueError("Binary 4 zone number is 1-based")
     if aspheric_term_count < 0 or phase_term_count < 0:
         raise ValueError("Binary 4 term counts must be non-negative")
+    if aspheric_term_count > 20 or phase_term_count > 20:
+        raise ValueError("Binary 4 supports at most 20 aspheric and 20 phase terms per zone")
     stride = 4 + aspheric_term_count + phase_term_count
     start = 13 + (zone_number - 1) * stride
     stop = start + stride - 1
@@ -58,9 +60,7 @@ def binary4_zone_columns(
         radius=start + 1,
         conic=start + 2,
         diffraction_order=start + 3,
-        aspheric_terms=tuple(
-            range(aspheric_start, aspheric_start + aspheric_term_count)
-        ),
+        aspheric_terms=tuple(range(aspheric_start, aspheric_start + aspheric_term_count)),
         phase_terms=tuple(range(phase_start, phase_start + phase_term_count)),
     )
 
@@ -86,6 +86,10 @@ class SequentialEditor:
 
     def new_system(self, save_if_needed: bool = False) -> None:
         self.system.New(save_if_needed)
+        make_sequential = getattr(self.system, "MakeSequential", None)
+        if not callable(make_sequential):
+            raise ZosPrimitiveError("installed API does not expose IOpticalSystem.MakeSequential")
+        make_sequential()
 
     def surface(self, index: int) -> Any:
         return self.lde.GetSurfaceAt(index)
@@ -166,33 +170,30 @@ class SequentialEditor:
         self,
         index: int,
         zones: tuple[Binary4Zone, ...],
-        *,
-        sine_delta0: float = 0.0,
     ) -> Any:
         if not zones:
             raise ValueError("Binary 4 requires at least one radial zone")
         aspheric_count = len(zones[0].aspheric_terms)
         phase_count = len(zones[0].phase_terms)
+        if aspheric_count > 20 or phase_count > 20:
+            raise ValueError("Binary 4 supports at most 20 aspheric and 20 phase terms per zone")
         if any(
             len(zone.aspheric_terms) != aspheric_count
             or len(zone.phase_terms) != phase_count
             for zone in zones
         ):
             raise ValueError("all Binary 4 zones must use equal aspheric and phase term counts")
-        numeric_values = (
-            sine_delta0,
-            *(
-                value
-                for zone in zones
-                for value in (
-                    zone.radial_aperture,
-                    zone.radius,
-                    zone.conic,
-                    zone.diffraction_order,
-                    *zone.aspheric_terms,
-                    *zone.phase_terms,
-                )
-            ),
+        numeric_values = tuple(
+            value
+            for zone in zones
+            for value in (
+                zone.radial_aperture,
+                zone.radius,
+                zone.conic,
+                zone.diffraction_order,
+                *zone.aspheric_terms,
+                *zone.phase_terms,
+            )
         )
         if not all(math.isfinite(float(value)) for value in numeric_values):
             raise ValueError("Binary 4 values must be finite")
@@ -213,7 +214,8 @@ class SequentialEditor:
         self.set_integer_parameter(index, 1, len(zones))
         self.set_integer_parameter(index, 2, aspheric_count)
         self.set_integer_parameter(index, 3, phase_count)
-        self.set_parameter(index, 4, sine_delta0)
+        # Par4 is a Binary 4 diagnostic calculated by OpticStudio from the phase data.
+        # It is intentionally verified by header but never written by the project.
 
         for zone_number, zone in enumerate(zones, start=1):
             columns = binary4_zone_columns(zone_number, aspheric_count, phase_count)

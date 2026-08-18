@@ -30,6 +30,16 @@ def test_session_opens_primary_system_and_closes() -> None:
 
 
 @pytest.mark.zemax
+def test_repeated_sessions_reuse_process_bootstrap_without_native_failure() -> None:
+    install_dir = _install_dir()
+
+    for _ in range(10):
+        with open_zos_session(install_dir) as session:
+            session.system.New(False)
+            assert session.system.LDE.NumberOfSurfaces >= 2
+
+
+@pytest.mark.zemax
 def test_worker_thread_session_risk_gate() -> None:
     install_dir = _install_dir()
     outcomes: queue.Queue[tuple[str, Any]] = queue.Queue(maxsize=1)

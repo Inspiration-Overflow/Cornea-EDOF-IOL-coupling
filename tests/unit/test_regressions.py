@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -37,11 +39,27 @@ def test_locked_artifact_tamper_is_detected(tmp_path: Path) -> None:
 @pytest.mark.unit
 def test_settings_hashes_include_frozen_huygens_metric_and_zernike_settings() -> None:
     assert settings_hash(CORNEA_LOCK_B0_555_V1) == (
-        "400be5ae8dc2d64fcf068f6b355b92e4af36753897bbca1dba7acc275346cd8e"
+        "2cb6545cccfb72771d3eb68329665c0ea867a465c270f852771c1a2116ccd2f7"
     )
     assert settings_hash(NOMINAL_MAIN_555_V1) == (
-        "9e1822cfd9fb5b30cb8fdafa5c5092d8f434a7c62956420204dd6893539282b0"
+        "7b6e05137eb6b0fd2b36a84b4baa3a390813b1028b9d2768aaca388610b6b400"
     )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "settings",
+    (
+        replace(NOMINAL_MAIN_555_V1, wavelength_nm=math.nan),
+        replace(NOMINAL_MAIN_555_V1, defocus_step_d=math.inf),
+        replace(NOMINAL_MAIN_555_V1, pupils_mm=(3.0, math.nan)),
+        replace(NOMINAL_MAIN_555_V1, zernike_normalized_radius=math.nan),
+        replace(NOMINAL_MAIN_555_V1, mtf_sample_frequencies_cpd=(10.0, math.inf)),
+    ),
+)
+def test_analysis_settings_reject_nonfinite_values(settings) -> None:
+    with pytest.raises(ValueError, match="finite"):
+        settings.validate()
 
 
 @pytest.mark.unit
