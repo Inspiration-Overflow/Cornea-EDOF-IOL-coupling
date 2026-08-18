@@ -189,11 +189,22 @@ OpticStudio 产品版本与 edition/license 名称仍由 Codex 在运行报告�
 
 不得把这些 diagnostic SHA 写入 `project/locks`。
 
+### 4.1 诊断生成的 STOP 规则
+
+- 不运行正式 `build_task_005c_standard_eye.py`；
+- 不运行 Zernike integration test；
+- 不运行全套 Zemax gates；
+- 每个 diagnostic worker 只尝试一次，不做自动重试循环；
+- 若 A 失败：停止，不生成 B/C；
+- 若 A 成功、B 失败：保留 A，停止并报告；
+- 若 A/B 成功、C 的 Quick Focus 失败：保留 A/B，停止并报告；
+- 无论生成多少个诊断文件，都不得登记 lock。
+
 ---
 
 ## 5. 项目负责人在 OpticStudio GUI 中的人工检查
 
-对三个文件逐一执行。
+对生成成功的文件逐一执行。
 
 ### 5.1 先看 LDE / System Explorer
 
