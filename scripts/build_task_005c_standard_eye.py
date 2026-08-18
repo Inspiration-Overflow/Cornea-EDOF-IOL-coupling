@@ -8,7 +8,7 @@ import os
 from dataclasses import asdict
 from pathlib import Path
 
-from whole_eye_mvp.domain import ScientificBaseline
+from whole_eye_mvp.domain import CURRENT_SCIENTIFIC_BASELINE_ID, ScientificBaseline
 from whole_eye_mvp.standard_eye import build_standard_eye, validate_registered_standard_eye
 from whole_eye_mvp.store import open_project_store
 from whole_eye_mvp.zos import open_zos_session
@@ -26,7 +26,7 @@ def _parser() -> argparse.ArgumentParser:
         help=f"OpticStudio installation directory; defaults to {INSTALL_ENV}",
     )
     parser.add_argument("--project-dir", type=Path, default=DEFAULT_PROJECT_DIR)
-    parser.add_argument("--baseline-id", default="MVP_2026_v1")
+    parser.add_argument("--baseline-id", default=CURRENT_SCIENTIFIC_BASELINE_ID)
     parser.add_argument(
         "--validate-only",
         action="store_true",
