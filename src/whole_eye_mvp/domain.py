@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass, fields, is_dataclass
 from enum import StrEnum
@@ -47,33 +48,80 @@ class AnalysisSettings:
     huygens_pupil_sampling: int = 128
     huygens_image_sampling: int = 256
     huygens_image_delta_um: float = 0.5
+    huygens_normalize: bool = True
+    huygens_use_centroid: bool = False
+    huygens_use_polarization: bool = False
     otf_pad_factor: int = 4
     radial_mtf_bin_cpd: float = 1.0
     mtfa_max_cpd: float = 60.0
     vsotf_max_cpd: float = 60.0
     mtf_sample_frequencies_cpd: tuple[float, ...] = (10.0, 20.0, 30.0, 40.0, 50.0, 60.0)
+    zernike_sample_size: int = 128
+    zernike_maximum_terms: int = 37
+    zernike_reference_opd_to_vertex: bool = False
+    zernike_center_x: float = 0.0
+    zernike_center_y: float = 0.0
+    zernike_normalized_radius: float = 1.0
+    zernike_epsilon: float = 0.0
+    zernike_surface: str = "image"
     zernike_removed_terms: tuple[str, ...] = ("piston", "tip", "tilt", "defocus")
     b0_q_lock_max_cycles_per_mm: float = 50.0
 
     def validate(self) -> None:
         if not self.settings_id.strip():
             raise ValueError("settings_id is required")
-        if self.wavelength_nm <= 0 or not self.pupils_mm or any(p <= 0 for p in self.pupils_mm):
-            raise ValueError("wavelength and pupils must be positive")
+        scalar_values = (
+            self.wavelength_nm,
+            self.defocus_start_d,
+            self.defocus_stop_d,
+            self.defocus_step_d,
+            self.dof_relative_fraction,
+            self.dof_absolute_threshold,
+            self.huygens_image_delta_um,
+            self.radial_mtf_bin_cpd,
+            self.mtfa_max_cpd,
+            self.vsotf_max_cpd,
+            self.zernike_center_x,
+            self.zernike_center_y,
+            self.zernike_normalized_radius,
+            self.zernike_epsilon,
+            self.b0_q_lock_max_cycles_per_mm,
+        )
+        if not all(math.isfinite(float(value)) for value in scalar_values):
+            raise ValueError("analysis settings must contain only finite numeric values")
+        if not self.pupils_mm or not all(
+            math.isfinite(float(pupil)) and pupil > 0 for pupil in self.pupils_mm
+        ):
+            raise ValueError("pupils must be finite and positive")
+        if self.wavelength_nm <= 0:
+            raise ValueError("wavelength must be positive")
         if self.defocus_step_d == 0:
             raise ValueError("defocus_step_d must not be zero")
         if self.defocus_start_d > self.defocus_stop_d and self.defocus_step_d > 0:
             raise ValueError("defocus step direction does not reach stop")
         if self.defocus_start_d < self.defocus_stop_d and self.defocus_step_d < 0:
             raise ValueError("defocus step direction does not reach stop")
+        if not 0 < self.dof_relative_fraction <= 1 or self.dof_absolute_threshold < 0:
+            raise ValueError("DOF thresholds are invalid")
         if self.huygens_pupil_sampling <= 0 or self.huygens_image_sampling <= 0:
             raise ValueError("Huygens sampling must be positive")
         if self.huygens_image_delta_um <= 0 or self.otf_pad_factor < 1:
             raise ValueError("Huygens image delta / OTF padding is invalid")
         if self.radial_mtf_bin_cpd <= 0 or self.mtfa_max_cpd <= 0 or self.vsotf_max_cpd <= 0:
             raise ValueError("metric frequency settings must be positive")
-        if any(f <= 0 for f in self.mtf_sample_frequencies_cpd):
-            raise ValueError("MTF sample frequencies must be positive")
+        if not self.mtf_sample_frequencies_cpd or not all(
+            math.isfinite(float(frequency)) and frequency > 0
+            for frequency in self.mtf_sample_frequencies_cpd
+        ):
+            raise ValueError("MTF sample frequencies must be finite and positive")
+        if self.zernike_sample_size <= 0 or self.zernike_maximum_terms < 28:
+            raise ValueError("Zernike sampling / term count is invalid")
+        if self.zernike_normalized_radius <= 0 or not 0 <= self.zernike_epsilon < 1:
+            raise ValueError("Zernike reference radius / epsilon is invalid")
+        if self.zernike_surface != "image":
+            raise ValueError("MVP Zernike acquisition is frozen to the image surface")
+        if self.b0_q_lock_max_cycles_per_mm <= 0:
+            raise ValueError("B0 Q-lock frequency limit must be positive")
 
     def defocus_grid(self) -> tuple[float, ...]:
         self.validate()
