@@ -121,10 +121,11 @@ A procedure imported by 'ZemaxEngine.dll' could not be loaded.
 
 ## 7. 下一步
 
-执行：
+当前分支已加入：
 
 ```text
-TASK_005C_MANUAL_OPTICSTUDIO_DIAGNOSTICS
+scripts/build_task_005c_manual_diagnostics.py
+docs/TASK_005C_MANUAL_OPTICSTUDIO_DIAGNOSTICS.md
 ```
 
 由 Codex 运行：
