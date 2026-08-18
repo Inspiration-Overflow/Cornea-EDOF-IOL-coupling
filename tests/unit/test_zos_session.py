@@ -15,6 +15,7 @@ from whole_eye_mvp.zos import (
     ZosSessionAdapter,
     open_zos_session,
 )
+from whole_eye_mvp.zos.session import _find_first_file
 
 
 @dataclass
@@ -134,3 +135,27 @@ def test_none_application_is_typed_connection_error(install_dir: Path) -> None:
         adapter.open(install_dir)
 
     assert backend.close_calls == 0
+
+
+@pytest.mark.unit
+def test_api_file_layout_prefers_modern_root_and_supports_legacy(tmp_path: Path) -> None:
+    modern = tmp_path / "ZOSAPI_NetHelper.dll"
+    legacy = tmp_path / "ZOS-API" / "Libraries" / "ZOSAPI_NetHelper.dll"
+    legacy.parent.mkdir(parents=True)
+    legacy.touch()
+
+    assert _find_first_file(modern, legacy) == legacy
+    modern.touch()
+    assert _find_first_file(modern, legacy) == modern
+
+
+@pytest.mark.unit
+def test_missing_api_file_reports_every_checked_location(tmp_path: Path) -> None:
+    first = tmp_path / "modern.dll"
+    second = tmp_path / "legacy.dll"
+
+    with pytest.raises(ZosEnvironmentError) as error:
+        _find_first_file(first, second)
+
+    assert str(first) in str(error.value)
+    assert str(second) in str(error.value)

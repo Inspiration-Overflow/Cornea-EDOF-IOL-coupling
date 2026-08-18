@@ -5,10 +5,10 @@ import json
 import math
 import os
 import tempfile
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Mapping, Sequence
 
 from .analysis import AnalysisBackend, ConfigResult, validate_completed_result, validate_selection
 from .carriers import (
@@ -19,7 +19,7 @@ from .carriers import (
     residuals_ready,
     validate_18_provisional_carriers,
 )
-from .domain import ArtifactRecord, NOMINAL_MAIN_555_V1, RunEnvironment, RunRecord, RunStatus
+from .domain import NOMINAL_MAIN_555_V1, ArtifactRecord, RunEnvironment, RunRecord, RunStatus
 from .manifest import (
     CarrierLock,
     ManifestBundle,
@@ -63,7 +63,7 @@ class AnalysisBatchSummary:
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def finalize_carrier_locks(
@@ -308,7 +308,7 @@ def run_analysis_batch(
                 expected_run_id=current_run_id,
             )
             _record_completed_result(store, result, target_dir)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - isolate and record each backend target failure
             finished_at = _now()
             store.append_run(
                 RunRecord(

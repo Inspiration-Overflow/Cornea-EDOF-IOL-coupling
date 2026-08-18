@@ -5,13 +5,12 @@ import hashlib
 import json
 import re
 import uuid
+from collections.abc import Sequence
 from dataclasses import asdict
 from pathlib import Path
-from typing import Sequence
 
 from .domain import AnalysisSettings
 from .store import PROJECT_SCHEMA_VERSION, SchemaError
-
 
 FORBIDDEN_EXACT_PRODUCT_MODEL_IDS = {
     "Vivity",

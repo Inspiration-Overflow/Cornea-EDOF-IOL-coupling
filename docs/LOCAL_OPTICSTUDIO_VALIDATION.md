@@ -11,7 +11,7 @@ git pull origin main
 uv lock
 uv sync
 uv run ruff check .
-uv run pytest -m unit
+uv run pytest tests/unit
 ```
 
 要求：
@@ -24,7 +24,7 @@ uv run pytest -m unit
 设置 OpticStudio 安装目录，例如：
 
 ```powershell
-$env:WHOLE_EYE_ZOS_INSTALL_DIR = "C:\Program Files\Ansys Zemax OpticStudio 2026 R1"
+$env:WHOLE_EYE_ZOS_INSTALL_DIR = "C:\Program Files\Ansys Zemax OpticStudio 2026 R1.00"
 ```
 
 实际路径以本机安装为准。
@@ -32,8 +32,11 @@ $env:WHOLE_EYE_ZOS_INSTALL_DIR = "C:\Program Files\Ansys Zemax OpticStudio 2026 
 ## 1. Session 与线程风险闸门
 
 ```powershell
-uv run pytest -m zemax -k "session or worker_thread"
+uv run pytest tests/zemax -m zemax -k "session or worker_thread"
 ```
+
+Zemax 测试必须直接从 `tests/zemax` 收集。本机在收集完整测试树后再用 `-m zemax`
+筛选时，ZOS-API 原生进程可能以 `0xc0000139` 退出；直接收集 Zemax 目录的同一批测试通过。
 
 验证：
 
@@ -45,24 +48,32 @@ uv run pytest -m zemax -k "session or worker_thread"
 
 若 worker-thread gate 失败，不继续 thread-owned session；只调整 GUI/workflow orchestration placement，不改科学模块。
 
-## 2. 完成 ZOS-API 面型与 analysis-specific 映射
+## 2. ZOS-API 面型与 analysis-specific 映射
 
 仓库已经提供：
 
 - `whole_eye_mvp.zos.session`：会话生命周期；
 - `whole_eye_mvp.zos.primitives.SequentialEditor`：顺序模式基础编辑；
-- `whole_eye_mvp.zos.primitives.SystemAnalysisRunner`：通用 analysis lifecycle。
+- `whole_eye_mvp.zos.primitives.SystemAnalysisRunner`：通用 analysis lifecycle；
+- `whole_eye_mvp.zos.analyses`：Huygens PSF 与 Zernike Standard 的专用设置、结果复制和校验。
 
-本机对照安装版 Programming Help / Syntax Help 确认：
+本机已用 2026 R1.00 的临时顺序系统确认：
 
-- Binary 4 zone/parameter 的具体 `SurfaceColumn/ParN` 映射；
-- Even Asphere 参数列；
-- Coordinate Break / Coordinate Return 的 pivot 设置；
-- Huygens PSF/MTF analysis-specific settings；
-- Zernike Standard Coefficients 输出字段；
-- footprint/Prescription Data 所需接口。
+- Binary 4 的 zone、asphere、phase `ParN` 映射；
+- Even Asphere 的 2 阶至 16 阶参数列；
+- Coordinate Break 的偏心、倾斜和 order 参数列；
+- Huygens PSF 的采样、图像间隔、归一化和结果网格复制；
+- Zernike Standard Coefficients 的 UTF-16 文本输出及 Z1…Zmax 严格解析。
+
+仍待确认和实现：Coordinate Return、footprint、Prescription Data、Huygens MTF 专用接口。
 
 不要在未验证参数列含义时把猜测写成正式模型。
+
+当前 API smoke 回归命令：
+
+```powershell
+uv run pytest tests/zemax
+```
 
 ## 3. TASK-005：基础科学资产
 

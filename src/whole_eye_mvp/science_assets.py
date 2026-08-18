@@ -1,15 +1,16 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
-from typing import Protocol, Sequence
+from typing import Protocol
 
 import numpy as np
 
 from .domain import (
-    BASELINE_BASE_SPECS,
     BASELINE_B_CANDIDATES_DELTA_C40_UM,
+    BASELINE_BASE_SPECS,
     BASELINE_CORNEA_SPECS,
     BASELINE_PLATFORM_SPECS,
     BASELINE_STANDARD_EYE_SPEC,

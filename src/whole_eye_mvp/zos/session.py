@@ -10,7 +10,8 @@ from __future__ import annotations
 import importlib
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Protocol
+from types import TracebackType
+from typing import Any, Protocol, Self
 
 from .errors import (
     ZosCloseError,
@@ -21,6 +22,16 @@ from .errors import (
     ZosModeError,
     ZosSessionError,
 )
+
+
+def _find_first_file(*candidates: Path) -> Path:
+    """Return the first installed API file from an ordered layout list."""
+
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    checked = ", ".join(str(candidate) for candidate in candidates)
+    raise ZosEnvironmentError(f"Missing ZOS-API file; checked: {checked}")
 
 
 class ZosBackend(Protocol):
@@ -70,10 +81,15 @@ class ZosSession:
         finally:
             self._closed = True
 
-    def __enter__(self) -> ZosSession:
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> bool:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> bool:
         self.close()
         return False
 
@@ -92,9 +108,10 @@ class PythonNetZosBackend:
         return self._zosapi
 
     def initialize(self, install_dir: Path) -> None:
-        helper = install_dir / "ZOS-API" / "Libraries" / "ZOSAPI_NetHelper.dll"
-        if not helper.is_file():
-            raise ZosEnvironmentError(f"Missing ZOSAPI_NetHelper.dll: {helper}")
+        helper = _find_first_file(
+            install_dir / "ZOSAPI_NetHelper.dll",
+            install_dir / "ZOS-API" / "Libraries" / "ZOSAPI_NetHelper.dll",
+        )
 
         try:
             clr = importlib.import_module("clr")
@@ -120,12 +137,14 @@ class PythonNetZosBackend:
 
         try:
             zemax_dir = Path(str(initializer.GetZemaxDirectory()))
-            interfaces = zemax_dir / "ZOSAPI_Interfaces.dll"
-            api = zemax_dir / "ZOSAPI.dll"
-            missing = [path for path in (interfaces, api) if not path.is_file()]
-            if missing:
-                missing_text = ", ".join(str(path) for path in missing)
-                raise ZosEnvironmentError(f"Missing ZOS-API library/libraries: {missing_text}")
+            interfaces = _find_first_file(
+                zemax_dir / "ZOSAPI_Interfaces.dll",
+                install_dir / "ZOSAPI_Interfaces.dll",
+            )
+            api = _find_first_file(
+                zemax_dir / "ZOSAPI.dll",
+                install_dir / "ZOSAPI.dll",
+            )
             clr.AddReference(str(interfaces))
             clr.AddReference(str(api))
             self._zosapi = importlib.import_module("ZOSAPI")

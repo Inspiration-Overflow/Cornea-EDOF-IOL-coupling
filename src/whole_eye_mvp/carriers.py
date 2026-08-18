@@ -3,10 +3,10 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from statistics import median
-from typing import Sequence
 
 from .domain import BaseId, CorneaId, PlatformId
 

@@ -11,7 +11,11 @@ from whole_eye_mvp.acceptance import (
     validate_nominal_acceptance,
     validate_repeatability,
 )
-from whole_eye_mvp.carriers import ProvisionalCarrier, ResidualValidationPolicy, expected_carrier_keys
+from whole_eye_mvp.carriers import (
+    ProvisionalCarrier,
+    ResidualValidationPolicy,
+    expected_carrier_keys,
+)
 from whole_eye_mvp.domain import PlatformId
 from whole_eye_mvp.manifest import CarrierLock, build_manifests, compute_carrier_lock_hash
 

@@ -4,38 +4,41 @@
 
 ## 当前结论
 
-当前仓库已经完成 **OpticStudio 之外可独立实现的 MVP 代码层及一次独立 code-review 加固**。所有需要真实 OpticStudio/ZOS-API 光学运行才能判定的项目仍保持为待验证状态；没有用合成数据生成正式科学 lock，也没有声称已经完成 72 配置主实验。
+当前仓库已经在本机 **OpticStudio 2026 R1.00 + Premium license** 下完成第一批 ZOS-API 适配：主线程与 worker thread 会话、三种顺序面型的实际参数列、Huygens PSF 网格读取、Zernike Standard 系数读取均已通过真实运行。正式眼模型、A0/B0/C0、carrier/residual、三代表配置和 Run72 仍未执行；没有用安装示例或合成数据生成正式科学 lock。
 
-当前离线验证：
+2026-08-17 当前验证：
 
 ```text
-69 passed, 2 skipped
-python -m compileall -q src tests  -> PASS
+pytest tests/unit                         -> 83 passed
+pytest tests/zemax                        -> 5 passed
+ruff check .                              -> PASS
+python -m compileall -q src tests scripts -> PASS
 ```
 
-两项 skipped 均为未配置真实 OpticStudio 的 `zemax` worker/session gate。
+真实 Zemax 组包含主线程 session、GUI-like worker session、Binary 4/Even Asphere/Coordinate Break 写入回读、32×32 Huygens PSF 和 37 项 Zernike Standard。曲面测试创建临时系统但不保存文件；analysis 测试读取 OpticStudio 自带衍射极限示例。
 
-当前仍未完成的环境项：
+当前执行注意事项：
 
-- `uv.lock` 尚未生成；当前执行环境无法访问依赖源，离线 resolver 也没有完整缓存，因此没有伪造 lockfile。
-- `uv sync` 尚未在目标 Windows 工作站完成。
-- `ruff` 尚未在当前执行环境安装/运行成功；目标工作站需补跑。
-- OpticStudio 2026 R1、真实 ZOS-API license、worker-thread gate、GUI display smoke、Huygens/Zernike/MTF cross-check 均待本地完成。
+- `uv.lock` 已生成，当前 `.venv` 可运行全部上述检查。
+- 2026 R1.00 把 `ZOSAPI_NetHelper.dll`、`ZOSAPI.dll`、`ZOSAPI_Interfaces.dll` 放在安装根目录；session 同时保留旧版 `ZOS-API/Libraries` 布局支持。
+- 本机必须用 `pytest tests/zemax` 直接收集 Zemax 测试。收集完整测试树后再用 `-m zemax` 筛选，会在第一次创建 ZOS application 时以 Windows 原生状态 `0xc0000139` 退出；独立目录连续复跑通过。
+- 个别成功会话曾在 stderr 出现 `FRU__delta_init(): Attempt to start when running!`，没有导致测试失败。后续长批次运行仍需观察。
+- GUI display smoke、Huygens MTF 交叉验证、footprint 与 Prescription Data 接口仍待完成。
 
 ## RMD task 状态
 
 | RMD task | Git | 当前状态 | 本地 OpticStudio 阶段仍需完成 |
 | --- | --- | --- | --- |
-| TASK-001 Project Setup | scaffold commit `b53dd798` | **部分完成**：`pyproject.toml`、src/tests、fixture、ignore 已有 | 生成 `uv.lock`；`uv sync`；`uv run ruff check .` |
-| TASK-002 ZOS session | PR #2 | **代码完成**：typed session/errors/close semantics + worker test | TDD-001/101/401 真实连接和 worker-thread gate |
+| TASK-001 Project Setup | scaffold commit `b53dd798` | **本机完成**：`uv.lock` 已生成；83 个 unit、Ruff、compileall 通过 | 合并前用 locked 环境复核 |
+| TASK-002 ZOS session | PR #2 + 本次适配 | **本机通过**：2026 R1.00 新旧 DLL 布局、Premium license、主线程和 worker-thread session | 长批次继续观察原生 stderr；保持 Zemax 测试目录隔离 |
 | TASK-003 Domain + ProjectStore | PR #3 | **离线完成并加固**：完整 baseline hash、create-once RunEnvironment、schema v2、artifact/run provenance | 与真实 `.zos` artifact 一起做一次集成回放 |
 | TASK-004 metric engine | PR #4 | **离线完成**：complex OTF、MTF、MTFa、VSOTF、DOF、frequency、delta | 用真实 Huygens PSF/MTF 做 TDD-209/403 交叉验证 |
-| TASK-005 scientific assets | PR #5 | **离线合同完成**：base/STD/A0/B/C0 参数与 C0 quintic、backend 边界 | 完成 Binary 4/Even Asphere 实际参数映射；建立并验证 `.zos` assets、ZERO_HOA、REF_MONO |
+| TASK-005 scientific assets | PR #5 + 本次适配 | **API 映射完成**：Binary 4、Even Asphere、Coordinate Break 实机写入回读通过 | 建立并验证正式 `.zos` assets、Coordinate Return、ZERO_HOA、REF_MONO |
 | TASK-006 B0 | PR #6 | **算法完成并加固**：严格 17-plane grid、achieved ΔC4、80/70% gate、DOF rank、morphology/override、settings-bound scan hash | 运行真实五点 B scan；人工 morphology decision；写唯一 B0 lock |
 | TASK-007 carrier science gate | PR #7 + #13 | **fail-closed 门控完成**：finite carrier、evidence-backed residual、actual-carrier low/median/high、policy hash | 实际求 18 个 P/Q；STD-eye achieved-SA 回放；提供 3 个 residual payload；确定并冻结 residual 数值 tolerance policy；真实 low/median/high 校准；解除 TDD-999 |
 | TASK-008 carrier/pair locks + manifest | PR #8 + #13 | **生成器/CSV/provenance 加固完成**；不会在 gate 前产出正式清单 | TASK-007 通过后生成正式 18 lock、36 pair、72 manifest 并复核 hash |
-| TASK-009 analysis | PR #9 + #13 | **结果合同/身份/provenance/failure-rerun 加固完成** | 补 Huygens PSF/Zernike/footprint 的具体 ZOS setting；先跑 3 个代表配置；通过 sampling/MTF cross-check |
-| TASK-010 GUI | PR #10 | **薄 GUI/显式 composition/thread-safe event queue 完成**；无 raw ZOSAPI import | 根据 TDD-401 选择 inline 或 worker ZOS orchestration；本地 GUI smoke |
+| TASK-009 analysis | PR #9 + #13 + 本次适配 | **API smoke 通过**：Huygens PSF 网格与 Zernike Standard 严格读取已实机验证 | footprint/Prescription/Huygens MTF；先跑 3 个代表配置；通过 sampling/MTF cross-check |
+| TASK-010 GUI | PR #10 | **线程假设已验证**：worker-owned ZOS session 可连接、建临时系统并关闭；无 raw ZOSAPI import | 接入具体 workflow 后做本地 GUI display/full-flow smoke；当前没有 `gui` marker 实测用例 |
 | TASK-011 nominal acceptance | PR #11 | **manifest-bound 验收判定器完成**：72/36/1080 + repeatability | 只有 TASK-009 代表配置通过后才运行真实 Run72 和 repeatability |
 
 ## 独立 code review 后的加固
@@ -65,7 +68,7 @@ python -m compileall -q src tests  -> PASS
 
 以下条件没有因为代码已写完或 code review 已修复而解除：
 
-1. `TDD-TEST-401` 未在真实 OpticStudio 运行前，不锁定 GUI 的 ZOS session 线程归属。
+1. `TDD-TEST-401` 已在真实 OpticStudio 通过，当前允许 worker-owned ZOS session；若后续 GUI 长流程出现原生失败，必须重新评估线程归属。
 2. `TDD-TEST-999` 未解除前，不允许生成真实正式 EDOF carrier/pair locks，也不允许真实 Run72。
 3. 3 个代表配置未通过 sampling convergence 与独立 MTF cross-check 前，不允许 Run72。
 4. A0/B0/C0、STD eye、residual 或 carrier 一旦正式 lock，任何下游流程不得改其 hash。
@@ -75,4 +78,4 @@ python -m compileall -q src tests  -> PASS
 
 RMD 主实现均通过独立分支 → PR → squash merge 进入 `main`：PR #2–#15；本次 code-review hardening 同样按独立分支和 PR 提交。
 
-本文件的状态含义是：**RMD 的离线实现与第一轮独立 code-review 修订已完成；下一阶段仍是目标 Windows + OpticStudio 环境中的 API 适配、科学建模与验收。**
+本文件的状态含义是：**离线实现、第一轮 code review 和第一批真实 ZOS-API 适配已完成；下一阶段是正式科学资产建模、三代表配置验证和 GUI smoke。**

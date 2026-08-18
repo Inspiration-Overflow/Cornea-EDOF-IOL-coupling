@@ -4,7 +4,13 @@ from types import SimpleNamespace
 
 import pytest
 
-from whole_eye_mvp.zos.primitives import SequentialEditor, SystemAnalysisRunner, ZosPrimitiveError
+from whole_eye_mvp.zos.primitives import (
+    SequentialEditor,
+    SystemAnalysisRunner,
+    ZosPrimitiveError,
+    binary4_zone_columns,
+    even_asphere_parameter_number,
+)
 
 
 class Cell:
@@ -151,3 +157,19 @@ def test_generic_analysis_lifecycle_snapshots_before_close() -> None:
     assert system.Analyses.last.closed
     with pytest.raises(ZosPrimitiveError):
         runner.run_by_id("NoSuchAnalysis", lambda proxy: proxy.read())
+
+
+@pytest.mark.unit
+def test_verified_binary4_and_even_asphere_column_mappings() -> None:
+    first = binary4_zone_columns(1, 8, 0)
+    second = binary4_zone_columns(2, 8, 0)
+    assert first.radial_aperture == 13
+    assert first.aspheric_terms == tuple(range(17, 25))
+    assert second.radial_aperture == 25
+    assert second.aspheric_terms == tuple(range(29, 37))
+    assert even_asphere_parameter_number(2) == 1
+    assert even_asphere_parameter_number(16) == 8
+    with pytest.raises(ValueError):
+        binary4_zone_columns(0, 8, 0)
+    with pytest.raises(ValueError):
+        even_asphere_parameter_number(5)

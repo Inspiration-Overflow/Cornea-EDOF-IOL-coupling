@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-import whole_eye_mvp.app as app
+from whole_eye_mvp import app
 from whole_eye_mvp.app import (
     ActionDispatcher,
     ActionName,

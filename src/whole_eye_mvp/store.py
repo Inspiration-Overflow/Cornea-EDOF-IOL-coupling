@@ -6,9 +6,9 @@ import json
 import os
 import shutil
 import tempfile
+from collections.abc import Iterable
 from dataclasses import asdict
 from pathlib import Path
-from typing import Iterable
 
 from .domain import ArtifactRecord, ArtifactRef, RunEnvironment, RunRecord, ScientificBaseline
 
@@ -82,7 +82,7 @@ class ProjectStore:
         self.run_history_path = root / "logs" / "run_history.csv"
 
     @classmethod
-    def open(cls, project_dir: str | Path, baseline: ScientificBaseline) -> "ProjectStore":
+    def open(cls, project_dir: str | Path, baseline: ScientificBaseline) -> ProjectStore:
         root = Path(project_dir).expanduser().resolve()
         try:
             root.mkdir(parents=True, exist_ok=True)
@@ -245,10 +245,10 @@ class ProjectStore:
         if path.exists():
             existing = path.read_text(encoding="utf-8")
             if json.loads(existing) == json.loads(text):
-                return str(path.relative_to(self.root))
+                return path.relative_to(self.root).as_posix()
             raise EnvironmentConflict(f"run environment {environment_id!r} already exists")
         _atomic_write_text(path, text)
-        return str(path.relative_to(self.root))
+        return path.relative_to(self.root).as_posix()
 
     def append_run(self, record: RunRecord) -> None:
         rows: list[dict[str, str]] = []

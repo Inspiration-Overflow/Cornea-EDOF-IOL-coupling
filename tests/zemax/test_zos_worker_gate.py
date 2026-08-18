@@ -10,7 +10,6 @@ import pytest
 
 from whole_eye_mvp.zos import open_zos_session
 
-
 INSTALL_ENV = "WHOLE_EYE_ZOS_INSTALL_DIR"
 
 

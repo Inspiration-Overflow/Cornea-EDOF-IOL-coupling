@@ -23,7 +23,6 @@ from whole_eye_mvp.carriers import (
 )
 from whole_eye_mvp.domain import PlatformId
 
-
 POLICY = ResidualValidationPolicy("TEST_RESIDUAL_POLICY_v1", 0.01, 0.05)
 
 

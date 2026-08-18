@@ -3,11 +3,11 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
-from typing import Mapping, Sequence
 
 from .domain import CORNEA_LOCK_B0_555_V1
-from .metrics import DofInterval, DistancePeak, dof_interval, find_distance_peak
+from .metrics import DistancePeak, DofInterval, dof_interval, find_distance_peak
 from .science_assets import B_CANDIDATE_DELTA_C40_UM
 
 
