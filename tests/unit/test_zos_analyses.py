@@ -187,9 +187,9 @@ def test_huygens_psf_rejects_invalid_settings_before_opening_analysis(
 @pytest.mark.parametrize(
     "grid,error",
     (
-        (Grid([[math.nan]]), "non-finite"),
-        (Grid([[math.inf]]), "non-finite"),
-        (Grid([[-1.0]]), "negative"),
+        (Grid(square_rows(32, math.nan)), "non-finite"),
+        (Grid(square_rows(32, math.inf)), "non-finite"),
+        (Grid(square_rows(32, -1.0)), "negative"),
         (Grid(square_rows(32), dx=0.25, dy=0.25), "ImageDelta"),
         (Grid(square_rows(32), min_x=100.0), "centered"),
         (Grid(square_rows(64)), "shape mismatch"),
