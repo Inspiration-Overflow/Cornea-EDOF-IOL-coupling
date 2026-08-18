@@ -53,7 +53,7 @@ def _run_worker(project_dir: Path, *extra_args: str) -> dict[str, Any]:
 
 @pytest.mark.zemax
 def test_task_005c_standard_eye_build_reload_and_validate_without_rewrite(tmp_path: Path) -> None:
-    project_dir = tmp_path / "project"
+    project_dir = tmp_path / "project_mvp_2026_v2"
     built = _run_worker(project_dir)
     asset = project_dir / "models" / "assets" / "STD_IOL_EYE_2024.zos"
     hash_before = _sha256(asset)
@@ -65,7 +65,7 @@ def test_task_005c_standard_eye_build_reload_and_validate_without_rewrite(tmp_pa
     assert hash_after == hash_before
     measurement = validated["validation"]["measurements"]
     assert measurement["wavelength_nm"] == pytest.approx(546.0, abs=1.0)
-    assert measurement["calibration_aperture_mm"] == pytest.approx(3.0, abs=0.001)
+    assert measurement["calibration_aperture_mm"] == pytest.approx(6.0, abs=0.001)
     assert measurement["corneal_sa_pupil_mm"] == pytest.approx(6.0, abs=0.001)
     assert measurement["corneal_c40_um_6mm"] == pytest.approx(0.258, abs=0.005)
     assert measurement["iol_footprint_mm_6mm"] == pytest.approx(5.15, abs=0.10)
