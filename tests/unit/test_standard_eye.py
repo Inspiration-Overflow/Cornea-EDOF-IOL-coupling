@@ -5,7 +5,12 @@ from dataclasses import replace
 import pytest
 
 from whole_eye_mvp.carriers import CarrierKey, ProvisionalCarrier
-from whole_eye_mvp.domain import PlatformId, ScientificBaseline
+from whole_eye_mvp.domain import (
+    CURRENT_SCIENTIFIC_BASELINE_ID,
+    NOMINAL_MAIN_555_V1,
+    PlatformId,
+    ScientificBaseline,
+)
 from whole_eye_mvp.standard_eye import (
     CORNEAL_SA_PUPIL_MM,
     CORNEA_BACK_CONIC,
@@ -14,6 +19,7 @@ from whole_eye_mvp.standard_eye import (
     CORNEA_FRONT_RADIUS_MM,
     CORNEA_INDEX,
     CORNEA_THICKNESS_MM,
+    STANDARD_EYE_CALIBRATION_WAVELENGTH_NM,
     StandardEyeMeasurements,
     ZeroHoaReferenceRecord,
     corneal_paraxial_focus_from_post_mm,
@@ -24,8 +30,10 @@ from whole_eye_mvp.standard_eye import (
 
 
 @pytest.mark.unit
-def test_standard_eye_uses_liou_cornea_and_distinct_validation_apertures() -> None:
-    spec = standard_eye_construction(ScientificBaseline("MVP_2026_v1"))
+def test_standard_eye_uses_liou_cornea_and_6mm_calibration_aperture() -> None:
+    baseline = ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID)
+    spec = standard_eye_construction(baseline)
+    assert CURRENT_SCIENTIFIC_BASELINE_ID == "MVP_2026_v2"
     assert spec.cornea_front_radius_mm == CORNEA_FRONT_RADIUS_MM == 7.77
     assert spec.cornea_front_conic == CORNEA_FRONT_CONIC == -0.18
     assert spec.cornea_back_radius_mm == CORNEA_BACK_RADIUS_MM == 6.40
@@ -33,15 +41,23 @@ def test_standard_eye_uses_liou_cornea_and_distinct_validation_apertures() -> No
     assert spec.cornea_thickness_mm == CORNEA_THICKNESS_MM == 0.50
     assert spec.cornea_index == CORNEA_INDEX == 1.376
     assert spec.corneal_sa_pupil_mm == CORNEAL_SA_PUPIL_MM == 6.0
-    assert spec.eye.aperture_mm == 3.0
+    assert spec.eye.aperture_mm == 6.0
     assert spec.eye.corneal_c40_um == pytest.approx(0.258)
     assert spec.eye.iol_footprint_mm == pytest.approx(5.15)
-    assert spec.eye.wavelength_nm == pytest.approx(546.0)
+    assert spec.eye.wavelength_nm == STANDARD_EYE_CALIBRATION_WAVELENGTH_NM == 546.0
+
+
+@pytest.mark.unit
+def test_standard_eye_calibration_is_separate_from_nominal_3mm_5mm_performance() -> None:
+    baseline = ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID)
+    assert baseline.standard_eye_spec.aperture_mm == 6.0
+    assert baseline.nominal_condition.pupils_mm == (3.0, 5.0)
+    assert NOMINAL_MAIN_555_V1.pupils_mm == (3.0, 5.0)
 
 
 @pytest.mark.unit
 def test_paraxial_iol_plane_is_deterministic_start_for_real_footprint_gate() -> None:
-    spec = standard_eye_construction(ScientificBaseline("MVP_2026_v1"))
+    spec = standard_eye_construction(ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID))
     assert paraxial_iol_plane_distance_mm(spec) == pytest.approx(3.92355, abs=1e-4)
     assert corneal_paraxial_focus_from_post_mm(spec) == pytest.approx(31.06443, abs=1e-4)
     assert spec.iol_vertex_mm == pytest.approx(4.42355, abs=1e-4)
@@ -49,11 +65,11 @@ def test_paraxial_iol_plane_is_deterministic_start_for_real_footprint_gate() -> 
 
 
 @pytest.mark.unit
-def test_standard_eye_measurements_enforce_6mm_c40_and_footprint_plus_3mm_calibration() -> None:
-    spec = standard_eye_construction(ScientificBaseline("MVP_2026_v1"))
+def test_standard_eye_measurements_enforce_shared_6mm_calibration() -> None:
+    spec = standard_eye_construction(ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID))
     measurements = StandardEyeMeasurements(
         wavelength_nm=546.0,
-        calibration_aperture_mm=3.0,
+        calibration_aperture_mm=6.0,
         corneal_sa_pupil_mm=6.0,
         corneal_c40_um_6mm=0.258,
         iol_footprint_mm_6mm=5.15,
@@ -73,7 +89,7 @@ def test_standard_eye_measurements_enforce_6mm_c40_and_footprint_plus_3mm_calibr
     )
     assert validate_standard_eye_measurements(measurements, spec) == ()
 
-    wrong = replace(measurements, calibration_aperture_mm=6.0)
+    wrong = replace(measurements, calibration_aperture_mm=3.0)
     findings = validate_standard_eye_measurements(wrong, spec)
     assert any("calibration_aperture_mm" in finding for finding in findings)
 
@@ -83,7 +99,8 @@ def test_standard_eye_measurements_enforce_6mm_c40_and_footprint_plus_3mm_calibr
 
 
 @pytest.mark.unit
-def test_zero_hoa_reference_preserves_carrier_identity_metadata() -> None:
+def test_zero_hoa_reference_preserves_carrier_and_6mm_calibration_identity() -> None:
+    baseline = ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID)
     carrier = ProvisionalCarrier(
         key=CarrierKey("LB_AL2395", "A0", PlatformId.WFS),
         power_d=20.0,
@@ -96,11 +113,19 @@ def test_zero_hoa_reference_preserves_carrier_identity_metadata() -> None:
         iol_position_mm=4.5,
         achieved_sa_um=-0.20,
     )
-    reference = ZeroHoaReferenceRecord.from_carrier(carrier)
-    reference.validate_against(carrier)
+    reference = ZeroHoaReferenceRecord.from_carrier(
+        carrier, standard_eye_spec=baseline.standard_eye_spec
+    )
+    reference.validate_against(carrier, standard_eye_spec=baseline.standard_eye_spec)
     assert reference.power_d == carrier.power_d
     assert reference.optical_model == "ideal_paraxial_zero_hoa"
+    assert reference.calibration_aperture_mm == 6.0
+    assert reference.calibration_wavelength_nm == 546.0
 
     other = replace(carrier, power_d=21.0, q_source_power_d=21.0)
     with pytest.raises(ValueError, match="preserve carrier"):
-        reference.validate_against(other)
+        reference.validate_against(other, standard_eye_spec=baseline.standard_eye_spec)
+
+    wrong_pupil = replace(reference, calibration_aperture_mm=3.0)
+    with pytest.raises(ValueError, match="calibration pupil"):
+        wrong_pupil.validate_against(carrier, standard_eye_spec=baseline.standard_eye_spec)
