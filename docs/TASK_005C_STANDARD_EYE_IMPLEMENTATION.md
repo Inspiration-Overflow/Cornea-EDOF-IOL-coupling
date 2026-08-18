@@ -1,6 +1,6 @@
 # TASK-005C — `STD_IOL_EYE_2024` 与 `ZERO_HOA_PARAXIAL_REFERENCE` 实施规格
 
-> 状态：**科学文档已修订为 6 mm calibration；代码随后按本文修订，之后等待 Codex / OpticStudio 2026 R1 实机验证。**
+> 状态：**科学文档已修订为 6 mm calibration；由此产生的 scientific baseline 版本升级已明确。代码随后按本文修订，之后等待 Codex / OpticStudio 2026 R1 实机验证。**
 >
 > 本文是 RMD-TASK-005 的 005C 子阶段实施规格。它执行 `URD-0001 v1.4` 与 `TDD-0001 v1.3`，不重新定义主实验矩阵。
 
@@ -52,7 +52,7 @@ TASK-005C 只完成两件事：
 因此本项目采用：
 
 ```text
-6 mm  = standard-eye design / SA calibration space
+6 mm   = standard-eye design / SA calibration space
 3/5 mm = nominal whole-eye performance space
 ```
 
@@ -97,15 +97,61 @@ S. Jeon et al. *Change in efficiency of aspheric intraocular lenses based on pup
 
 现代 EDOF / enhanced-monofocal bench 研究常比较 3.0 mm 与 4.5 mm 等不同 pupil openings，结果表明 pupil size 会明显改变 through-focus energy distribution 和远/中距离表现。因此本项目继续保留 EPD3，同时用 EPD5 暴露更明显的 pupil-dependent mechanism。
 
-例：
-
-*Through-Focus Response of Extended Depth of Focus Intraocular Lenses* 使用 3.0 mm 与 4.5 mm pupil openings 比较多种 EDOF/enhanced-monofocal IOL。
+例：*Through-Focus Response of Extended Depth of Focus Intraocular Lenses* 使用 3.0 mm 与 4.5 mm pupil openings 比较多种 EDOF/enhanced-monofocal IOL。
 
 本项目不把文献的 4.5 mm 直接复制进主矩阵；已有 EPD5 继续作为较大瞳孔性能条件，避免无必要改动 72-config design。
 
 ---
 
-## 4. `STD_IOL_EYE_2024` 的冻结角色
+## 4. Scientific baseline 版本与 005B 资产继承
+
+### 4.1 为什么必须从 `MVP_2026_v1` 升级
+
+项目 `ProjectStore` 的 `scientific_baseline_hash` 对完整 `ScientificBaseline` 序列化后计算 SHA-256，其中包含 `standard_eye_spec.aperture_mm`。
+
+因此把 standard-eye calibration aperture 从 3 mm 改为 6 mm 是**真实 scientific baseline change**。继续沿用同一个 `MVP_2026_v1` ID 会形成“baseline ID 相同但 hash 不同”的状态，并被 `BaselineMismatch` 正确拒绝。
+
+本阶段冻结：
+
+\[
+\boxed{CURRENT\_SCIENTIFIC\_BASELINE=MVP\_2026\_v2}
+\]
+
+不得通过排除 aperture 字段、跳过 baseline hash 或放宽 `BaselineMismatch` 来兼容旧 project。
+
+### 4.2 005B 的科学结论没有被推翻
+
+`MVP_2026_v1` 下已经验证的两枚轴向 base：
+
+- `BASE_LB_PSEUDOPHAKIC.zos`；
+- `BASE_ATC_M3_PSEUDOPHAKIC.zos`；
+
+其 AL、STOP、IOL reference、介质和固定 IMAGE 几何没有因为 005C 的 pupil 决策而变化。
+
+因此原有 005B SHA 与验证 CSV 继续作为**v1 历史验证证据**保留，但不能直接充当 v2 project 的 formal lock。
+
+### 4.3 v2 不做迁移框架，只重新生成/登记
+
+MVP 不实现 baseline migration subsystem。
+
+Codex 在本地保留旧 `project/` 不动，另建例如：
+
+`project_mvp_2026_v2/`
+
+在该目录按 v2 baseline 顺序执行：
+
+1. 重新运行 TASK-005B base builder；
+2. 验证双 base 几何仍通过；
+3. 登记 v2 base locks；
+4. 再运行 TASK-005C standard-eye builder。
+
+如果新生成的 `.zos` hash 因 OpticStudio 文件内部 metadata 与 v1 不完全相同，只要 v2 readback/validation 通过即可；不得把“必须复现旧 v1 文件字节 hash”当成科学 oracle。
+
+不删除、不覆盖旧 v1 project。
+
+---
+
+## 5. `STD_IOL_EYE_2024` 的冻结角色
 
 `STD_IOL_EYE_2024` 只服务于：
 
@@ -117,12 +163,13 @@ S. Jeon et al. *Change in efficiency of aspheric intraocular lenses based on pup
 
 它**不是** LB/ATC 主研究眼，不进入 72-config nominal analysis matrix。
 
-### 4.1 固定光学条件
+### 5.1 固定光学条件
 
 正式 standard-eye calibration state：
 
 | 项目 | 冻结值 |
 | --- | ---: |
+| scientific baseline | `MVP_2026_v2` |
 | entrance pupil diameter | `6.000 mm` |
 | wavelength | `≈546 nm` |
 | field | `0°` |
@@ -130,20 +177,20 @@ S. Jeon et al. *Change in efficiency of aspheric intraocular lenses based on pup
 | corneal C40 target | `+0.258 ±0.005 µm @ 6 mm` |
 | IOL-plane real-ray footprint | `5.15 ±0.10 mm @ 6 mm` |
 
-正式 `.zos` 保存状态也使用 `EPD=6.0 mm`。不再保存为 3 mm 后通过临时切换进行 carrier calibration。
+正式 `.zos` 保存状态使用 `EPD=6.0 mm`。
 
 ---
 
-## 5. Zemax 工程处方
+## 6. Zemax 工程处方
 
-### 5.1 表面顺序
+### 6.1 表面顺序
 
 除 OBJECT 外，模板使用四个表面：
 
 | Surface | Comment | Radius / Q | Thickness to next | Medium after |
 | ---: | --- | --- | --- | --- |
 | 1 | `STD_CORNEA_ANT` | `R=+7.77 mm, Q=-0.18` | `0.500 mm` | cornea `n=1.376 @ 546 nm` |
-| 2 | `STD_CORNEA_POST` | `R=+6.40 mm, Q=-0.60` | 见 5.2 | aqueous `n=1.336 @ 546 nm` |
+| 2 | `STD_CORNEA_POST` | `R=+6.40 mm, Q=-0.60` | 见 6.2 | aqueous `n=1.336 @ 546 nm` |
 | 3 | `IOL_ANT_REFERENCE` | plane | 到 IMAGE 的固定参考距离 | aqueous |
 | 4 | `IMAGE_REFERENCE` | plane | — | IMAGE |
 
@@ -157,7 +204,7 @@ S. Jeon et al. *Change in efficiency of aspheric intraocular lenses based on pup
 - STOP：Surface 1（前角膜）；
 - IMAGE：平面固定参考面。
 
-### 5.2 IOL reference plane 的工程起点
+### 6.2 IOL reference plane 的工程起点
 
 URD/TDD 冻结的是 `5.15 ± 0.10 mm` real-ray footprint，并没有事先冻结标准眼 IOL 的轴向距离。
 
@@ -179,7 +226,7 @@ URD/TDD 冻结的是 `5.15 ± 0.10 mm` real-ray footprint，并没有事先冻�
 
 若实机 real-ray 显示 seed 有偏差，Codex 可在不改变 5.15 mm target 的前提下，将实现层距离改成确定性 real-ray solve 的结果；必须回传准确距离与 commit，不得为了保留 `3.92355 mm` 而牺牲 footprint target。
 
-### 5.3 IMAGE reference
+### 6.3 IMAGE reference
 
 模板暂以正常眼尺度提供稳定固定 IMAGE reference；它不把 `STD_IOL_EYE_2024` 声称为完整 Liou–Brennan 解剖眼。
 
@@ -187,29 +234,21 @@ URD/TDD 冻结的是 `5.15 ± 0.10 mm` real-ray footprint，并没有事先冻�
 
 ---
 
-## 6. 6 mm 验证规则
+## 7. 6 mm 验证规则
 
-### 6.1 角膜 C40
+### 7.1 角膜 C40
 
 在 `EPD=6.0 mm`、`λ≈546 nm`、field 0° 下：
 
 1. 使用已有 Zernike Standard acquisition contract；
 2. 在适合角膜单独球差比较的焦面/reference sphere 上读取 OSA/ANSI `Z11 = C4^0`；
-3. 要求：
+3. 要求：`+0.258 ± 0.005 µm`。
 
-`+0.258 ± 0.005 µm`。
-
-不得通过任意调整 Liou `R/Q` 来追测试数值。若失败，先检查：
-
-- entrance pupil 是否确为 6 mm；
-- Zernike normalization/reference；
-- 波长；
-- surface radius sign / conic / material；
-- image/reference sphere。
+不得通过任意调整 Liou `R/Q` 来追测试数值。若失败，先检查 entrance pupil、Zernike normalization/reference、波长、surface sign/conic/material 与 image/reference sphere。
 
 只有确认不是 Zemax 定义映射问题后，才回 Web 端重新审查科学定义。
 
-### 6.2 IOL footprint
+### 7.2 IOL footprint
 
 同一 6 mm standard-eye geometry 下，使用 ZOS-API normalized unpolarized real batch ray trace：
 
@@ -219,27 +258,21 @@ URD/TDD 冻结的是 `5.15 ± 0.10 mm` real-ray footprint，并没有事先冻�
 - 无 vignette / ray error；
 - footprint = 两条边缘光线在该面的 y-intercept 差。
 
-要求：
-
-`5.15 ± 0.10 mm`。
-
-该数值是 IOL plane 的实际 beam footprint，不是 IOL optical diameter。
+要求：`5.15 ± 0.10 mm`。
 
 ---
 
-## 7. `ZERO_HOA_PARAXIAL_REFERENCE`
+## 8. `ZERO_HOA_PARAXIAL_REFERENCE`
 
-### 7.1 不建立固定 +20 D 文件
+### 8.1 不建立固定 +20 D 文件
 
 `ZERO_HOA_PARAXIAL_REFERENCE` 是 **power-specific numerical reference**。
 
-对每个实际 carrier `P_ijk`，TASK-007 必须生成对应：
-
-`ZERO_HOA(P_ijk)`。
+对每个实际 carrier `P_ijk`，TASK-007 必须生成对应：`ZERO_HOA(P_ijk)`。
 
 005C 不创建一个固定 +20 D 文件让所有 carrier 共用。
 
-### 7.2 身份匹配
+### 8.2 身份匹配
 
 `ZeroHoaReferenceRecord` 必须与 actual carrier 保持：
 
@@ -248,15 +281,13 @@ URD/TDD 冻结的是 `5.15 ± 0.10 mm` real-ray footprint，并没有事先冻�
 - anterior/posterior radius metadata；
 - center thickness metadata；
 - material metadata；
-- IOL reference position。
+- IOL reference position；
+- standard-eye calibration pupil=`6.0 mm`；
+- standard-eye wavelength≈`546 nm`。
 
-其 optical model 标记为：
+其 optical model 标记为：`ideal_paraxial_zero_hoa`。
 
-`ideal_paraxial_zero_hoa`
-
-实际 reference 只保留指定一阶 power，不引入 aspheric/HOA/residual。
-
-### 7.3 标准眼 SA 定义
+### 8.3 标准眼 SA 定义
 
 TASK-007 对任一 carrier：
 
@@ -265,6 +296,7 @@ TASK-007 对任一 carrier：
 两次分析必须完全共享：
 
 - 同一 `STD_IOL_EYE_2024` locked file/hash；
+- `MVP_2026_v2` baseline；
 - `EPD=6.0 mm`；
 - `λ≈546 nm`；
 - field/reference axis；
@@ -277,11 +309,9 @@ TASK-007 对任一 carrier：
 - RAD：`−0.27 ±0.01 µm @ 6 mm`；
 - HOA：`0.00 ±0.01 µm @ 6 mm`。
 
-这些仍是项目内部 surrogate 目标，不声称是商业 IOL 制造参数。
-
 ---
 
-## 8. 与主实验 EPD3/EPD5 的关系
+## 9. 与主实验 EPD3/EPD5 的关系
 
 标准眼 6 mm calibration **不会新增 nominal 配置**。
 
@@ -289,12 +319,7 @@ TASK-007 对任一 carrier：
 
 `2 bases × 3 corneas × 3 platforms × 2 optic states × 2 pupils = 72`
 
-pupils 仍为：
-
-- `EPD3`；
-- `EPD5`。
-
-解释规则：
+pupils 仍为 `EPD3` 与 `EPD5`。
 
 - EPD3：较小明视瞳孔性能，允许其天然较长焦深真实存在；
 - EPD5：较大瞳孔性能，更充分暴露角膜/IOL 球差与 residual 机制；
@@ -303,28 +328,30 @@ pupils 仍为：
 
 ---
 
-## 9. 代码修订范围
+## 10. 代码修订范围
 
 文档冻结后，Web 代码只做以下必要修改：
 
+- `src/whole_eye_mvp/domain.py`
+  - `BASELINE_STANDARD_EYE_SPEC.aperture_mm: 3.0 → 6.0`；
+  - 增加当前 scientific baseline ID=`MVP_2026_v2`，供脚本默认使用；
+  - 不改变 EPD3/EPD5 nominal conditions。
 - `src/whole_eye_mvp/standard_eye.py`
-  - saved calibration aperture：`3.0 → 6.0 mm`；
-  - 去除“验证后恢复 3 mm”的旧语义；
-  - C40 / footprint 继续在 6 mm 验证；
-  - `ZeroHoaReferenceRecord` 明确携带/验证 6 mm calibration identity。
+  - saved calibration aperture 使用 6.0 mm；
+  - C40 / footprint 统一在 6 mm 验证；
+  - `ZeroHoaReferenceRecord` 携带/验证 6 mm calibration identity。
 - `tests/unit/test_standard_eye.py`
   - standard-eye aperture oracle 改为 6 mm；
   - 增加 EPD3/EPD5 与 standard-eye calibration 解耦测试。
 - `tests/zemax/test_zos_standard_eye.py`
   - saved/reloaded `.zos` 必须读取 EPD=6 mm；
   - validate-only 前后 hash exact。
-- `scripts/build_task_005c_standard_eye.py`
-  - 输出/validation payload 使用 6 mm calibration semantics。
-- TASK-007 carrier code只在需要时补 calibration identity；005C 不提前实现 18 carrier solve。
+- `scripts/build_task_005b_base_assets.py`、`scripts/build_task_005c_standard_eye.py`
+  - 默认 baseline ID 改为 `MVP_2026_v2`。
 
 不修改：
 
-- 005B 两个 base locks；
+- 005B base 几何规格；
 - A0/B/C 科学定义；
 - B0 EPD3/EPD5 selection；
 - main 72 manifest；
@@ -333,9 +360,9 @@ pupils 仍为：
 
 ---
 
-## 10. Codex / OpticStudio 实机验证包
+## 11. Codex / OpticStudio 实机验证包
 
-代码修订完成后，在同一 branch 运行：
+代码修订完成后，使用**新 project 目录**：
 
 ```powershell
 uv sync
@@ -345,11 +372,17 @@ uv run ruff check .
 uv run python -m compileall -q src tests scripts
 uv lock --check
 
+# 新 baseline project；不要删除/覆盖旧 v1 project
+$P = "project_mvp_2026_v2"
+
+uv run python scripts/build_task_005b_base_assets.py --project-dir $P --baseline-id MVP_2026_v2
+uv run python scripts/build_task_005b_base_assets.py --project-dir $P --baseline-id MVP_2026_v2 --validate-only
+
 uv run pytest tests/zemax/test_zos_standard_eye.py -vv
 uv run python scripts/run_zemax_gates.py
 
-uv run python scripts/build_task_005c_standard_eye.py --project-dir project
-uv run python scripts/build_task_005c_standard_eye.py --project-dir project --validate-only
+uv run python scripts/build_task_005c_standard_eye.py --project-dir $P --baseline-id MVP_2026_v2
+uv run python scripts/build_task_005c_standard_eye.py --project-dir $P --baseline-id MVP_2026_v2 --validate-only
 ```
 
 必须回传：
@@ -357,8 +390,9 @@ uv run python scripts/build_task_005c_standard_eye.py --project-dir project --va
 - branch / commit；
 - OpticStudio version/license；
 - unit / Zemax gate 数量；
+- v2 两个 base `.zos`/validation hashes 与 readback；
 - `STD_IOL_EYE_2024.zos` SHA-256；
-- validation CSV SHA-256；
+- 005C validation CSV SHA-256；
 - saved/reloaded EPD=`6.000 mm`；
 - wavelength ≈`546 nm`；
 - corneal `C4^0=+0.258±0.005 µm @ 6 mm`；
@@ -370,36 +404,33 @@ uv run python scripts/build_task_005c_standard_eye.py --project-dir project --va
 
 ---
 
-## 11. STOP 条件
+## 12. STOP 条件
 
 Codex 必须停止并回 Web，如果出现以下任一情况：
 
 1. 必须把 EPD 改回 3 mm 才能让 `C4^0` 或 `SA_base` 通过；
 2. 必须改变 `+0.258 / −0.20 / −0.27 / 0.00 µm` 科学 target；
 3. 必须改变主实验 EPD3/EPD5；
-4. Liou 角膜处方在确认 Zernike/reference mapping 正确后仍不能满足 oracle；
-5. footprint target 与合理 real-ray geometry 无法同时满足；
-6. 需要改变 lock boundary 或 TDD-999 才能继续。
+4. 必须绕过 `BaselineMismatch` 才能复用 v1 project；
+5. Liou 角膜处方在确认 Zernike/reference mapping 正确后仍不能满足 oracle；
+6. footprint target 与合理 real-ray geometry 无法同时满足；
+7. 需要改变 lock boundary 或 TDD-999 才能继续。
 
-允许的本地最小适配仅包括：
-
-- ZOS-API member / enum 差异；
-- batch ray trace 调用方式；
-- Zernike analysis settings 映射；
-- reference-plane 临时测量实现；
-- 为满足**既定 5.15 mm footprint target**而把 paraxial seed 改成确定性 real-ray solved distance。
+允许的本地最小适配仅包括 ZOS-API member/enum、batch ray trace、Zernike settings、reference-plane 临时测量，以及为满足**既定 5.15 mm footprint target**将 paraxial seed 改成确定性 real-ray solved distance。
 
 ---
 
-## 12. 完成条件
+## 13. 完成条件
 
 TASK-005C 只有在以下全部满足后才完成：
 
 - [x] URD v1.4 已冻结 6 mm standard-eye calibration；
 - [x] TDD v1.3 已冻结对应 oracle；
 - [x] RMD v1.3 已同步执行条件；
-- [ ] Web 代码/测试全部改为 6 mm；
+- [x] scientific baseline versioning 风险已识别；正式后续使用 `MVP_2026_v2`，旧 v1 project 保留不覆盖；
+- [ ] Web 代码/测试全部改为 6 mm / v2；
 - [ ] unit / Ruff / compileall / uv lock check PASS；
+- [ ] v2 005B 双基座重新生成/登记并通过 readback；
 - [ ] real OpticStudio 005C gate PASS；
 - [ ] formal `.zos` 与 validation CSV 生成并 hash；
 - [ ] validate-only 独立进程回载且 hash unchanged；
