@@ -104,6 +104,7 @@ pytest tests/unit                         -> 98 passed
 run_zemax_gates.py                        -> 7 passed
 ruff check .                              -> PASS
 python -m compileall -q src tests scripts -> PASS
+uv lock --check                           -> PASS
 ```
 
 ## 9. 后续范围
