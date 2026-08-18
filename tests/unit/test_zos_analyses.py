@@ -160,7 +160,7 @@ def test_zos_analysis_settings_are_derived_from_frozen_analysis_settings() -> No
     assert psf.image_sampling == 256
     assert psf.image_delta_um == 0.5
     assert psf.normalize is True and psf.use_centroid is False
-    assert zernike.sample_size == 128
+    assert zernike.sample_size == 32
     assert zernike.maximum_terms == 37
     assert zernike.reference_opd_to_vertex is False
     assert zernike.normalized_radius == 1.0
