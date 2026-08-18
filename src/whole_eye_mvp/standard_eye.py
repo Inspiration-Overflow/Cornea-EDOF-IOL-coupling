@@ -142,9 +142,7 @@ def standard_eye_construction(baseline: ScientificBaseline) -> StandardEyeConstr
     return result
 
 
-def _paraxial_post_cornea_ray(
-    spec: StandardEyeConstruction,
-) -> tuple[float, float]:
+def _paraxial_post_cornea_ray(spec: StandardEyeConstruction) -> tuple[float, float]:
     spec.validate()
     y = spec.corneal_sa_pupil_mm / 2.0
     nu = 0.0
@@ -172,7 +170,11 @@ def paraxial_iol_plane_distance_mm(spec: StandardEyeConstruction) -> float:
 
 
 def corneal_paraxial_focus_from_post_mm(spec: StandardEyeConstruction) -> float:
-    """Return the cornea-only paraxial focus behind the posterior corneal vertex."""
+    """Return the diagnostic first-order focus behind the posterior cornea.
+
+    This helper is retained for geometry diagnostics only. TASK-005C C40 validation uses
+    OpticStudio Quick Focus with the Wavefront Error criterion, not this paraxial focus.
+    """
 
     y, nu = _paraxial_post_cornea_ray(spec)
     distance = -y * spec.eye.medium_index / nu
@@ -311,8 +313,11 @@ class StandardEyeMeasurements:
     cornea_thickness_mm: float
     cornea_index: float
     medium_index: float
+    medium_index_after_iol_ref: float
     iol_from_post_cornea_mm: float
     reference_axial_length_mm: float
+    best_focus_iol_to_image_mm: float
+    best_focus_criterion: str
     field_x_deg: float
     field_y_deg: float
     surface_count: int
@@ -407,9 +412,10 @@ def validate_standard_eye_measurements(
         GEOMETRY_TOLERANCE_MM,
     )
     close("cornea_index", measurements.cornea_index, spec.cornea_index, INDEX_TOLERANCE)
+    close("medium_index", measurements.medium_index, spec.eye.medium_index, INDEX_TOLERANCE)
     close(
-        "medium_index",
-        measurements.medium_index,
+        "medium_index_after_iol_ref",
+        measurements.medium_index_after_iol_ref,
         spec.eye.medium_index,
         INDEX_TOLERANCE,
     )
@@ -425,6 +431,13 @@ def validate_standard_eye_measurements(
         spec.reference_axial_length_mm,
         GEOMETRY_TOLERANCE_MM,
     )
+    if not math.isfinite(measurements.best_focus_iol_to_image_mm) or measurements.best_focus_iol_to_image_mm <= 0:
+        findings.append("best_focus_iol_to_image_mm must be finite and positive")
+    if measurements.best_focus_criterion != "WavefrontError":
+        findings.append(
+            "best_focus_criterion: expected 'WavefrontError', "
+            f"got {measurements.best_focus_criterion!r}"
+        )
     close("field_x_deg", measurements.field_x_deg, 0.0, 1.0e-12)
     close("field_y_deg", measurements.field_y_deg, 0.0, 1.0e-12)
     if measurements.surface_count != 5:
@@ -475,11 +488,7 @@ def _indices(system: Any, surface: int) -> tuple[float, ...]:
     return result
 
 
-def _set_material_index(
-    editor: SequentialEditor,
-    surface: int,
-    target: float,
-) -> None:
+def _set_material_index(editor: SequentialEditor, surface: int, target: float) -> None:
     cell = editor.surface(surface).MaterialCell
     candidate = target
     actual = math.nan
@@ -535,6 +544,11 @@ def build_standard_eye_asset(
     editor.set_comment(3, IOL_REF)
     editor.set_radius_conic(3, radius_mm=0.0)
     editor.set_thickness(3, spec.iol_to_image_mm)
+    # IOL_REF is only a carrier insertion reference in the empty standard-eye scaffold.
+    # Material in sequential OpticStudio belongs to the space after the current surface;
+    # therefore this dummy plane must continue the aqueous-like medium rather than
+    # silently introducing a 1.336 -> AIR planar refracting interface.
+    _set_material_index(editor, 3, spec.eye.medium_index)
 
     editor.set_comment(4, IMAGE_REF)
     editor.set_radius_conic(4, radius_mm=0.0)
@@ -581,6 +595,41 @@ def _footprint_mm(session: ZosSession, to_surface: int) -> float:
             close()
 
 
+def _wavefront_quick_focus_criterion(session: ZosSession) -> Any:
+    enum_type = session.zosapi.Tools.General.QuickFocusCriterion
+    for candidate in ("WavefrontError", "Wavefront", "WavefrontOPD"):
+        value = getattr(enum_type, candidate, None)
+        if value is not None:
+            return value
+    try:
+        system_module = importlib.import_module("System")
+        names = tuple(str(name) for name in system_module.Enum.GetNames(enum_type))
+    except Exception as exc:  # noqa: BLE001 - installed enum differences are runtime evidence
+        raise StandardEyeError(
+            "installed API exposes no recognized QuickFocus wavefront criterion"
+        ) from exc
+    for name in names:
+        if "wave" in name.lower():
+            return getattr(enum_type, name)
+    raise StandardEyeError(
+        f"installed API exposes no QuickFocus wavefront criterion; names={names}"
+    )
+
+
+def _quick_focus_wavefront(session: ZosSession) -> None:
+    tool = session.system.Tools.OpenQuickFocus()
+    try:
+        tool.Criterion = _wavefront_quick_focus_criterion(session)
+        # The standard eye is on-axis and rotationally symmetric, so chief-ray and centroid
+        # references coincide. Keep the chief-ray convention explicit and deterministic.
+        tool.UseCentroid = False
+        tool.RunAndWaitForCompletion()
+    finally:
+        close = getattr(tool, "Close", None)
+        if callable(close):
+            close()
+
+
 def _measure(session: ZosSession, spec: StandardEyeConstruction) -> StandardEyeMeasurements:
     system = session.system
     lde = system.LDE
@@ -600,21 +649,26 @@ def _measure(session: ZosSession, spec: StandardEyeConstruction) -> StandardEyeM
     wavelength_nm = float(system.SystemData.Wavelengths.GetWavelength(1).Wavelength) * 1000
     field = system.SystemData.Fields.GetField(1)
 
-    # C40 is a cornea-only oracle. Temporarily move the fixed image reference to the
-    # corneal paraxial focus, but keep the saved 6-mm calibration pupil unchanged.
-    original_iol_to_image = float(rows[2].Thickness)
-    corneal_focus_from_post = corneal_paraxial_focus_from_post_mm(spec)
-    validation_iol_to_image = corneal_focus_from_post - float(rows[1].Thickness)
-    if validation_iol_to_image <= 0:
-        raise StandardEyeError("corneal paraxial focus lies before the IOL reference plane")
+    footprint = _footprint_mm(session, 3)
+    saved_iol_to_image = float(rows[2].Thickness)
+    c40_um = math.nan
+    best_focus_iol_to_image = math.nan
     try:
-        rows[2].Thickness = validation_iol_to_image
+        # Norrby's literature anchor is a best-focus wavefront quantity. Use OpticStudio's
+        # minimum-RMS-wavefront Quick Focus rather than a hand-computed paraxial focus.
+        _quick_focus_wavefront(session)
+        best_focus_iol_to_image = float(rows[2].Thickness)
+        if not math.isfinite(best_focus_iol_to_image) or best_focus_iol_to_image <= 0:
+            raise StandardEyeError(
+                f"Quick Focus produced invalid image distance: {best_focus_iol_to_image}"
+            )
         c40_um = ZernikeStandardRunner(system, session.zosapi).run(
             ZernikeStandardSettings(sample_size=32, maximum_terms=37)
         ).c40_um
-        footprint = _footprint_mm(session, 3)
     finally:
-        rows[2].Thickness = original_iol_to_image
+        # C40 best-focus mutation is diagnostic/validation-only. Never save it into the
+        # fixed-reference standard-eye asset.
+        rows[2].Thickness = saved_iol_to_image
 
     return StandardEyeMeasurements(
         wavelength_nm=wavelength_nm,
@@ -629,10 +683,13 @@ def _measure(session: ZosSession, spec: StandardEyeConstruction) -> StandardEyeM
         cornea_thickness_mm=float(rows[0].Thickness),
         cornea_index=_indices(system, 1)[0],
         medium_index=_indices(system, 2)[0],
+        medium_index_after_iol_ref=_indices(system, 3)[0],
         iol_from_post_cornea_mm=float(rows[1].Thickness),
         reference_axial_length_mm=float(rows[0].Thickness)
         + float(rows[1].Thickness)
         + float(rows[2].Thickness),
+        best_focus_iol_to_image_mm=best_focus_iol_to_image,
+        best_focus_criterion="WavefrontError",
         field_x_deg=float(field.X),
         field_y_deg=float(field.Y),
         surface_count=int(lde.NumberOfSurfaces),
@@ -677,15 +734,33 @@ def _write_validation_csv(path: Path, validation: StandardEyeValidation) -> None
         writer.writerow(row)
 
 
+def _record_validation_artifact(
+    store: ProjectStore,
+    baseline: ScientificBaseline,
+    validation: StandardEyeValidation,
+) -> ArtifactRef:
+    with tempfile.TemporaryDirectory(prefix="task-005c-validation-") as temp_name:
+        csv_path = Path(temp_name) / "TASK_005C_STANDARD_EYE_VALIDATION.csv"
+        _write_validation_csv(csv_path, validation)
+        return store.record_artifact(
+            csv_path,
+            ArtifactRecord(
+                artifact_id=VALIDATION_ID,
+                artifact_type="validation_csv",
+                relative_path=VALIDATION_PATH,
+                baseline_id=baseline.baseline_id,
+            ),
+            lock=False,
+        )
+
+
 def validate_registered_standard_eye(
     session: ZosSession,
     store: ProjectStore,
     baseline: ScientificBaseline,
 ) -> StandardEyeValidation:
     spec = standard_eye_construction(baseline)
-    validation = validate_standard_eye_asset(
-        session, spec, store.resolve(RELATIVE_PATH)
-    )
+    validation = validate_standard_eye_asset(session, spec, store.resolve(RELATIVE_PATH))
     record = store.find_artifact(ARTIFACT_ID)
     findings = list(validation.findings)
     if record is None:
@@ -704,57 +779,89 @@ def validate_registered_standard_eye(
     return replace(validation, passed=not findings, findings=tuple(findings))
 
 
+def finalize_standard_eye_candidate(
+    session: ZosSession,
+    store: ProjectStore,
+    baseline: ScientificBaseline,
+    candidate: str | Path,
+) -> StandardEyeBuildReport:
+    """Validate a pre-built candidate in this fresh process and register it only on PASS."""
+
+    if store.baseline != baseline:
+        raise StandardEyeError("project store and scientific baseline differ")
+    candidate_path = Path(candidate)
+    if not candidate_path.is_file():
+        raise StandardEyeError(f"standard-eye candidate does not exist: {candidate_path}")
+
+    existing = store.find_artifact(ARTIFACT_ID)
+    if existing is not None:
+        validation = validate_registered_standard_eye(session, store, baseline)
+        validation_artifact = _record_validation_artifact(store, baseline, validation)
+        return StandardEyeBuildReport(
+            validation,
+            existing if validation.passed else None,
+            validation_artifact,
+        )
+
+    destination = store.resolve(RELATIVE_PATH)
+    if destination.exists():
+        raise StandardEyeError(
+            f"refusing to overwrite unindexed standard-eye asset: {destination}"
+        )
+
+    spec = standard_eye_construction(baseline)
+    validation = validate_standard_eye_asset(session, spec, candidate_path)
+    if not validation.passed:
+        return StandardEyeBuildReport(validation, None, None)
+
+    artifact = store.record_artifact(
+        candidate_path,
+        ArtifactRecord(
+            artifact_id=ARTIFACT_ID,
+            artifact_type="zemax_standard_eye",
+            relative_path=RELATIVE_PATH,
+            baseline_id=baseline.baseline_id,
+        ),
+        lock=True,
+    )
+    if not store.verify_artifact(artifact):
+        raise StandardEyeError("standard-eye artifact hash verification failed")
+    validation = replace(validation, path=destination)
+    validation_artifact = _record_validation_artifact(store, baseline, validation)
+    return StandardEyeBuildReport(validation, artifact, validation_artifact)
+
+
 def build_standard_eye(
     session: ZosSession,
     store: ProjectStore,
     baseline: ScientificBaseline,
 ) -> StandardEyeBuildReport:
+    """Compatibility API for callers already holding a ZOS session.
+
+    The formal TASK-005C CLI uses separate fresh processes for construction and
+    validation because OpticStudio 2026 R1 showed a native New->Zernike lifecycle
+    failure on the workstation. This function remains useful for controlled smoke tests.
+    """
+
     if store.baseline != baseline:
         raise StandardEyeError("project store and scientific baseline differ")
-    spec = standard_eye_construction(baseline)
-    destination = store.resolve(RELATIVE_PATH)
     existing = store.find_artifact(ARTIFACT_ID)
-
     if existing is not None:
         validation = validate_registered_standard_eye(session, store, baseline)
-        artifact = existing if validation.passed else None
-    else:
-        if destination.exists():
-            raise StandardEyeError(
-                f"refusing to overwrite unindexed standard-eye asset: {destination}"
-            )
-        with tempfile.TemporaryDirectory(prefix="task-005c-standard-eye-") as temp_name:
-            scratch = Path(temp_name) / "STD_IOL_EYE_2024.zos"
-            build_standard_eye_asset(session, spec, scratch)
-            validation = validate_standard_eye_asset(session, spec, scratch)
-            if not validation.passed:
-                return StandardEyeBuildReport(validation, None, None)
-            artifact = store.record_artifact(
-                scratch,
-                ArtifactRecord(
-                    artifact_id=ARTIFACT_ID,
-                    artifact_type="zemax_standard_eye",
-                    relative_path=RELATIVE_PATH,
-                    baseline_id=baseline.baseline_id,
-                ),
-                lock=True,
-            )
-            if not store.verify_artifact(artifact):
-                raise StandardEyeError("standard-eye artifact hash verification failed")
-            validation = replace(validation, path=destination)
-
-    with tempfile.TemporaryDirectory(prefix="task-005c-validation-") as temp_name:
-        csv_path = Path(temp_name) / "TASK_005C_STANDARD_EYE_VALIDATION.csv"
-        _write_validation_csv(csv_path, validation)
-        validation_artifact = store.record_artifact(
-            csv_path,
-            ArtifactRecord(
-                artifact_id=VALIDATION_ID,
-                artifact_type="validation_csv",
-                relative_path=VALIDATION_PATH,
-                baseline_id=baseline.baseline_id,
-            ),
-            lock=False,
+        validation_artifact = _record_validation_artifact(store, baseline, validation)
+        return StandardEyeBuildReport(
+            validation,
+            existing if validation.passed else None,
+            validation_artifact,
         )
 
-    return StandardEyeBuildReport(validation, artifact, validation_artifact)
+    destination = store.resolve(RELATIVE_PATH)
+    if destination.exists():
+        raise StandardEyeError(
+            f"refusing to overwrite unindexed standard-eye asset: {destination}"
+        )
+    spec = standard_eye_construction(baseline)
+    with tempfile.TemporaryDirectory(prefix="task-005c-standard-eye-") as temp_name:
+        scratch = Path(temp_name) / "STD_IOL_EYE_2024.zos"
+        build_standard_eye_asset(session, spec, scratch)
+        return finalize_standard_eye_candidate(session, store, baseline, scratch)
