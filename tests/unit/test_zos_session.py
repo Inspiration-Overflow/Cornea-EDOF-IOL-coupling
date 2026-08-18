@@ -15,7 +15,7 @@ from whole_eye_mvp.zos import (
     ZosSessionAdapter,
     open_zos_session,
 )
-from whole_eye_mvp.zos.session import _find_first_file
+from whole_eye_mvp.zos.session import _PythonNetBootstrapRegistry, _find_first_file
 
 
 @dataclass
@@ -159,3 +159,28 @@ def test_missing_api_file_reports_every_checked_location(tmp_path: Path) -> None
 
     assert str(first) in str(error.value)
     assert str(second) in str(error.value)
+
+
+@pytest.mark.unit
+def test_pythonnet_bootstrap_is_process_idempotent_and_rejects_install_switch(
+    tmp_path: Path,
+) -> None:
+    first = tmp_path / "OpticStudio-A"
+    second = tmp_path / "OpticStudio-B"
+    first.mkdir()
+    second.mkdir()
+    registry = _PythonNetBootstrapRegistry()
+    calls: list[Path] = []
+    api = object()
+
+    def loader(path: Path) -> object:
+        calls.append(path)
+        return api
+
+    assert registry.get_or_initialize(first, loader) is api
+    assert registry.get_or_initialize(first, loader) is api
+    assert calls == [first.resolve()]
+
+    with pytest.raises(ZosEnvironmentError, match="refusing to switch"):
+        registry.get_or_initialize(second, loader)
+    assert calls == [first.resolve()]
