@@ -80,12 +80,14 @@ J. T. Holladay, P. A. Piers, G. Koranyi, M. van der Mooren, N. E. S. Norrby. *A 
 
 `Entrance Pupil Diameter = 6.0 mm`
 
-在同一个标准眼几何中同时检查：
+在同一个标准眼几何中检查：
 
 - Liou 模型角膜 `C4^0 = +0.258 ± 0.005 µm`；
 - IOL reference plane 的实际 real-ray footprint `= 5.15 ± 0.10 mm`。
 
-这是因为 `+0.258 µm` 的权威来源本身对应 6 mm entrance pupil。
+其中 C40 验证时把 IMAGE 临时移至**模型角膜自身的近轴焦点**，使该 oracle 不依赖后续 carrier 校准所用的固定 IMAGE reference；footprint 则仍在正式 IOL reference plane 上读取。两项测量结束后均恢复正式保存状态，不保存临时验证几何。
+
+这是因为 `+0.258 µm` 的权威来源本身对应 6 mm entrance pupil，并描述模型角膜本身的球差。
 
 ### 3.2 carrier 标准校准态
 
@@ -154,6 +156,8 @@ J. T. Holladay, P. A. Piers, G. Koranyi, M. van der Mooren, N. E. S. Norrby. *A 
 
 这个实现层距离不进入既有 `ScientificBaseline` hash；一旦 005C 实机验证通过并正式锁定 `.zos`，则由该 `.zos` hash 固定，不再静默改变。
 
+**角膜 C40 验证例外：** 为了测量 Norrby/Liou 所定义的“模型角膜自身”6 mm 球差，验证器会临时把 `IMAGE_REFERENCE` 移至由同一 Liou 两面角膜解析得到的近轴焦点。当前 reduced-angle paraxial 结果约为后角膜后 `31.06443 mm`。测量结束后立即恢复上述固定 `23.950 mm` IMAGE reference，且不保存临时改变。因此临时角膜 C40 验证面不是正式 carrier 校准的 image plane。
+
 ---
 
 ## 5. Zernike 与 footprint 验证规则
@@ -164,10 +168,11 @@ J. T. Holladay, P. A. Piers, G. Koranyi, M. van der Mooren, N. E. S. Norrby. *A 
 
 1. 加载正式/临时标准眼；
 2. 临时把 EPD 从 3 mm 改为 6 mm；
-3. 使用已有 Zernike Standard acquisition contract；
-4. 读取 OSA/ANSI `Z11 = C4^0`；
-5. 要求：`+0.258 ± 0.005 µm`；
-6. 恢复 EPD=3 mm，不保存临时改变。
+3. 临时把 `IMAGE_REFERENCE` 移至模型角膜自身的 paraxial focus；
+4. 使用已有 Zernike Standard acquisition contract；
+5. 读取 OSA/ANSI `Z11 = C4^0`；
+6. 要求：`+0.258 ± 0.005 µm`；
+7. 在 `finally` 路径恢复原固定 IMAGE 与 EPD=3 mm，不保存临时改变。
 
 不得通过调整已选定的 Liou `R/Q` 来“追着测试数值跑”。若 C4 不符合，优先检查：
 
@@ -175,13 +180,13 @@ J. T. Holladay, P. A. Piers, G. Koranyi, M. van der Mooren, N. E. S. Norrby. *A 
 - Zernike normalization/reference 是否一致；
 - 波长是否约 546 nm；
 - surface sign / conic / material index 是否正确；
-- image/reference sphere 的 OpticStudio 设置是否造成定义差异。
+- paraxial focus 与 OpticStudio reference sphere 的映射是否一致。
 
 只有确认不是实现/规范映射问题后，才回 Web 端重新审查科学定义。
 
 ### 5.2 IOL footprint
 
-同一个 6 mm 验证态下，使用 ZOS-API normalized unpolarized real batch ray trace：
+同一个 6 mm aperture 验证态下，使用 ZOS-API normalized unpolarized real batch ray trace：
 
 - field = 0；
 - pupil coordinate `Py=-1` 与 `Py=+1`；
@@ -193,7 +198,7 @@ J. T. Holladay, P. A. Piers, G. Koranyi, M. van der Mooren, N. E. S. Norrby. *A 
 
 `5.15 ± 0.10 mm`。
 
-该数值是 IOL plane 的实际 beam footprint，不是 3 mm carrier calibration aperture，也不是 IOL optical diameter。
+该数值是 IOL plane 的实际 beam footprint，不是 3 mm carrier calibration aperture，也不是 IOL optical diameter。footprint 对 IMAGE 的临时 C40 验证移动不敏感；程序在同一临时 EPD=6 mm 状态下读取它，但正式保存状态最终恢复 EPD=3 mm 与固定 IMAGE。
 
 ---
 
@@ -257,13 +262,14 @@ WFS/RAD/HOA 的 `-0.20 / -0.27 / 0.00 µm` 仍然是项目内部的 standard-eye
 - `src/whole_eye_mvp/standard_eye.py`
   - 标准眼工程处方；
   - paraxial IOL-plane 起始距离求解；
+  - cornea-only paraxial focus 求解；
   - build / readback / real-ray footprint / Zernike C4 validation；
   - create-once project artifact + SHA lock；
   - `ZERO_HOA` power-specific identity contract。
 - `tests/unit/test_standard_eye.py`
-  - Liou cornea处方；
+  - Liou cornea 处方；
   - 6 mm 与 3 mm 条件分离；
-  - paraxial geometry deterministic；
+  - paraxial IOL plane / corneal focus geometry deterministic；
   - validation fail-closed；
   - `ZERO_HOA` carrier metadata mismatch rejection。
 - `tests/zemax/test_zos_standard_eye.py`
@@ -334,6 +340,7 @@ uv run python scripts/build_task_005c_standard_eye.py --project-dir project --va
 - 3 mm saved calibration aperture；
 - 546 nm medium readback；
 - exact IOL reference distance；
+- cornea-only paraxial C40 validation focus；
 - validate-only 前后 `.zos` hash；
 - unit / Zemax / Ruff / compileall / lock-check 结果。
 
