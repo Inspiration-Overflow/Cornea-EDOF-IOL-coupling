@@ -15,7 +15,7 @@ from whole_eye_mvp.zos import (
     ZosSessionAdapter,
     open_zos_session,
 )
-from whole_eye_mvp.zos.session import _PythonNetBootstrapRegistry, _find_first_file
+from whole_eye_mvp.zos.session import _find_first_file, _PythonNetBootstrapRegistry
 
 
 @dataclass

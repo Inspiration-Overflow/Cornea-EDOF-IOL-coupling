@@ -13,7 +13,6 @@ from whole_eye_mvp.zos.primitives import (
     even_asphere_parameter_number,
 )
 
-
 BINARY_HEADERS = {
     "P1": "# Radial Zones",
     "P2": "# Aspheric Terms",

@@ -43,27 +43,27 @@ All relevant floating-point settings now reject NaN/Inf before a frozen settings
 
 ## Validation status
 
-The parent integration branch had already reported:
+The parent integration branch had reported 83 unit and 5 Zemax tests. Those counts remain historical evidence for the parent branch only.
 
-- `pytest tests/unit` → 83 passed
-- `pytest tests/zemax` → 5 passed
+The hardening branch was rerun on 2026-08-18 with OpticStudio 2026 R1.00 and a Premium ZOS-API license:
+
+- `pytest tests/unit` → 94 passed
+- `pytest tests/zemax` → 6 passed in 175.14 seconds
 - `ruff check .` → PASS
 - `compileall` → PASS
 - `uv lock --check` → PASS
 
-Those numbers are historical evidence for the parent branch only. Because this hardening changes the ZOS runtime and Huygens parser, they must not be reused as validation evidence for this branch.
+The six-test Zemax suite passed the frozen 128×128 pupil / 256×256 image Huygens acquisition, Binary 4 / Even Asphere / Coordinate Break round trip, the ten-session process stress test, the worker session, and the frozen 32×32 / 37-term Zernike acquisition. The captured run did not reproduce the earlier `FRU__delta_init()` warning or a native process exit.
 
-Required workstation rerun before merge/next science stage:
+The worker session was also run by itself in a new Python process:
 
 ```powershell
-uv run pytest tests/unit
-uv run pytest tests/zemax
-uv run ruff check .
-uv run python -m compileall -q src tests scripts
-uv lock --check
+uv run pytest tests/zemax/test_zos_worker_gate.py -k worker_thread_session_risk_gate -vv
 ```
 
-The Zemax directory suite now contains an additional repeated-session stress gate, so the expected Zemax test count is greater than the parent branch's 5 tests.
+Result: 1 passed, 2 deselected in 9.94 seconds. The shorter expression `-k worker` also matches the test filename and selects all tests in that file, so it is not used as the worker-first command.
+
+Ruff initially found two import-order errors in new unit tests. They were corrected before the final 94-test and Ruff rerun.
 
 ## Scientific STOP conditions unchanged
 
