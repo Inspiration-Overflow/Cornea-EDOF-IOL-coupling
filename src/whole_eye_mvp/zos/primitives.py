@@ -297,7 +297,7 @@ class SequentialEditor:
         self.surface(index).RadiusCell.MakeSolveVariable()
 
     def set_stop_surface(self, index: int) -> None:
-        self.lde.StopSurface = int(index)
+        self.surface(index).IsStop = True
 
     def save_as(self, path: str | Path) -> None:
         destination = Path(path)

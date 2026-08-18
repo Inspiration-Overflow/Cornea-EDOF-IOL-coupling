@@ -4,7 +4,7 @@
 
 ## 当前结论
 
-当前仓库已经在本机 **OpticStudio 2026 R1.00 + Premium license** 下完成第一批 ZOS-API 适配：主线程与 worker thread 会话、三种顺序面型的实际参数列、Huygens PSF 网格读取、Zernike Standard 系数读取均已通过真实运行。正式眼模型、A0/B0/C0、carrier/residual、三代表配置和 Run72 仍未执行；没有用安装示例或合成数据生成正式科学 lock。
+当前仓库已经在本机 **OpticStudio 2026 R1.00 + Premium license** 下完成第一批 ZOS-API 适配：主线程与 worker thread 会话、三种顺序面型的实际参数列、Huygens PSF 网格读取、Zernike Standard 系数读取均已通过真实运行。TASK-005B 的两个正式轴向基座已经生成、回读、验证并登记本地 lock；A0/B0/C0、标准眼、carrier/residual、三代表配置和 Run72 仍未执行。
 
 随后根据独立 code review 在 `fix/zosapi-pre-science-hardening` 分支完成第二轮 pre-science hardening：Binary 4 不再写入 OpticStudio 计算型 `Par4`；Huygens PSF 增加 shape/spacing/center/intensity 契约；Huygens/Zernike 采集参数进入 frozen settings hash；Python.NET/ZOS DLL bootstrap 改为进程级幂等；项目新建光学系统时显式 `MakeSequential()`。本分支已在同一台工作站完成复测。详细见 `docs/audit/zosapi_pre_science_hardening_2026-08-18.md`。
 
@@ -25,14 +25,25 @@ worker-first 使用全新的 Python 进程，并以完整测试函数名选择�
 uv run pytest tests/zemax/test_zos_worker_gate.py -k worker_thread_session_risk_gate -vv
 ```
 
-`-k worker` 会匹配测试文件名并选中该文件内全部三个测试，因此不能作为 worker-first 的精确命令。当前 6 个 Zemax 测试包含同一 Python 进程连续 10 次 open→New→close 的 session stress gate；Huygens/Zernike 实机 smoke 直接从 `NOMINAL_MAIN_555_v1` 派生采集参数。
+`-k worker` 会匹配测试文件名并选中该文件内全部三个测试，因此不能作为 worker-first 的精确命令。当前 session stress gate 包含同一 Python 进程连续 10 次逻辑 session→New→release；Huygens/Zernike 实机 smoke 直接从 `NOMINAL_MAIN_555_v1` 派生采集参数。
+
+TASK-005B 完成后的当前验证：
+
+```text
+pytest tests/unit                         -> 98 passed
+python scripts/run_zemax_gates.py         -> 7 passed
+ruff check .                              -> PASS
+python -m compileall -q src tests scripts -> PASS
+```
+
+Zemax gate 现按测试文件使用独立 Python.NET 进程；单个进程内复用一个 OpticStudio application，并在进程退出时关闭一次。详细记录见 `docs/TASK_005B_BASE_ASSET_IMPLEMENTATION.md`。
 
 当前执行注意事项：
 
 - `uv.lock` 已生成；当前 hardening 分支已通过 `uv lock --check`。
 - 2026 R1.00 把 `ZOSAPI_NetHelper.dll`、`ZOSAPI.dll`、`ZOSAPI_Interfaces.dll` 放在安装根目录；session 同时保留旧版 `ZOS-API/Libraries` 布局支持。
 - hardening 后 CLR/ZOS assembly load 在同一 Python process 内只允许初始化一次；后续 session 必须复用同一 OpticStudio install identity。若需要切换安装目录，必须启动新的 Python process。
-- 本机仍应使用 `pytest tests/zemax` 直接收集 Zemax 测试。父集成分支曾观察到：收集完整测试树后再用 `-m zemax` 筛选，会在第一次创建 ZOS application 时以 Windows 原生状态 `0xc0000139` 退出；该问题尚未宣称解决。
+- 本机 Zemax 总 gate 使用 `uv run python scripts/run_zemax_gates.py`。把不同测试文件放进同一个 pytest/CLR 进程会受 `ZemaxEngine.dll` 类型加载顺序影响，因此不再作为总 gate。
 - 父集成分支个别成功会话曾在 stderr 出现 `FRU__delta_init(): Attempt to start when running!`。当前 10 次 session stress gate 通过，捕获的测试输出未再次出现该警告；这只说明本次复跑未复现，不表示已证明原生运行时不存在该问题。
 - GUI display smoke、Huygens MTF 交叉验证、footprint 与 Prescription Data 接口仍待完成。
 
@@ -41,10 +52,10 @@ uv run pytest tests/zemax/test_zos_worker_gate.py -k worker_thread_session_risk_
 | RMD task | Git | 当前状态 | 本地 OpticStudio 阶段仍需完成 |
 | --- | --- | --- | --- |
 | TASK-001 Project Setup | scaffold commit `b53dd798` | **hardening 分支本机完成**：`uv.lock` 已生成；94 个 unit、Ruff、compileall 通过 | 合并后保持 locked-env 检查 |
-| TASK-002 ZOS session | PR #2 + 本次适配 + pre-science hardening | **hardening 分支本机通过**：2026 R1.00、Premium license、process-idempotent bootstrap、10 次 stress 和独立 worker-first session 均通过 | 长批次继续观察原生 stderr/`0xc0000139` |
+| TASK-002 ZOS session | PR #2 + 本次适配 + pre-science hardening + TASK-005B | **本机通过**：2026 R1.00、Premium license、process-idempotent bootstrap、process-singleton application、10 次逻辑 session 和独立 worker-first session 均通过 | 长批次继续观察原生 stderr/`0xc0000139` |
 | TASK-003 Domain + ProjectStore | PR #3 | **离线完成并加固**：完整 baseline hash、create-once RunEnvironment、schema v2、artifact/run provenance；analysis acquisition settings 现已进入 settings hash | 与真实 `.zos` artifact 一起做一次集成回放 |
 | TASK-004 metric engine | PR #4 | **离线完成**：complex OTF、MTF、MTFa、VSOTF、DOF、frequency、delta | 用真实 Huygens PSF/MTF 做 TDD-209/403 交叉验证 |
-| TASK-005 scientific assets | PR #5 + 本次适配 | **hardening 分支 API smoke 通过**：Binary 4、Even Asphere、Coordinate Break 实机写入回读通过；Binary4 `Par4` 保持未写入，新系统显式 Sequential | 建立并验证正式 `.zos` assets、Coordinate Return、ZERO_HOA、REF_MONO |
+| TASK-005 scientific assets | PR #5 + TASK-005A/005B | **双基座完成**：两个正式 `.zos` 已生成、独立进程回读、语义校验和 SHA-256 lock 通过；未引入源模型天然角膜/GRIN/曲面视网膜 | 继续建立 STD eye、ZERO_HOA、REF_MONO、A0、B candidates、C0、Coordinate Return |
 | TASK-006 B0 | PR #6 | **算法完成并加固**：严格 17-plane grid、achieved ΔC4、80/70% gate、DOF rank、morphology/override、settings-bound scan hash | 运行真实五点 B scan；人工 morphology decision；写唯一 B0 lock |
 | TASK-007 carrier science gate | PR #7 + #13 | **fail-closed 门控完成**：finite carrier、evidence-backed residual、actual-carrier low/median/high、policy hash | 实际求 18 个 P/Q；STD-eye achieved-SA 回放；提供 3 个 residual payload；确定并冻结 residual 数值 tolerance policy；真实 low/median/high 校准；解除 TDD-999 |
 | TASK-008 carrier/pair locks + manifest | PR #8 + #13 | **生成器/CSV/provenance 加固完成**；不会在 gate 前产出正式清单 | TASK-007 通过后生成正式 18 lock、36 pair、72 manifest 并复核 hash |

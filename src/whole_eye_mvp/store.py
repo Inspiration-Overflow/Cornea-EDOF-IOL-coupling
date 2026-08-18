@@ -192,6 +192,8 @@ class ProjectStore:
         destination.parent.mkdir(parents=True, exist_ok=True)
         if source_path.resolve() != destination.resolve():
             shutil.copy2(source_path, destination)
+        if sha256_file(destination) != sha:
+            raise ProjectStoreError(f"artifact copy verification failed: {record.artifact_id}")
 
         ref = ArtifactRef(
             artifact_id=record.artifact_id,
@@ -229,6 +231,23 @@ class ProjectStore:
             rows,
         )
         return ref
+
+    def find_artifact(self, artifact_id: str) -> ArtifactRef | None:
+        row = next(
+            (item for item in self._artifact_rows() if item["artifact_id"] == artifact_id),
+            None,
+        )
+        if row is None:
+            return None
+        return ArtifactRef(
+            artifact_id=row["artifact_id"],
+            artifact_type=row["artifact_type"],
+            relative_path=row["relative_path"],
+            sha256=row["sha256"],
+            baseline_id=row["baseline_id"],
+            run_id=row["run_id"] or None,
+            locked=row["locked"] == "true",
+        )
 
     def verify_artifact(self, ref: ArtifactRef) -> bool:
         path = self.resolve(ref.relative_path)

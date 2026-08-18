@@ -84,6 +84,8 @@ def test_locked_artifact_same_hash_is_noop_and_different_hash_conflicts(tmp_path
     first = store.record_artifact(source, record, lock=True)
     second = store.record_artifact(source, record, lock=True)
     assert second == first
+    assert store.find_artifact("A0") == first
+    assert store.find_artifact("missing") is None
     source.write_text("beta", encoding="utf-8")
     with pytest.raises(LockedArtifactConflict):
         store.record_artifact(source, record, lock=True)
