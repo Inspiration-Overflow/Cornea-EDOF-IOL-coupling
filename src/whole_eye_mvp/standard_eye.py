@@ -101,6 +101,13 @@ class StandardEyeConstruction:
                 "standard-eye C40, footprint, and carrier SA calibration must share the 6-mm pupil"
             )
         if not math.isclose(
+            self.eye.aperture_mm,
+            CORNEAL_SA_PUPIL_MM,
+            rel_tol=0.0,
+            abs_tol=1.0e-12,
+        ):
+            raise ValueError("standard-eye calibration pupil must be 6 mm")
+        if not math.isclose(
             self.eye.wavelength_nm,
             STANDARD_EYE_CALIBRATION_WAVELENGTH_NM,
             rel_tol=0.0,
@@ -195,16 +202,25 @@ class ZeroHoaReferenceRecord:
         *,
         standard_eye_spec: BaselineStandardEyeSpec | None = None,
     ) -> ZeroHoaReferenceRecord:
-        aperture = (
-            CORNEAL_SA_PUPIL_MM
-            if standard_eye_spec is None
-            else standard_eye_spec.aperture_mm
-        )
-        wavelength = (
-            STANDARD_EYE_CALIBRATION_WAVELENGTH_NM
-            if standard_eye_spec is None
-            else standard_eye_spec.wavelength_nm
-        )
+        aperture = CORNEAL_SA_PUPIL_MM
+        wavelength = STANDARD_EYE_CALIBRATION_WAVELENGTH_NM
+        if standard_eye_spec is not None:
+            if not math.isclose(
+                standard_eye_spec.aperture_mm,
+                CORNEAL_SA_PUPIL_MM,
+                rel_tol=0.0,
+                abs_tol=1.0e-12,
+            ):
+                raise ValueError("ZERO_HOA requires the frozen 6-mm standard-eye pupil")
+            if not math.isclose(
+                standard_eye_spec.wavelength_nm,
+                STANDARD_EYE_CALIBRATION_WAVELENGTH_NM,
+                rel_tol=0.0,
+                abs_tol=1.0e-12,
+            ):
+                raise ValueError("ZERO_HOA requires the frozen 546-nm standard-eye wavelength")
+            aperture = standard_eye_spec.aperture_mm
+            wavelength = standard_eye_spec.wavelength_nm
         return cls(
             reference_id=f"ZERO_HOA_{carrier.key.carrier_id}",
             carrier_id=carrier.key.carrier_id,
@@ -246,16 +262,25 @@ class ZeroHoaReferenceRecord:
             raise ValueError(
                 "ZERO_HOA must preserve carrier power/envelope/material/position metadata"
             )
-        expected_aperture = (
-            CORNEAL_SA_PUPIL_MM
-            if standard_eye_spec is None
-            else standard_eye_spec.aperture_mm
-        )
-        expected_wavelength = (
-            STANDARD_EYE_CALIBRATION_WAVELENGTH_NM
-            if standard_eye_spec is None
-            else standard_eye_spec.wavelength_nm
-        )
+        expected_aperture = CORNEAL_SA_PUPIL_MM
+        expected_wavelength = STANDARD_EYE_CALIBRATION_WAVELENGTH_NM
+        if standard_eye_spec is not None:
+            if not math.isclose(
+                standard_eye_spec.aperture_mm,
+                CORNEAL_SA_PUPIL_MM,
+                rel_tol=0.0,
+                abs_tol=1.0e-12,
+            ):
+                raise ValueError("ZERO_HOA requires the frozen 6-mm standard-eye pupil")
+            if not math.isclose(
+                standard_eye_spec.wavelength_nm,
+                STANDARD_EYE_CALIBRATION_WAVELENGTH_NM,
+                rel_tol=0.0,
+                abs_tol=1.0e-12,
+            ):
+                raise ValueError("ZERO_HOA requires the frozen 546-nm standard-eye wavelength")
+            expected_aperture = standard_eye_spec.aperture_mm
+            expected_wavelength = standard_eye_spec.wavelength_nm
         if not math.isclose(
             self.calibration_aperture_mm,
             expected_aperture,
