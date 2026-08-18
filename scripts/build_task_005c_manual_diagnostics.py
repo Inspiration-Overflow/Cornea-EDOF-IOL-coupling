@@ -361,6 +361,7 @@ def main() -> None:
         "diagnostic_files": [fixed, paraxial, wavefront],
         "manual_zernike_required": True,
         "zernike_api_invoked_by_this_script": False,
+        "must_not_enter_project_locks": True,
     }
     manifest_path = output_dir / MANIFEST_NAME
     manifest_path.write_text(
