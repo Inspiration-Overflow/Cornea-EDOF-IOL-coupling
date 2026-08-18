@@ -112,11 +112,15 @@ class System:
     def __init__(self):
         self.LDE = LDE()
         self.new_calls = []
+        self.make_sequential_calls = 0
         self.saved = []
         self.Analyses = Analyses()
 
     def New(self, save_if_needed):
         self.new_calls.append(save_if_needed)
+
+    def MakeSequential(self):
+        self.make_sequential_calls += 1
 
     def SaveAs(self, path):
         self.saved.append(path)
@@ -149,6 +153,7 @@ def test_sequential_editor_sets_surfaces_and_parameters(tmp_path) -> None:
     editor.set_stop_surface(2)
     editor.save_as(tmp_path / "x.zos")
     assert system.new_calls == [False]
+    assert system.make_sequential_calls == 1
     assert row.type_settings == ("settings", "EVEN")
     assert row.Radius == 7.8 and row.Conic == -0.2
     assert row.cells["P2"].DoubleValue == 0.001 and row.RadiusCell.variable
