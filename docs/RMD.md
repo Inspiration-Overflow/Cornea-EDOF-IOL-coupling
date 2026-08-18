@@ -1,11 +1,11 @@
 # RMD — 角膜屈光术后 × 非衍射 EDOF IOL Zemax 自动化研究软件
 
-> **Build Path / Route-Runbook-Execution Map。** 本文件只规定安全实现顺序、测试闸门、回滚和 Git checkpoint；不重新定义科学模型。来源：`URD-0001 v1.3`、`ADD-0001 v1.4`、`MDD-0001 v1.3`、`TDD-0001 v1.2`。
+> **Build Path / Route-Runbook-Execution Map。** 本文件只规定安全实现顺序、测试闸门、回滚和 Git checkpoint；不重新定义科学模型。来源：`URD-0001 v1.4`、`ADD-0001 v1.4`、`MDD-0001 v1.3`、`TDD-0001 v1.3`。
 
 ## Metadata
 
 - document_id: RMD-0001
-- version: 1.2
+- version: 1.3
 - status: active
 - last_updated: 2026-08-18
 - document_strength: standard
@@ -14,7 +14,7 @@
 - default_branch: main
 - merge_style: squash
 - remote_status: connected
-- implementation_status: TASK-001–004 complete; TASK-005 formal scientific assets pending
+- implementation_status: TASK-001–004 complete; TASK-005A/005B complete; TASK-005C revised to 6 mm standard-eye calibration and pending real OpticStudio validation
 
 ## Development Conventions
 
@@ -101,6 +101,7 @@ Codex 在配置好的 Windows + OpticStudio 工作站默认负责：
 - **test-first rule:** 每个 task 先加入/启用其 TDD tests，使其失败；再写最小实现直到通过。
 - **Zemax rule:** unit tests 不依赖 OpticStudio；`zemax` marker 只在配置好的 Windows workstation 上运行。
 - **science lock rule:** 下游只读上游 locks；任何需要“修正上游 lock 才让测试通过”的情况立即 STOP。
+- **standard-eye rule:** TASK-005C/007 必须执行 URD-0001 v1.4 / TDD-0001 v1.3 的 6.0 mm standard-eye SA calibration；主实验 EPD3/EPD5 不得被当作 `SA_base`/`Q(P)` 设计条件。
 - **carrier rule:** RMD-TASK-007 可以生成**provisional** carrier power/Q records，但 `TDD-TEST-999` 未解除前不得写正式 EDOF carrier/pair locks。
 - **result rule:** 先通过 3 个代表配置 integration，再运行 72；禁止一上来跑完整矩阵来调试。
 
@@ -112,9 +113,9 @@ Codex 在配置好的 Windows + OpticStudio 工作站默认负责：
 | RMD-TASK-002 | `ZosSessionAdapter` + worker risk gate | 001 | MDD-MOD-001/API-001; TEST-001/101/401 | session adapter + typed errors + integration smoke | `uv run pytest tests/zemax -m zemax -k "session or worker_thread"` | `feat/rmd-task-002-zos-session` | lifecycle tests pass；401 决定 orchestration placement |
 | RMD-TASK-003 | Domain + `ProjectStore` | 001 | MOD-002; DATA-001/003/004/008/011/012/013; TEST-102/103/201/313-315 | frozen dataclasses/enums/settings serialization; filesystem store/run history | `uv run pytest -m unit -k "store or schema or settings or environment or path"` | `feat/rmd-task-003-project-store` | lock/hash/schema/run provenance tests pass |
 | RMD-TASK-004 | Pure metric engine | 003 | MOD-007 math boundary; TEST-202-208/211/212 | PSF→complex OTF, radial MTF, MTFa, VSOTF, peak/DOF, dual-axis utilities | `uv run pytest -m unit -k "otf or mtf or vsotf or dof or defocus"` | `feat/rmd-task-004-metrics` | golden fixture、phase、FFT shift、DOF tests pass |
-| RMD-TASK-005 | Core scientific assets + validation | 002,003 | MOD-003/API-004/005; TEST-002/003/005/104/105 | two bases, STD eye + ZERO_HOA reference, REF_MONO, A0, B candidates, C0 `.zos` + validation | `uv run pytest tests/zemax -m zemax -k "asset or base or standard_eye or cornea"` | `feat/rmd-task-005-assets` | core locks valid；A0/C0 convergence PASS；residual 可仍 not-ready |
+| RMD-TASK-005 | Core scientific assets + validation | 002,003 | MOD-003/API-004/005; TEST-002/003/005/104/105 | two bases, STD eye + ZERO_HOA reference, REF_MONO, A0, B candidates, C0 `.zos` + validation | `uv run pytest tests/zemax -m zemax -k "asset or base or standard_eye or cornea"` | `feat/rmd-task-005-assets` | two bases locked；STD eye passes **6 mm TDD-TEST-003**；core locks valid；A0/C0 convergence PASS；residual 可仍 not-ready |
 | RMD-TASK-006 | B0 scan + recommendation + human lock | 004,005 | MOD-004/API-006/007; TEST-004/106/107/304 | A0 thresholds, 5-candidate Q_lock curves/gates/rank, B0 lock | `uv run pytest tests/zemax -m zemax -k "b0 or cornea_lock"` | `feat/rmd-task-006-b0` | deterministic recommendation 可重算；用户确认/override reason 后 B0 immutable |
-| RMD-TASK-007 | Provisional carrier solve + residual science gate | 005,006 | MOD-005 internals; TEST-006/303/305/999 | provisional 18 `P,Q` records; residual payload validation; per-platform low/median/high calibration record | `uv run pytest tests/zemax -m zemax -k "carrier or residual or standard_eye"` | `feat/rmd-task-007-carrier-gate` | ZERO_HOA achieved-SA checks pass；**TEST-999 cleared**；仍不写正式 pair lock |
+| RMD-TASK-007 | Provisional carrier solve + residual science gate | 005,006 | MOD-005 internals; TEST-006/303/305/999 | provisional 18 `P,Q` records; residual payload validation; per-platform low/median/high calibration record | `uv run pytest tests/zemax -m zemax -k "carrier or residual or standard_eye"` | `feat/rmd-task-007-carrier-gate` | 6 mm ZERO_HOA achieved-SA checks pass；**TEST-999 cleared**；仍不写正式 pair lock |
 | RMD-TASK-008 | Formal carrier/pair locks + 18/72 manifests | 007 | API-008/009; TEST-007-009/108/109/301/306/307/502 | 18 carrier/pair locks + `physical_carriers.csv` + `nominal_72.csv` | `uv run pytest tests/unit -k "carrier_lock or pair or manifest"`<br>`uv run pytest tests/zemax -k "carrier_lock or pair or manifest"` | `feat/rmd-task-008-carriers-manifest` | 18/72 exact；matched invariants pass；manifest hash stable |
 | RMD-TASK-009 | Analysis workflow on representative set | 004,008 | MOD-007/API-010; TEST-010/011/110/209/210/308-310/402/403/501 | 3 representative config results, PSF/MTF/VSOTF/Zernike/dual frames/artifacts | `uv run pytest tests/zemax -m zemax -k "analysis or sampling or zernike or huygens"` | `feat/rmd-task-009-analysis` | sampling/MTF cross-check pass；artifact completion rules pass |
 | RMD-TASK-010 | Thin CustomTkinter shell | 002,003,005,006,008,009 | MOD-008/API-011/012; TEST-014/015/111/112/311/312 | minimal GUI actions/status/log/rerun/output-folder | `uv run pytest tests/unit -m gui`<br>`uv run pytest tests/unit -m unit -k "action or naming"` | `feat/rmd-task-010-gui` | GUI 不 import raw ZOSAPI；single-action/busy/naming smoke pass |
@@ -191,8 +192,9 @@ Codex 在配置好的 Windows + OpticStudio 工作站默认负责：
 - [x] 每个 task 有测试/检查命令和 Git checkpoint。
 - [x] `TDD-TEST-999` 是正式 carrier/Run72 前明确 STOP。
 - [x] representative 3-config gate 位于 Run72 前。
+- [x] standard-eye 6 mm calibration 与主实验 EPD3/EPD5 性能条件已在执行规则中分离。
 - [x] ChatGPT Web ↔ Codex 本地 OpticStudio 双环境职责和回传证据规则已明确。
 - [x] 未把 MVP 外科学鲁棒性工作混入实现路径。
 - [x] 用户已接受并实际采用本 Build Path。
 
-**Result:** `RMD-0001 v1.2` 为当前 active runbook。TASK-001–004 已完成；当前从 TASK-005 的正式科学资产构建继续执行，并默认使用 ChatGPT Web 主研究/主开发 + Codex 本地 OpticStudio 实机验证闭环。
+**Result:** `RMD-0001 v1.3` 为当前 active runbook。TASK-001–004、005A、005B 已完成；TASK-005C 按 URD v1.4/TDD v1.3 的 6 mm standard-eye calibration 修订后等待真实 OpticStudio 验证，并继续默认使用 ChatGPT Web 主研究/主开发 + Codex 本地 OpticStudio 实机验证闭环。
