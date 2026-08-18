@@ -59,13 +59,14 @@ def test_standard_eye_calibration_is_separate_from_nominal_3mm_5mm_performance()
 def test_paraxial_iol_plane_is_deterministic_start_for_real_footprint_gate() -> None:
     spec = standard_eye_construction(ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID))
     assert paraxial_iol_plane_distance_mm(spec) == pytest.approx(3.92355, abs=1e-4)
+    # Retained only as a diagnostic; formal C40 uses minimum-RMS-wavefront Quick Focus.
     assert corneal_paraxial_focus_from_post_mm(spec) == pytest.approx(31.06443, abs=1e-4)
     assert spec.iol_vertex_mm == pytest.approx(4.42355, abs=1e-4)
     assert spec.iol_to_image_mm > 0
 
 
 @pytest.mark.unit
-def test_standard_eye_measurements_enforce_shared_6mm_calibration() -> None:
+def test_standard_eye_measurements_enforce_shared_6mm_calibration_and_continuous_medium() -> None:
     spec = standard_eye_construction(ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID))
     measurements = StandardEyeMeasurements(
         wavelength_nm=546.0,
@@ -80,8 +81,11 @@ def test_standard_eye_measurements_enforce_shared_6mm_calibration() -> None:
         cornea_thickness_mm=0.50,
         cornea_index=1.376,
         medium_index=1.336,
+        medium_index_after_iol_ref=1.336,
         iol_from_post_cornea_mm=spec.iol_from_post_cornea_mm,
         reference_axial_length_mm=23.950,
+        best_focus_iol_to_image_mm=26.5,
+        best_focus_criterion="WavefrontError",
         field_x_deg=0.0,
         field_y_deg=0.0,
         surface_count=5,
@@ -96,6 +100,14 @@ def test_standard_eye_measurements_enforce_shared_6mm_calibration() -> None:
     wrong = replace(measurements, corneal_c40_um_6mm=0.270)
     findings = validate_standard_eye_measurements(wrong, spec)
     assert any("corneal_c40_um_6mm" in finding for finding in findings)
+
+    wrong = replace(measurements, medium_index_after_iol_ref=1.0)
+    findings = validate_standard_eye_measurements(wrong, spec)
+    assert any("medium_index_after_iol_ref" in finding for finding in findings)
+
+    wrong = replace(measurements, best_focus_criterion="Paraxial")
+    findings = validate_standard_eye_measurements(wrong, spec)
+    assert any("best_focus_criterion" in finding for finding in findings)
 
 
 @pytest.mark.unit
