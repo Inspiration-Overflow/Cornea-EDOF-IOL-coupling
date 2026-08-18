@@ -315,14 +315,13 @@ def _run_worker(
     return _parse_worker_payload(completed.stdout)
 
 
-def _write_partial_manifest(
-    output_dir: Path,
+def _manifest_payload(
     args: argparse.Namespace,
     completed_files: list[dict[str, Any]],
     *,
     error: str | None,
-) -> Path:
-    manifest = {
+) -> dict[str, Any]:
+    return {
         "task": "TASK-005C-manual-diagnostics",
         "formal_artifact": False,
         "baseline_id": args.baseline_id,
@@ -336,6 +335,16 @@ def _write_partial_manifest(
         "completed_all_variants": error is None and len(completed_files) == 3,
         "error": error,
     }
+
+
+def _write_manifest(
+    output_dir: Path,
+    args: argparse.Namespace,
+    completed_files: list[dict[str, Any]],
+    *,
+    error: str | None,
+) -> Path:
+    manifest = _manifest_payload(args, completed_files, error=error)
     manifest_path = output_dir / MANIFEST_NAME
     manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2),
@@ -386,10 +395,10 @@ def main() -> None:
         wavefront = _run_worker(args, "wavefront", wavefront_path, source=fixed_path)
         completed_files.append(wavefront)
     except DiagnosticBuildError as exc:
-        _write_partial_manifest(output_dir, args, completed_files, error=str(exc))
+        _write_manifest(output_dir, args, completed_files, error=str(exc))
         raise SystemExit(1) from exc
 
-    _write_partial_manifest(output_dir, args, completed_files, error=None)
+    _write_manifest(output_dir, args, completed_files, error=None)
 
 
 if __name__ == "__main__":
