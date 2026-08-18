@@ -25,11 +25,15 @@ class BaselineMismatch(ProjectStoreError):
     pass
 
 
+class EnvironmentConflict(ProjectStoreError):
+    pass
+
+
 class SchemaError(ProjectStoreError):
     pass
 
 
-PROJECT_SCHEMA_VERSION = 1
+PROJECT_SCHEMA_VERSION = 2
 PROJECT_DIRS = (
     "models/assets",
     "models/b_candidates",
@@ -51,6 +55,11 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def scientific_baseline_hash(baseline: ScientificBaseline) -> str:
+    text = json.dumps(asdict(baseline), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
 def _atomic_write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temp_name = tempfile.mkstemp(prefix=path.name, dir=path.parent)
@@ -67,6 +76,7 @@ class ProjectStore:
     def __init__(self, root: Path, baseline: ScientificBaseline) -> None:
         self.root = root
         self.baseline = baseline
+        self.baseline_hash = scientific_baseline_hash(baseline)
         self.metadata_path = root / "project.json"
         self.artifact_index_path = root / "locks" / "artifact_index.csv"
         self.run_history_path = root / "logs" / "run_history.csv"
@@ -84,18 +94,30 @@ class ProjectStore:
 
         store = cls(root, baseline)
         if store.metadata_path.exists():
-            payload = json.loads(store.metadata_path.read_text(encoding="utf-8"))
+            try:
+                payload = json.loads(store.metadata_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                raise SchemaError("project metadata is unreadable") from exc
             if payload.get("schema_version") != PROJECT_SCHEMA_VERSION:
                 raise SchemaError("unsupported project schema version")
             if payload.get("baseline_id") != baseline.baseline_id:
                 raise BaselineMismatch(
-                    f"project baseline is {payload.get('baseline_id')!r}, requested {baseline.baseline_id!r}"
+                    f"project baseline is {payload.get('baseline_id')!r}, "
+                    f"requested {baseline.baseline_id!r}"
+                )
+            if payload.get("baseline_hash") != store.baseline_hash:
+                raise BaselineMismatch(
+                    "project baseline_id matches, but frozen scientific baseline contents differ"
                 )
         else:
             _atomic_write_text(
                 store.metadata_path,
                 json.dumps(
-                    {"schema_version": PROJECT_SCHEMA_VERSION, "baseline_id": baseline.baseline_id},
+                    {
+                        "schema_version": PROJECT_SCHEMA_VERSION,
+                        "baseline_id": baseline.baseline_id,
+                        "baseline_hash": store.baseline_hash,
+                    },
                     ensure_ascii=False,
                     indent=2,
                 ),
@@ -116,8 +138,24 @@ class ProjectStore:
     def _artifact_rows(self) -> list[dict[str, str]]:
         if not self.artifact_index_path.exists():
             return []
+        expected = (
+            "schema_version",
+            "artifact_id",
+            "artifact_type",
+            "relative_path",
+            "sha256",
+            "baseline_id",
+            "run_id",
+            "locked",
+        )
         with self.artifact_index_path.open("r", encoding="utf-8", newline="") as handle:
-            return list(csv.DictReader(handle))
+            reader = csv.DictReader(handle)
+            if tuple(reader.fieldnames or ()) != expected:
+                raise SchemaError("artifact index CSV schema mismatch")
+            rows = list(reader)
+        if any(row.get("schema_version") != str(PROJECT_SCHEMA_VERSION) for row in rows):
+            raise SchemaError("artifact index contains an unsupported schema version")
+        return rows
 
     def record_artifact(
         self,
@@ -152,7 +190,8 @@ class ProjectStore:
 
         destination = self.resolve(record.relative_path)
         destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source_path, destination)
+        if source_path.resolve() != destination.resolve():
+            shutil.copy2(source_path, destination)
 
         ref = ArtifactRef(
             artifact_id=record.artifact_id,
@@ -192,19 +231,47 @@ class ProjectStore:
         return ref
 
     def verify_artifact(self, ref: ArtifactRef) -> bool:
-        return self.resolve(ref.relative_path).is_file() and sha256_file(self.resolve(ref.relative_path)) == ref.sha256
+        path = self.resolve(ref.relative_path)
+        return path.is_file() and sha256_file(path) == ref.sha256
 
     def record_environment(self, environment_id: str, environment: RunEnvironment) -> str:
         environment.validate()
+        if environment.baseline_id != self.baseline.baseline_id:
+            raise BaselineMismatch("run environment baseline does not match project baseline")
+        if not environment_id.strip():
+            raise ValueError("environment_id is required")
         path = self.root / "environments" / f"{environment_id}.json"
-        _atomic_write_text(path, json.dumps(asdict(environment), ensure_ascii=False, indent=2))
+        text = json.dumps(asdict(environment), ensure_ascii=False, indent=2)
+        if path.exists():
+            existing = path.read_text(encoding="utf-8")
+            if json.loads(existing) == json.loads(text):
+                return str(path.relative_to(self.root))
+            raise EnvironmentConflict(f"run environment {environment_id!r} already exists")
+        _atomic_write_text(path, text)
         return str(path.relative_to(self.root))
 
     def append_run(self, record: RunRecord) -> None:
         rows: list[dict[str, str]] = []
+        expected = (
+            "schema_version",
+            "run_id",
+            "action",
+            "target_id",
+            "status",
+            "started_at",
+            "finished_at",
+            "error_type",
+            "error_message",
+            "environment_ref",
+        )
         if self.run_history_path.exists():
             with self.run_history_path.open("r", encoding="utf-8", newline="") as handle:
-                rows.extend(csv.DictReader(handle))
+                reader = csv.DictReader(handle)
+                if tuple(reader.fieldnames or ()) != expected:
+                    raise SchemaError("run history CSV schema mismatch")
+                rows.extend(reader)
+            if any(row.get("schema_version") != str(PROJECT_SCHEMA_VERSION) for row in rows):
+                raise SchemaError("run history contains an unsupported schema version")
         rows.append(
             {
                 "schema_version": str(PROJECT_SCHEMA_VERSION),
@@ -219,22 +286,7 @@ class ProjectStore:
                 "environment_ref": record.environment_ref or "",
             }
         )
-        self._write_csv(
-            self.run_history_path,
-            (
-                "schema_version",
-                "run_id",
-                "action",
-                "target_id",
-                "status",
-                "started_at",
-                "finished_at",
-                "error_type",
-                "error_message",
-                "environment_ref",
-            ),
-            rows,
-        )
+        self._write_csv(self.run_history_path, expected, rows)
 
     @staticmethod
     def _write_csv(path: Path, fieldnames: Iterable[str], rows: list[dict[str, str]]) -> None:

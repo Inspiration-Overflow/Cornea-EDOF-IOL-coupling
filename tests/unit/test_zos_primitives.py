@@ -52,6 +52,16 @@ class LDE:
         del self.rows[index : index + count]
 
 
+class AnalysisResult:
+    def __init__(self, owner):
+        self.owner = owner
+
+    def read(self):
+        if self.owner.closed:
+            raise RuntimeError("result proxy is invalid after Close")
+        return {"ok": self.owner.ran}
+
+
 class Analysis:
     def __init__(self):
         self.ran = False
@@ -61,7 +71,7 @@ class Analysis:
         self.ran = True
 
     def GetResults(self):
-        return {"ok": self.ran}
+        return AnalysisResult(self)
 
     def Close(self):
         self.closed = True
@@ -116,14 +126,11 @@ def test_sequential_editor_sets_surfaces_and_parameters(tmp_path) -> None:
     editor.make_radius_variable(1)
     editor.set_stop_surface(2)
     editor.save_as(tmp_path / "x.zos")
-
     assert system.new_calls == [False]
     assert row.type_settings == ("settings", "EVEN")
     assert row.Radius == 7.8 and row.Conic == -0.2
-    assert row.cells["P2"].DoubleValue == 0.001
-    assert row.RadiusCell.variable
-    assert system.LDE.StopSurface == 2
-    assert system.saved[-1].endswith("x.zos")
+    assert row.cells["P2"].DoubleValue == 0.001 and row.RadiusCell.variable
+    assert system.LDE.StopSurface == 2 and system.saved[-1].endswith("x.zos")
 
 
 @pytest.mark.unit
@@ -136,11 +143,11 @@ def test_unknown_surface_parameter_and_type_are_typed_errors() -> None:
 
 
 @pytest.mark.unit
-def test_generic_analysis_lifecycle_closes_after_run() -> None:
+def test_generic_analysis_lifecycle_snapshots_before_close() -> None:
     system = System()
     runner = SystemAnalysisRunner(system, ZOS)
-    result = runner.run_by_id("HuygensPsf")
+    result = runner.run_by_id("HuygensPsf", lambda proxy: proxy.read())
     assert result == {"ok": True}
     assert system.Analyses.last.closed
     with pytest.raises(ZosPrimitiveError):
-        runner.run_by_id("NoSuchAnalysis")
+        runner.run_by_id("NoSuchAnalysis", lambda proxy: proxy.read())

@@ -21,17 +21,20 @@ FORBIDDEN_EXACT_PRODUCT_MODEL_IDS = {
     "PRESBYOND",
     "PresbyMAX",
 }
+_FORBIDDEN_NORMALIZED = {" ".join(value.split()).casefold() for value in FORBIDDEN_EXACT_PRODUCT_MODEL_IDS}
 
 
 def settings_hash(settings: AnalysisSettings) -> str:
+    settings.validate()
     payload = json.dumps(asdict(settings), sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 def validate_surrogate_model_id(model_id: str) -> None:
-    if not model_id.strip():
+    normalized = " ".join(model_id.split())
+    if not normalized:
         raise ValueError("model ID must not be empty")
-    if model_id in FORBIDDEN_EXACT_PRODUCT_MODEL_IDS:
+    if normalized.casefold() in _FORBIDDEN_NORMALIZED:
         raise ValueError("commercial product name must not be used as a research model ID")
 
 
@@ -66,12 +69,12 @@ def assert_trace_coverage(
     mdd_api_count: int = 12,
 ) -> None:
     missing: list[str] = []
-    for i in range(1, urd_ac_count + 1):
-        ident = f"URD-AC-{i:03d}"
+    for index in range(1, urd_ac_count + 1):
+        ident = f"URD-AC-{index:03d}"
         if ident not in trace_text:
             missing.append(ident)
-    for i in range(1, mdd_api_count + 1):
-        ident = f"MDD-API-{i:03d}"
+    for index in range(1, mdd_api_count + 1):
+        ident = f"MDD-API-{index:03d}"
         if ident not in trace_text:
             missing.append(ident)
     if missing:

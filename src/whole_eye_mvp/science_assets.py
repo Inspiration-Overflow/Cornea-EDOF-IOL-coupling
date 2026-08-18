@@ -7,7 +7,18 @@ from typing import Protocol, Sequence
 
 import numpy as np
 
-from .domain import BaseId, CorneaId, PlatformId
+from .domain import (
+    BASELINE_BASE_SPECS,
+    BASELINE_B_CANDIDATES_DELTA_C40_UM,
+    BASELINE_CORNEA_SPECS,
+    BASELINE_PLATFORM_SPECS,
+    BASELINE_STANDARD_EYE_SPEC,
+    BaselineBaseSpec,
+    BaselineCorneaSpec,
+    BaselinePlatformSpec,
+    BaselineStandardEyeSpec,
+    CorneaId,
+)
 
 
 class NumericalStatus(StrEnum):
@@ -16,33 +27,10 @@ class NumericalStatus(StrEnum):
     NOT_RUN = "NOT_RUN"
 
 
-@dataclass(frozen=True, slots=True)
-class BaseSpec:
-    base_id: str
-    axial_length_mm: float
-    post_cornea_to_stop_mm: float = 3.150
-    post_cornea_to_iol_ant_mm: float = 4.500
-    aqueous_index: float = 1.336
-    vitreous_index: float = 1.336
-
-
-@dataclass(frozen=True, slots=True)
-class StandardEyeSpec:
-    eye_id: str = "STD_IOL_EYE_2024"
-    corneal_c40_um: float = 0.258
-    iol_footprint_mm: float = 5.15
-    iol_footprint_tolerance_mm: float = 0.10
-    medium_index: float = 1.336
-    aperture_mm: float = 3.0
-    wavelength_nm: float = 546.0
-
-
-@dataclass(frozen=True, slots=True)
-class CorneaSpec:
-    cornea_id: str
-    treatment_d: float
-    optical_zone_mm: float
-    target_delta_c40_um: float | None = None
+BaseSpec = BaselineBaseSpec
+StandardEyeSpec = BaselineStandardEyeSpec
+CorneaSpec = BaselineCorneaSpec
+PlatformSpec = BaselinePlatformSpec
 
 
 @dataclass(frozen=True, slots=True)
@@ -64,16 +52,9 @@ class C0Spec:
 
 
 @dataclass(frozen=True, slots=True)
-class PlatformSpec:
-    platform_id: str
-    user_label: str
-    standard_eye_sa_target_um: float
-
-
-@dataclass(frozen=True, slots=True)
 class AssetValidation:
     asset_id: str
-    status: NumericalStatus
+    status: str
     findings: tuple[str, ...] = ()
 
 
@@ -88,18 +69,16 @@ class AssetBuildReport:
         return bool(self.validations) and all(v.status == NumericalStatus.PASS for v in self.validations)
 
 
-LB_BASE = BaseSpec(BaseId.LB_AL2395, 23.950)
-ATC_M3_BASE = BaseSpec(BaseId.ATC_M3_AL24477, 24.477)
-STD_IOL_EYE = StandardEyeSpec()
-A0_SPEC = CorneaSpec(CorneaId.A0, -3.0, 5.0, 0.13)
-B_CANDIDATE_DELTA_C40_UM = (0.10, 0.15, 0.20, 0.25, 0.30)
-B_OPTICAL_ZONE_MM = 6.0
-C0_SPEC = C0Spec()
-PLATFORM_SPECS = (
-    PlatformSpec(PlatformId.WFS, "WFS-like surrogate", -0.20),
-    PlatformSpec(PlatformId.RAD, "RAD-like surrogate", -0.27),
-    PlatformSpec(PlatformId.HOA, "HOA-like surrogate", 0.00),
+LB_BASE = BASELINE_BASE_SPECS[0]
+ATC_M3_BASE = BASELINE_BASE_SPECS[1]
+STD_IOL_EYE = BASELINE_STANDARD_EYE_SPEC
+A0_SPEC = next(spec for spec in BASELINE_CORNEA_SPECS if spec.cornea_id == CorneaId.A0)
+B_CANDIDATE_DELTA_C40_UM = BASELINE_B_CANDIDATES_DELTA_C40_UM
+B_OPTICAL_ZONE_MM = next(
+    spec.optical_zone_mm for spec in BASELINE_CORNEA_SPECS if spec.cornea_id == CorneaId.B0
 )
+C0_SPEC = C0Spec()
+PLATFORM_SPECS = BASELINE_PLATFORM_SPECS
 
 
 def smoothstep_quintic(x: float | np.ndarray) -> np.ndarray:
@@ -127,8 +106,12 @@ class ScientificAssetBackend(Protocol):
     def validate_core_assets(self, output_dir: Path) -> Sequence[AssetValidation]: ...
 
 
-def summarize_asset_validations(validations: Sequence[AssetValidation], *, available_residual_platforms: Sequence[str] = ()) -> AssetBuildReport:
+def summarize_asset_validations(
+    validations: Sequence[AssetValidation], *, available_residual_platforms: Sequence[str] = ()
+) -> AssetBuildReport:
     residuals = set(available_residual_platforms)
     missing = tuple(p.platform_id for p in PLATFORM_SPECS if p.platform_id not in residuals)
     core_ok = bool(validations) and all(v.status == NumericalStatus.PASS for v in validations)
-    return AssetBuildReport(tuple(validations), carrier_ready=core_ok and not missing, residual_missing=missing)
+    return AssetBuildReport(
+        tuple(validations), carrier_ready=core_ok and not missing, residual_missing=missing
+    )
