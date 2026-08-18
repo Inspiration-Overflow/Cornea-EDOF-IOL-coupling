@@ -149,6 +149,14 @@ Ansys 官方 Python.NET 示例明确支持 `TheSystem.Tools.OpenQuickFocus()`；
 project_mvp_2026_v2/diagnostics/task005c_manual/
 ```
 
+运行：
+
+```powershell
+uv run python scripts/build_task_005c_manual_diagnostics.py `
+  --baseline-id MVP_2026_v2 `
+  --output-dir project_mvp_2026_v2/diagnostics/task005c_manual
+```
+
 该目录只保存：
 
 ```text
