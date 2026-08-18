@@ -186,6 +186,8 @@ manifest 至少记录脚本能够可靠取得的：
 - `zernike_api_invoked_by_this_script=false`；
 - `must_not_enter_project_locks=true`。
 
+若 B/C 中途 STOP，manifest 仍写出此前成功文件，并记录 `completed_all_variants=false` 与 error；这样不需要为了完整 manifest 重跑已经成功的 worker。
+
 OpticStudio 产品版本与 edition/license 名称仍由 Codex 在运行报告中人工记录（例如 `2026 R1.00 / Premium`），不因为某个 ZOS-API 属性在不同版本不可用而阻断诊断文件生成。
 
 不得把这些 diagnostic SHA 写入 `project/locks`。
