@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "problem": "Monolithic controller coupled session, science workflows, persistence and GUI.",
+      "change": "Split into eight design responsibilities and pass frozen artifacts downstream.",
+      "result": "Dense coupling reduced to ordered dependencies."
+    },
+    {
+      "attempt": 2,
+      "problem": "GUI touched ZOS-API directly and analysis generated its own experiment matrix.",
+      "change": "Use a thin CustomTkinter workflow shell and an independent deterministic manifest builder.",
+      "result": "Design became nearly lower-triangular."
+    },
+    {
+      "attempt": 3,
+      "problem": "Persistence was placed late in the matrix, hiding the fact that Assets, B0, Carrier, Manifest and Analysis all write formal artifacts and run state.",
+      "change": "Recast DP-007 as Project Store & Run State Boundary, place it immediately after Session in execution order, and expose all one-way dependencies in the matrix.",
+      "result": "Dependencies are explicit and the design remains lower-triangular/decoupled without adding modules."
+    }
+  ],
+  "accepted_couplings": [],
+  "metadata": {
+    "document_id": "ADD-0001",
+    "add_version": "1.4",
+    "classification": "decoupled",
+    "execution_order": [
+      "ADD-DP-001",
+      "ADD-DP-007",
+      "ADD-DP-002",
+      "ADD-DP-003",
+      "ADD-DP-004",
+      "ADD-DP-005",
+      "ADD-DP-006"
+    ],
+    "gui_shell": "ADD-DP-008",
+    "checkpoint": "accepted"
+  }
+}
