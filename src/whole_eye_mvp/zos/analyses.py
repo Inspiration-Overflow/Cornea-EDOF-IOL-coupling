@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ..domain import AnalysisSettings
 from .primitives import SystemAnalysisRunner, ZosPrimitiveError
 
 SUPPORTED_SAMPLE_SIZES = frozenset(2**power for power in range(5, 15))
@@ -26,6 +27,26 @@ class HuygensPsfSettings:
     normalize: bool = True
     use_centroid: bool = False
     use_polarization: bool = False
+
+    @classmethod
+    def from_analysis_settings(
+        cls,
+        settings: AnalysisSettings,
+        *,
+        wavelength_number: int = 1,
+        field_number: int = 1,
+    ) -> HuygensPsfSettings:
+        settings.validate()
+        return cls(
+            pupil_sampling=settings.huygens_pupil_sampling,
+            image_sampling=settings.huygens_image_sampling,
+            image_delta_um=settings.huygens_image_delta_um,
+            wavelength_number=wavelength_number,
+            field_number=field_number,
+            normalize=settings.huygens_normalize,
+            use_centroid=settings.huygens_use_centroid,
+            use_polarization=settings.huygens_use_polarization,
+        )
 
     def validate(self) -> None:
         if self.pupil_sampling not in SUPPORTED_SAMPLE_SIZES:
@@ -81,7 +102,10 @@ class HuygensPsfRunner:
                     "installed API cannot cast Huygens PSF settings to IAS_HuygensPsf"
                 ) from exc
             self._configure(target, settings)
-            return lifecycle.run_and_parse(analysis, self._cast_and_parse_grid)
+            return lifecycle.run_and_parse(
+                analysis,
+                lambda results: self._cast_and_parse_grid(results, settings),
+            )
         finally:
             lifecycle.close(analysis)
 
@@ -104,12 +128,16 @@ class HuygensPsfRunner:
         target.Wavelength.SetWavelengthNumber(settings.wavelength_number)
         target.Field.SetFieldNumber(settings.field_number)
 
-    def _cast_and_parse_grid(self, results: Any) -> HuygensPsfGrid:
+    def _cast_and_parse_grid(
+        self,
+        results: Any,
+        settings: HuygensPsfSettings,
+    ) -> HuygensPsfGrid:
         implementation = getattr(results, "__implementation__", results)
-        return self._parse_grid(implementation)
+        return self._parse_grid(implementation, settings)
 
     @staticmethod
-    def _parse_grid(results: Any) -> HuygensPsfGrid:
+    def _parse_grid(results: Any, settings: HuygensPsfSettings) -> HuygensPsfGrid:
         if not bool(results.IsValid) or int(results.NumberOfDataGrids) < 1:
             raise HuygensPsfError("Huygens PSF returned no valid data grid")
         grid = results.GetDataGrid(0)
@@ -118,18 +146,51 @@ class HuygensPsfRunner:
         columns = int(values.GetLength(1))
         if rows != int(grid.Ny) or columns != int(grid.Nx) or rows < 1 or columns < 1:
             raise HuygensPsfError("Huygens PSF grid dimensions are inconsistent")
+        expected_shape = (settings.image_sampling, settings.image_sampling)
+        if (rows, columns) != expected_shape:
+            raise HuygensPsfError(
+                f"Huygens PSF grid shape mismatch: expected {expected_shape}, "
+                f"received {(rows, columns)}"
+            )
+
+        min_x = float(grid.MinX)
+        min_y = float(grid.MinY)
+        dx = float(grid.Dx)
+        dy = float(grid.Dy)
+        if not all(math.isfinite(value) for value in (min_x, min_y, dx, dy)):
+            raise HuygensPsfError("Huygens PSF grid geometry contains a non-finite value")
+        if dx <= 0 or dy <= 0:
+            raise HuygensPsfError("Huygens PSF grid spacing must be positive")
+        if not math.isclose(dx, settings.image_delta_um, rel_tol=1e-9, abs_tol=1e-12) or not math.isclose(
+            dy, settings.image_delta_um, rel_tol=1e-9, abs_tol=1e-12
+        ):
+            raise HuygensPsfError(
+                "Huygens PSF grid spacing does not match the requested ImageDelta"
+            )
+        midpoint_x = min_x + 0.5 * (columns - 1) * dx
+        midpoint_y = min_y + 0.5 * (rows - 1) * dy
+        center_tolerance = 0.5 * max(dx, dy) + 1e-12
+        if abs(midpoint_x) > center_tolerance or abs(midpoint_y) > center_tolerance:
+            raise HuygensPsfError(
+                "Huygens PSF grid is not centered on the Zemax geometric reference"
+            )
+
         copied = tuple(
             tuple(float(values.GetValue(row, column)) for column in range(columns))
             for row in range(rows)
         )
-        if not all(math.isfinite(value) for row in copied for value in row):
+        flat = tuple(value for row in copied for value in row)
+        if not all(math.isfinite(value) for value in flat):
             raise HuygensPsfError("Huygens PSF grid contains a non-finite intensity")
+        scale = max(1.0, max(abs(value) for value in flat))
+        if min(flat) < -1e-12 * scale:
+            raise HuygensPsfError("Huygens PSF grid contains a negative intensity")
         result = HuygensPsfGrid(
             values=copied,
-            min_x=float(grid.MinX),
-            min_y=float(grid.MinY),
-            dx=float(grid.Dx),
-            dy=float(grid.Dy),
+            min_x=min_x,
+            min_y=min_y,
+            dx=dx,
+            dy=dy,
             x_label=str(grid.XLabel),
             y_label=str(grid.YLabel),
             value_label=str(grid.ValueLabel),
@@ -155,6 +216,29 @@ class ZernikeStandardSettings:
     center_y: float = 0.0
     normalized_radius: float = 1.0
     epsilon: float = 0.0
+
+    @classmethod
+    def from_analysis_settings(
+        cls,
+        settings: AnalysisSettings,
+        *,
+        wavelength_number: int = 1,
+        field_number: int = 1,
+    ) -> ZernikeStandardSettings:
+        settings.validate()
+        if settings.zernike_surface != "image":
+            raise ValueError("MVP Zernike acquisition requires the image surface")
+        return cls(
+            sample_size=settings.zernike_sample_size,
+            maximum_terms=settings.zernike_maximum_terms,
+            wavelength_number=wavelength_number,
+            field_number=field_number,
+            reference_opd_to_vertex=settings.zernike_reference_opd_to_vertex,
+            center_x=settings.zernike_center_x,
+            center_y=settings.zernike_center_y,
+            normalized_radius=settings.zernike_normalized_radius,
+            epsilon=settings.zernike_epsilon,
+        )
 
     def validate(self) -> None:
         if self.sample_size not in SUPPORTED_SAMPLE_SIZES:
