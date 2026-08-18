@@ -86,6 +86,10 @@ class SequentialEditor:
 
     def new_system(self, save_if_needed: bool = False) -> None:
         self.system.New(save_if_needed)
+        make_sequential = getattr(self.system, "MakeSequential", None)
+        if not callable(make_sequential):
+            raise ZosPrimitiveError("installed API does not expose IOpticalSystem.MakeSequential")
+        make_sequential()
 
     def surface(self, index: int) -> Any:
         return self.lde.GetSurfaceAt(index)
