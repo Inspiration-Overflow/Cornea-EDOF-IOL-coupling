@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "as_of": "2026-08-17",
+  "phase": "offline-implementation-complete_local-opticstudio-integration-pending",
+  "offline_unit_tests": {
+    "passed": 59,
+    "failed": 0
+  },
+  "environment_pending": [
+    "uv.lock",
+    "uv sync on target Windows workstation",
+    "ruff",
+    "OpticStudio session/license/worker-thread gate"
+  ],
+  "tasks": {
+    "RMD-TASK-001": "scaffold-complete_env-lock-pending",
+    "RMD-TASK-002": "code-complete_zemax-validation-pending",
+    "RMD-TASK-003": "offline-complete",
+    "RMD-TASK-004": "offline-complete_zemax-crosscheck-pending",
+    "RMD-TASK-005": "offline-contract-complete_zos-model-build-pending",
+    "RMD-TASK-006": "ranking-lock-logic-complete_real-scan-pending",
+    "RMD-TASK-007": "gate-and-lock-orchestration-complete_real-pq-residual-calibration-pending",
+    "RMD-TASK-008": "manifest-builder-export-complete_formal-output-blocked-by-task007",
+    "RMD-TASK-009": "analysis-contract-batch-complete_real-huygens-zernike-pending",
+    "RMD-TASK-010": "thin-gui-complete_local-smoke-thread-decision-pending",
+    "RMD-TASK-011": "acceptance-oracle-complete_real-run72-pending"
+  },
+  "merged_prs": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+  "science_gates_still_active": [
+    "TDD-TEST-401",
+    "TDD-TEST-999",
+    "representative-3-config-sampling-and-mtf-crosscheck"
+  ]
+}
