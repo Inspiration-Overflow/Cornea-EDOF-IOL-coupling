@@ -1,0 +1,64 @@
+{
+  "fixture_id": "COMPLEX_OTF_GOLDEN_3x3_v1",
+  "frequency_unit": "cycles_per_degree",
+  "fx": [
+    -30.0,
+    0.0,
+    30.0
+  ],
+  "fy": [
+    -30.0,
+    0.0,
+    30.0
+  ],
+  "matrix_layout": "rows=fy[-30,0,+30], cols=fx[-30,0,+30]",
+  "otf_complex": [
+    [
+      {
+        "re": 0.16209069176,
+        "im": -0.252441295442
+      },
+      {
+        "re": 0.460530497001,
+        "im": -0.194709171154
+      },
+      {
+        "re": 0.243847348272,
+        "im": 0.251074631815
+      }
+    ],
+    [
+      {
+        "re": 0.458905312371,
+        "im": -0.386530612343
+      },
+      {
+        "re": 1.0,
+        "im": 0.0
+      },
+      {
+        "re": 0.458905312371,
+        "im": 0.386530612343
+      }
+    ],
+    [
+      {
+        "re": 0.243847348272,
+        "im": -0.251074631815
+      },
+      {
+        "re": 0.460530497001,
+        "im": 0.194709171154
+      },
+      {
+        "re": 0.16209069176,
+        "im": 0.252441295442
+      }
+    ]
+  ],
+  "otf_dl": "1.0 at all 9 fixture points",
+  "csf": "2.6*(0.0192+0.114*f)*exp(-(0.114*f)^1.1)",
+  "integration": "weighted discrete sum over all 9 points; same measure in numerator and denominator",
+  "golden_vsotf": 0.441144149923,
+  "golden_vsmtf": 0.532519164153
+}
