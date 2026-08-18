@@ -71,6 +71,20 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _git_head() -> str:
+    completed = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=REPOSITORY_ROOT,
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return "unknown"
+    return completed.stdout.strip() or "unknown"
+
+
 def _index_at_surface(system: Any, surface: int) -> float:
     count = int(system.SystemData.Wavelengths.NumberOfWavelengths)
     system_module = importlib.import_module("System")
@@ -119,6 +133,14 @@ def _quick_focus_wavefront(session: Any) -> None:
             close()
 
 
+def _application_payload(session: Any) -> dict[str, Any]:
+    return {
+        "license_status": str(getattr(session.app, "LicenseStatus", "unknown")),
+        "api_mode": str(getattr(session.app, "Mode", "unknown")),
+        "opticstudio_instance": str(getattr(session.app, "OpticStudioInstance", "unknown")),
+    }
+
+
 def _geometry_payload(session: Any, *, variant: str, focus_method: str, path: Path) -> dict[str, Any]:
     system = session.system
     lde = system.LDE
@@ -147,6 +169,7 @@ def _geometry_payload(session: Any, *, variant: str, focus_method: str, path: Pa
         "medium_index_after_cornea": _index_at_surface(system, 2),
         "medium_index_after_iol_ref": _index_at_surface(system, 3),
         "image_comment": str(rows[3].Comment).strip(),
+        "application": _application_payload(session),
     }
     if not math.isclose(payload["medium_index_after_iol_ref"], 1.336, abs_tol=1e-6):
         raise DiagnosticBuildError(
@@ -315,7 +338,9 @@ def main() -> None:
         "task": "TASK-005C-manual-diagnostics",
         "formal_artifact": False,
         "baseline_id": args.baseline_id,
+        "git_head": _git_head(),
         "python_version": platform.python_version(),
+        "install_dir": str(args.install_dir),
         "diagnostic_files": [fixed, paraxial, wavefront],
         "manual_zernike_required": True,
         "zernike_api_invoked_by_this_script": False,
