@@ -34,13 +34,14 @@ pytest tests/unit                         -> 98 passed
 python scripts/run_zemax_gates.py         -> 7 passed
 ruff check .                              -> PASS
 python -m compileall -q src tests scripts -> PASS
+uv lock --check                           -> PASS
 ```
 
 Zemax gate 现按测试文件使用独立 Python.NET 进程；单个进程内复用一个 OpticStudio application，并在进程退出时关闭一次。详细记录见 `docs/TASK_005B_BASE_ASSET_IMPLEMENTATION.md`。
 
 当前执行注意事项：
 
-- `uv.lock` 已生成；当前 hardening 分支已通过 `uv lock --check`。
+- `uv.lock` 已生成；TASK-005B 当前分支已通过 `uv lock --check`。
 - 2026 R1.00 把 `ZOSAPI_NetHelper.dll`、`ZOSAPI.dll`、`ZOSAPI_Interfaces.dll` 放在安装根目录；session 同时保留旧版 `ZOS-API/Libraries` 布局支持。
 - hardening 后 CLR/ZOS assembly load 在同一 Python process 内只允许初始化一次；后续 session 必须复用同一 OpticStudio install identity。若需要切换安装目录，必须启动新的 Python process。
 - 本机 Zemax 总 gate 使用 `uv run python scripts/run_zemax_gates.py`。把不同测试文件放进同一个 pytest/CLR 进程会受 `ZemaxEngine.dll` 类型加载顺序影响，因此不再作为总 gate。
@@ -110,4 +111,4 @@ Zemax gate 现按测试文件使用独立 Python.NET 进程；单个进程内复
 
 RMD 主实现均通过独立分支 → PR → squash merge 进入 `main`：PR #2–#15；第一轮 code-review hardening 已按独立分支和 PR 合并。第一批真实 ZOS-API 适配位于 `codex/zosapi-2026-r1-integration`，第二轮修订位于其子分支 `fix/zosapi-pre-science-hardening`。
 
-本文件的状态含义是：**离线实现、第一轮 code review、第一批真实 ZOS-API 适配和第二轮 pre-science hardening 实机复测均已完成；下一阶段仍受 TDD-999 和三代表配置条件约束。**
+本文件的状态含义是：**离线实现、第一轮 code review、第一批真实 ZOS-API 适配和第二轮 pre-science hardening 实机复测均已完成；TASK-005B 双基座已完成并验证；下一阶段仍受 TDD-999 和三代表配置条件约束。**
