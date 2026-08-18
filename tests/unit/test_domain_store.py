@@ -59,10 +59,7 @@ def test_project_round_trip_path_and_baseline_content_mismatch(tmp_path: Path) -
     reopened = open_project_store(store.root, baseline)
     assert reopened.baseline.baseline_id == baseline.baseline_id
 
-    modified = replace(
-        baseline,
-        iteration_limit=3,
-    )
+    modified = replace(baseline, iteration_limit=3)
     with pytest.raises(BaselineMismatch, match="contents differ"):
         open_project_store(store.root, modified)
 
