@@ -198,9 +198,12 @@ def main() -> None:
             )
 
     report = rank_b0_candidates(a_epd3, a_epd5, tuple(candidate_inputs))
+    scan_ready_for_review = report.complete and report.recommendation_id is not None
     payload = {
         "formal_artifact": False,
-        "passed": report.complete and report.recommendation_id is not None,
+        "scan_complete": report.complete,
+        "provisional_recommendation_available": report.recommendation_id is not None,
+        "scan_ready_for_morphology_review": scan_ready_for_review,
         "morphology_review_pending": True,
         "selection_locked": False,
         "acquisition": "MFE_MTFA_GRID0",
@@ -228,7 +231,7 @@ def main() -> None:
     }
     result_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({"result_path": str(result_path.resolve()), **payload}, ensure_ascii=False, indent=2))
-    if not payload["passed"]:
+    if not scan_ready_for_review:
         raise SystemExit(1)
 
 
