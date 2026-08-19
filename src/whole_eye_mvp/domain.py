@@ -138,6 +138,91 @@ class AnalysisSettings:
         return tuple(values)
 
 
+@dataclass(frozen=True, slots=True)
+class B0LockMtfaSettings:
+    """TASK-005D B0 selection settings for the MFE MTFA production path."""
+
+    settings_id: str
+    wavelength_nm: float
+    pupils_mm: tuple[float, ...]
+    defocus_start_d: float
+    defocus_stop_d: float
+    defocus_step_d: float
+    q_lock_max_cycles_per_mm: float
+    mtfa_frequency_step_cyc_per_mm: float
+    mtfa_sampling: int
+    mtfa_grid: int = 0
+    mtfa_data_type: int = 0
+    wavelength_number: int = 1
+    field_number: int = 1
+
+    def validate(self) -> None:
+        if not self.settings_id.strip():
+            raise ValueError("B0 MTFA settings_id is required")
+        scalar_values = (
+            self.wavelength_nm,
+            self.defocus_start_d,
+            self.defocus_stop_d,
+            self.defocus_step_d,
+            self.q_lock_max_cycles_per_mm,
+            self.mtfa_frequency_step_cyc_per_mm,
+        )
+        if not all(math.isfinite(float(value)) for value in scalar_values):
+            raise ValueError("B0 MTFA settings must contain only finite numeric values")
+        if self.wavelength_nm <= 0:
+            raise ValueError("B0 MTFA wavelength must be positive")
+        if not self.pupils_mm or not all(
+            math.isfinite(float(pupil)) and pupil > 0 for pupil in self.pupils_mm
+        ):
+            raise ValueError("B0 MTFA pupils must be finite and positive")
+        if self.defocus_step_d == 0:
+            raise ValueError("B0 MTFA defocus step must not be zero")
+        if self.defocus_start_d > self.defocus_stop_d and self.defocus_step_d > 0:
+            raise ValueError("B0 MTFA defocus step direction does not reach stop")
+        if self.defocus_start_d < self.defocus_stop_d and self.defocus_step_d < 0:
+            raise ValueError("B0 MTFA defocus step direction does not reach stop")
+        if self.q_lock_max_cycles_per_mm <= 0 or self.mtfa_frequency_step_cyc_per_mm <= 0:
+            raise ValueError("B0 MTFA frequency settings must be positive")
+        ratio = self.q_lock_max_cycles_per_mm / self.mtfa_frequency_step_cyc_per_mm
+        if not math.isclose(ratio, round(ratio), rel_tol=0.0, abs_tol=1.0e-12):
+            raise ValueError("B0 MTFA frequency step must divide Q-lock maximum exactly")
+        if self.mtfa_sampling < 1:
+            raise ValueError("B0 MTFA sampling index must be positive")
+        if self.mtfa_grid != 0:
+            raise ValueError("B0 MTFA production Grid is frozen to 0")
+        if self.mtfa_data_type != 0:
+            raise ValueError("B0 MTFA production Data Type is frozen to modulation (0)")
+        if self.wavelength_number != 1 or self.field_number != 1:
+            raise ValueError("B0 MTFA production Wave/Field are frozen to 1")
+
+    def defocus_grid(self) -> tuple[float, ...]:
+        self.validate()
+        values: list[float] = []
+        value = self.defocus_start_d
+        if self.defocus_step_d < 0:
+            while value >= self.defocus_stop_d - 1.0e-12:
+                values.append(round(value, 10))
+                value += self.defocus_step_d
+        else:
+            while value <= self.defocus_stop_d + 1.0e-12:
+                values.append(round(value, 10))
+                value += self.defocus_step_d
+        return tuple(values)
+
+    def frequency_grid(self, *, step_cyc_per_mm: float | None = None) -> tuple[float, ...]:
+        self.validate()
+        step = self.mtfa_frequency_step_cyc_per_mm if step_cyc_per_mm is None else step_cyc_per_mm
+        if not math.isfinite(float(step)) or step <= 0:
+            raise ValueError("B0 MTFA frequency step must be finite and positive")
+        ratio = self.q_lock_max_cycles_per_mm / step
+        if not math.isclose(ratio, round(ratio), rel_tol=0.0, abs_tol=1.0e-12):
+            raise ValueError("B0 MTFA frequency step must divide Q-lock maximum exactly")
+        return tuple(round(index * step, 10) for index in range(int(round(ratio)) + 1))
+
+
+# Legacy v1 provenance: the first Phase B design used Huygens MTF and stopped on
+# the 2026 R1 workstation when AS_HuygensMtf triggered a Python.NET/ZemaxEngine
+# FileLoadException.  Keep the object available for the STOP record only.
 CORNEA_LOCK_B0_555_V1 = AnalysisSettings(
     settings_id="CORNEA_LOCK_B0_555_v1",
     wavelength_nm=555.0,
@@ -145,6 +230,21 @@ CORNEA_LOCK_B0_555_V1 = AnalysisSettings(
     defocus_start_d=0.50,
     defocus_stop_d=-3.50,
     defocus_step_d=-0.25,
+)
+
+# v2 keeps the optical/selection rules unchanged and replaces only the MTF
+# acquisition primitive. Sampling=3 is the provisional production candidate;
+# Phase B.1 must compare adjacent sampling levels before the full scan is run.
+CORNEA_LOCK_B0_555_V2 = B0LockMtfaSettings(
+    settings_id="CORNEA_LOCK_B0_555_v2",
+    wavelength_nm=555.0,
+    pupils_mm=(3.0, 5.0),
+    defocus_start_d=0.50,
+    defocus_stop_d=-3.50,
+    defocus_step_d=-0.25,
+    q_lock_max_cycles_per_mm=50.0,
+    mtfa_frequency_step_cyc_per_mm=5.0,
+    mtfa_sampling=3,
 )
 
 NOMINAL_MAIN_555_V1 = AnalysisSettings(
