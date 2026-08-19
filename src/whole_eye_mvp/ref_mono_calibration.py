@@ -152,7 +152,7 @@ def solve_ref_mono_neutral_conic(
             return RefMonoSaCalibration(radius_mm, conic, reference_c40, actual, delta)
 
     bracket: tuple[tuple[float, float, float], tuple[float, float, float]] | None = None
-    for left, right in zip(samples, samples[1:], strict=True):
+    for left, right in zip(samples, samples[1:]):
         if left[2] * right[2] < 0:
             bracket = (left, right)
             break
@@ -186,7 +186,7 @@ def solve_ref_mono_neutral_conic(
             left = middle
 
     result = RefMonoSaCalibration(radius_mm, best[0], reference_c40, best[1], best[2])
-    if not result.passed:
+    if abs(result.delta_c40_um) > tolerance_um:
         raise RefMonoCalibrationError(
             f"REF_MONO conic solve did not converge: best ΔC40={result.delta_c40_um:.6g} µm"
         )
