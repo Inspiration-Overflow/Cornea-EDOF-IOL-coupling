@@ -4,10 +4,14 @@ import math
 from dataclasses import dataclass
 from pathlib import Path
 
-from .base_assets import IMAGE_ROLE, STOP_ROLE, _set_material_index_at_nominal_wavelength
+from .base_assets import (
+    IMAGE_ROLE,
+    STOP_ROLE,
+    _refractive_indices,
+    _set_material_index_at_nominal_wavelength,
+)
 from .cornea_assets import MAIN_CORNEA_SCAFFOLD, cornea_lock_eye_geometry
 from .cornea_zos import (
-    CORNEA_DIAGNOSTIC_EPD_MM,
     DISTANCE_CORNEA_ANT_ROLE,
     FIXED_CORNEA_POST_ROLE,
     measure_distance_cornea_scaffold,
@@ -30,6 +34,8 @@ REF_MONO_POST_ROLE = "REF_MONO_POST"
 REF_MONO_RADIUS_BRACKET_SCALE = 0.40
 REF_MONO_FOCUS_SHIFT_TOLERANCE_MM = 0.001
 REF_MONO_RADIUS_ITERATIONS = 40
+INDEX_TOLERANCE = 1.0e-6
+GEOMETRY_TOLERANCE_MM = 0.001
 
 
 class RefMonoZosError(RuntimeError):
@@ -60,7 +66,11 @@ def _set_epd(session: ZosSession, diameter_mm: float) -> None:
     aperture.ApertureValue = float(diameter_mm)
 
 
-def _require_distance_scaffold(session: ZosSession, baseline: ScientificBaseline, path: Path) -> None:
+def _require_distance_scaffold(
+    session: ZosSession,
+    baseline: ScientificBaseline,
+    path: Path,
+) -> None:
     measurement = measure_distance_cornea_scaffold(session, path)
     findings = validate_distance_cornea_measurements(measurement, baseline)
     if findings:
@@ -69,7 +79,7 @@ def _require_distance_scaffold(session: ZosSession, baseline: ScientificBaseline
         )
 
 
-def _insert_ref_mono(
+def insert_ref_mono(
     session: ZosSession,
     baseline: ScientificBaseline,
     radius_mm: float,
@@ -110,8 +120,9 @@ def _set_symmetric_radius(session: ZosSession, radius_mm: float) -> None:
     if not math.isfinite(radius_mm) or radius_mm <= 0:
         raise ValueError("REF_MONO trial radius must be finite and positive")
     editor = SequentialEditor(session.system, session.zosapi)
-    editor.set_radius_conic(4, radius_mm=radius_mm, conic=float(editor.surface(4).Conic))
-    editor.set_radius_conic(5, radius_mm=-radius_mm, conic=float(editor.surface(5).Conic))
+    conic = float(editor.surface(4).Conic)
+    editor.set_radius_conic(4, radius_mm=radius_mm, conic=conic)
+    editor.set_radius_conic(5, radius_mm=-radius_mm, conic=conic)
 
 
 def _focus_shift_mm(session: ZosSession) -> float:
@@ -142,7 +153,7 @@ def solve_ref_mono_radius_mm(
 
     if not math.isfinite(tolerance_mm) or tolerance_mm <= 0:
         raise ValueError("REF_MONO focus-shift tolerance must be finite and positive")
-    start = initial_radius_mm or initial_ref_mono_radius_mm(baseline)
+    start = initial_radius_mm if initial_radius_mm is not None else initial_ref_mono_radius_mm(baseline)
     if not math.isfinite(start) or start <= 0:
         raise ValueError("REF_MONO starting radius must be finite and positive")
 
@@ -189,12 +200,15 @@ def build_ref_mono_candidate(
     baseline: ScientificBaseline,
     distance_cornea_path: str | Path,
     destination: str | Path,
+    *,
+    conic: float = REF_MONO_INITIAL_CONIC,
+    initial_radius_mm: float | None = None,
 ) -> RefMonoMeasurements:
     source = Path(distance_cornea_path)
     _require_distance_scaffold(session, baseline, source)
-    start = initial_ref_mono_radius_mm(baseline)
-    _insert_ref_mono(session, baseline, start)
-    radius, _ = solve_ref_mono_radius_mm(session, baseline, initial_radius_mm=start)
+    start = initial_radius_mm if initial_radius_mm is not None else initial_ref_mono_radius_mm(baseline)
+    insert_ref_mono(session, baseline, start, conic=conic)
+    solve_ref_mono_radius_mm(session, baseline, initial_radius_mm=start)
     output = Path(destination)
     SequentialEditor(session.system, session.zosapi).save_as(output)
     return measure_ref_mono_candidate(session, baseline, output)
@@ -208,7 +222,9 @@ def measure_ref_mono_candidate(
     session.system.LoadFile(str(Path(path).resolve()), False)
     lde = session.system.LDE
     if int(lde.NumberOfSurfaces) != 7:
-        raise RefMonoZosError(f"REF_MONO candidate must contain 7 surfaces, got {lde.NumberOfSurfaces}")
+        raise RefMonoZosError(
+            f"REF_MONO candidate must contain 7 surfaces, got {lde.NumberOfSurfaces}"
+        )
     rows = tuple(lde.GetSurfaceAt(index) for index in range(1, 7))
     expected_roles = (
         DISTANCE_CORNEA_ANT_ROLE,
@@ -224,7 +240,6 @@ def measure_ref_mono_candidate(
             f"REF_MONO surface roles differ: expected={expected_roles}, got={actual_roles}"
         )
 
-    geometry = cornea_lock_eye_geometry(baseline)
     radius_ant = float(rows[3].Radius)
     radius_post = float(rows[4].Radius)
     conic_ant = float(rows[3].Conic)
@@ -242,7 +257,7 @@ def measure_ref_mono_candidate(
         conic=conic_ant,
         equivalent_power_d=symmetric_biconvex_power_d(radius_ant),
         center_thickness_mm=float(rows[3].Thickness),
-        iol_index=REF_MONO_ENVELOPE.iol_index,
+        iol_index=_refractive_indices(session.system, 4)[0],
         optic_diameter_mm=REF_MONO_ENVELOPE.optic_diameter_mm,
         entrance_pupil_mm=float(session.system.SystemData.Aperture.ApertureValue),
         focus_shift_mm=focus_shift,
@@ -252,3 +267,62 @@ def measure_ref_mono_candidate(
         surface_count=int(lde.NumberOfSurfaces),
         stop_surface=int(lde.StopSurface),
     )
+
+
+def validate_ref_mono_measurements(
+    measurement: RefMonoMeasurements,
+    baseline: ScientificBaseline,
+) -> tuple[str, ...]:
+    geometry = cornea_lock_eye_geometry(baseline)
+    findings: list[str] = []
+
+    def close(label: str, actual: float, expected: float, tolerance: float) -> None:
+        if not math.isfinite(actual) or abs(actual - expected) > tolerance:
+            findings.append(
+                f"{label}: expected {expected:.12g} ± {tolerance:.3g}, got {actual:.12g}"
+            )
+
+    close(
+        "center_thickness_mm",
+        measurement.center_thickness_mm,
+        REF_MONO_ENVELOPE.center_thickness_mm,
+        GEOMETRY_TOLERANCE_MM,
+    )
+    close("iol_index", measurement.iol_index, REF_MONO_ENVELOPE.iol_index, INDEX_TOLERANCE)
+    close(
+        "entrance_pupil_mm",
+        measurement.entrance_pupil_mm,
+        REF_MONO_FOCUS_EPD_MM,
+        0.001,
+    )
+    if not math.isfinite(measurement.focus_shift_mm) or (
+        abs(measurement.focus_shift_mm) > REF_MONO_FOCUS_SHIFT_TOLERANCE_MM
+    ):
+        findings.append(
+            "focus_shift_mm: expected near zero within "
+            f"{REF_MONO_FOCUS_SHIFT_TOLERANCE_MM:.3g} mm, "
+            f"got {measurement.focus_shift_mm:.12g}"
+        )
+    close(
+        "post_cornea_to_iol_ant_mm",
+        measurement.post_cornea_to_iol_ant_mm,
+        geometry.post_cornea_to_iol_ant_mm,
+        GEOMETRY_TOLERANCE_MM,
+    )
+    close(
+        "iol_post_to_image_mm",
+        measurement.iol_post_to_image_mm,
+        geometry.iol_ant_to_image_mm - REF_MONO_ENVELOPE.center_thickness_mm,
+        GEOMETRY_TOLERANCE_MM,
+    )
+    close(
+        "axial_length_mm",
+        measurement.axial_length_mm,
+        geometry.axial_length_mm,
+        GEOMETRY_TOLERANCE_MM,
+    )
+    if measurement.surface_count != 7:
+        findings.append(f"surface_count: expected 7, got {measurement.surface_count}")
+    if measurement.stop_surface != 3:
+        findings.append(f"stop_surface: expected 3, got {measurement.stop_surface}")
+    return tuple(findings)
