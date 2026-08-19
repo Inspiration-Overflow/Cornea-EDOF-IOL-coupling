@@ -4,6 +4,7 @@ import pytest
 
 from whole_eye_mvp.carrier_scaffold import CONTROLLED_IOL_CARRIER_546_V1
 from whole_eye_mvp.residual_payload import (
+    RadialResidualCandidate,
     build_hoa_residual_candidate,
     build_rad_residual_candidate,
     build_wfs_residual_candidate,
@@ -13,8 +14,8 @@ from whole_eye_mvp.residual_payload import (
 from whole_eye_mvp.residual_profiles import fit_piston_and_global_defocus
 
 
-def _assert_normalized(candidate: object) -> None:
-    radii, _, normalized = normalization_prefix(candidate)  # type: ignore[arg-type]
+def _assert_normalized(candidate: RadialResidualCandidate) -> None:
+    radii, _, normalized = normalization_prefix(candidate)
     fit = fit_piston_and_global_defocus(radii, normalized)
     assert fit.piston_um == pytest.approx(0.0, abs=1.0e-12)
     assert fit.global_defocus_d == pytest.approx(0.0, abs=1.0e-12)
@@ -51,10 +52,11 @@ def test_rad_candidate_has_low_order_removed_and_lives_on_posterior_surface() ->
     assert max(candidate.raw_opd_um) - min(candidate.raw_opd_um) > 0.5
 
 
-def test_hoa_candidate_keeps_same_low_order_contract_after_coefficients_are_solved() -> None:
-    candidate = build_hoa_residual_candidate(a_um_per_mm6=1.0, b_um_per_mm4=-1.0)
+def test_hoa_candidate_is_frozen_and_keeps_same_low_order_contract() -> None:
+    candidate = build_hoa_residual_candidate()
     candidate.validate()
     assert candidate.platform_id == "HOA"
     assert candidate.surface_role == "anterior"
     assert candidate.radii_mm[-1] == pytest.approx(3.0)
     _assert_normalized(candidate)
+    assert max(candidate.raw_opd_um) - min(candidate.raw_opd_um) > 1.0
