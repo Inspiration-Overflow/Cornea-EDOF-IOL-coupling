@@ -5,10 +5,12 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 from dataclasses import asdict
 from pathlib import Path
 
 from whole_eye_mvp.b0 import B0CandidateInput, rank_b0_candidates
+from whole_eye_mvp.b0_probe import require_b0_probe_evidence
 from whole_eye_mvp.b0_zos import acquire_b0_lock_curve
 from whole_eye_mvp.cornea_assets import cornea_lock_prescriptions
 from whole_eye_mvp.cornea_candidates_zos import measure_cornea_file_wavefront
@@ -20,7 +22,7 @@ from whole_eye_mvp.domain import (
 )
 from whole_eye_mvp.ref_mono_coupled import calibrate_ref_mono_for_cornea
 from whole_eye_mvp.standard_eye import RELATIVE_PATH as STANDARD_EYE_RELATIVE_PATH
-from whole_eye_mvp.store import open_project_store
+from whole_eye_mvp.store import open_project_store, sha256_file
 from whole_eye_mvp.zos import open_zos_session
 
 INSTALL_ENV = "WHOLE_EYE_ZOS_INSTALL_DIR"
@@ -49,6 +51,34 @@ def _cornea_path(output_dir: Path, candidate_id: str) -> Path:
     return output_dir / f"CORNEA_{candidate_id.replace('.', '_')}.zmx"
 
 
+def _repository_commit() -> str:
+    try:
+        status = subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=no"],
+            cwd=REPOSITORY_ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        if status.stdout.strip():
+            raise RuntimeError("tracked repository files are modified")
+        completed = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError, RuntimeError) as exc:
+        raise SystemExit(
+            "Full B0 scan requires a clean Git checkout with a resolvable commit for provenance"
+        ) from exc
+    commit = completed.stdout.strip()
+    if len(commit) != 40:
+        raise SystemExit("Full B0 scan could not resolve a canonical 40-character Git commit")
+    return commit
+
+
 def main() -> None:
     args = _parser().parse_args()
     if args.install_dir is None:
@@ -57,6 +87,8 @@ def main() -> None:
     project_dir = args.project_dir.resolve()
     baseline = ScientificBaseline(args.baseline_id)
     store = open_project_store(project_dir, baseline)
+    code_commit = _repository_commit()
+    probe_evidence = require_b0_probe_evidence(project_dir)
     standard_eye_path = store.resolve(STANDARD_EYE_RELATIVE_PATH)
     if not standard_eye_path.is_file():
         raise SystemExit(f"Required locked standard eye is missing: {standard_eye_path}")
@@ -78,6 +110,16 @@ def main() -> None:
             "scripts/build_task_005d_cornea_candidates.py first: "
             + ", ".join(str(path) for path in missing)
         )
+
+    input_hashes = {
+        "standard_eye": sha256_file(standard_eye_path),
+        "reference_cornea": sha256_file(reference_path),
+        "A0": sha256_file(_cornea_path(cornea_dir, a_prescription.candidate_id)),
+        **{
+            item.candidate_id: sha256_file(_cornea_path(cornea_dir, item.candidate_id))
+            for item in b_prescriptions
+        },
+    }
 
     output_dir = project_dir / "diagnostics" / "task005d" / "b0_scan_mtfa_v2"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -142,9 +184,13 @@ def main() -> None:
             candidate_evidence.append(
                 {
                     "candidate_id": prescription.candidate_id,
+                    "target_delta_c40_um": float(prescription.target_delta_c40_um),
+                    "cornea_path": str(cornea_path.resolve()),
+                    "cornea_sha256": sha256_file(cornea_path),
                     "cornea_wavefront": asdict(wavefront),
                     "achieved_delta_c40_um": achieved_delta,
                     "ref_mono_path": str(ref_path.resolve()),
+                    "ref_mono_sha256": sha256_file(ref_path),
                     "ref_mono_calibration": asdict(calibration),
                     "epd3": asdict(epd3),
                     "epd5": asdict(epd5),
@@ -159,10 +205,20 @@ def main() -> None:
         "selection_locked": False,
         "acquisition": "MFE_MTFA_GRID0",
         "analysis_settings": asdict(CORNEA_LOCK_B0_555_V2),
+        "provenance": {
+            "code_commit": code_commit,
+            "baseline_id": baseline.baseline_id,
+            "opticstudio_install_dir": str(Path(args.install_dir).resolve()),
+            "opticstudio_install_label": Path(args.install_dir).resolve().name,
+            "phase_b1_probe": asdict(probe_evidence),
+            "input_sha256": input_hashes,
+        },
         "reference_cornea_c40_um": reference_c40,
         "A0": {
             "cornea_path": str(a_cornea_path.resolve()),
+            "cornea_sha256": sha256_file(a_cornea_path),
             "ref_mono_path": str(a_ref_path.resolve()),
+            "ref_mono_sha256": sha256_file(a_ref_path),
             "ref_mono_calibration": asdict(a_calibration),
             "epd3": asdict(a_epd3),
             "epd5": asdict(a_epd5),
