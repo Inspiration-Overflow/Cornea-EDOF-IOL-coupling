@@ -39,6 +39,13 @@ class FftMtfResult:
     description: str
     x_label: str
     series_labels: tuple[str, ...]
+    analysis_api_name: str
+    settings_implementation_type: str
+    sample_size_enum: str
+    modulation_enum: str
+    data_series_count: int
+    data_series_runtime_type: str
+    selected_series_runtime_type: str
 
     def validate(self) -> None:
         n = len(self.frequency_cycles_per_mm)
@@ -58,6 +65,18 @@ class FftMtfResult:
         for values in (self.tangential_mtf, self.sagittal_mtf):
             if not all(math.isfinite(value) and value >= 0 for value in values):
                 raise FftMtfError("FFT MTF modulation data must be finite and non-negative")
+        for value in (
+            self.analysis_api_name,
+            self.settings_implementation_type,
+            self.sample_size_enum,
+            self.modulation_enum,
+            self.data_series_runtime_type,
+            self.selected_series_runtime_type,
+        ):
+            if not value.strip():
+                raise FftMtfError("FFT MTF runtime API metadata is incomplete")
+        if self.data_series_count < 1:
+            raise FftMtfError("FFT MTF DataSeries count must be positive")
 
 
 @dataclass(slots=True)
@@ -75,12 +94,21 @@ class FftMtfRunner:
         try:
             raw_settings = analysis.GetSettings()
             target = getattr(raw_settings, "__implementation__", raw_settings)
-            self._configure(target, settings)
-            return lifecycle.run_and_parse(analysis, self._parse_results)
+            sample_enum, modulation_enum = self._configure(target, settings)
+            settings_type = type(target).__name__
+            return lifecycle.run_and_parse(
+                analysis,
+                lambda results: self._parse_results(
+                    results,
+                    settings_implementation_type=settings_type,
+                    sample_size_enum=sample_enum,
+                    modulation_enum=modulation_enum,
+                ),
+            )
         finally:
             lifecycle.close(analysis)
 
-    def _configure(self, target: Any, settings: FftMtfSettings) -> None:
+    def _configure(self, target: Any, settings: FftMtfSettings) -> tuple[str, str]:
         target.MaximumFrequency = float(settings.maximum_frequency_cyc_per_mm)
         target.ShowDiffractionLimit = False
         target.UsePolarization = bool(settings.use_polarization)
@@ -88,12 +116,14 @@ class FftMtfRunner:
 
         sample_sizes = self.zosapi.Analysis.SampleSizes
         sample_value = None
+        sample_name = ""
         for name in (
             f"S_{settings.sampling}x{settings.sampling}",
             f"_{settings.sampling}x{settings.sampling}",
         ):
             if hasattr(sample_sizes, name):
                 sample_value = getattr(sample_sizes, name)
+                sample_name = name
                 break
         if sample_value is None:
             raise FftMtfError(
@@ -103,9 +133,11 @@ class FftMtfRunner:
 
         mtf_types = self.zosapi.Analysis.Settings.Mtf.MtfTypes
         modulation = None
+        modulation_name = ""
         for name in ("Modulation", "ModulationTransferFunction", "MTF"):
             if hasattr(mtf_types, name):
                 modulation = getattr(mtf_types, name)
+                modulation_name = name
                 break
         if modulation is None:
             raise FftMtfError("installed API exposes no modulation MTF enum")
@@ -113,6 +145,7 @@ class FftMtfRunner:
         target.Wavelength.SetWavelengthNumber(settings.wavelength_number)
         target.Field.SetFieldNumber(settings.field_number)
         target.Surface.UseImageSurface()
+        return sample_name, modulation_name
 
     @staticmethod
     def _copy_vector(vector: Any) -> tuple[float, ...]:
@@ -129,7 +162,14 @@ class FftMtfRunner:
             return float(data.GetValue(row, column))
 
     @classmethod
-    def _parse_results(cls, results: Any) -> FftMtfResult:
+    def _parse_results(
+        cls,
+        results: Any,
+        *,
+        settings_implementation_type: str,
+        sample_size_enum: str,
+        modulation_enum: str,
+    ) -> FftMtfResult:
         implementation = getattr(results, "__implementation__", results)
         if hasattr(implementation, "IsValid") and not bool(implementation.IsValid):
             raise FftMtfError("FFT MTF returned an invalid result")
@@ -137,8 +177,9 @@ class FftMtfRunner:
         if data_series is None:
             raise FftMtfError("FFT MTF returned no DataSeries")
 
+        series_items = tuple(data_series)
         candidates: list[Any] = []
-        for series in data_series:
+        for series in series_items:
             if series is None:
                 continue
             x_data = getattr(series, "XData", None)
@@ -182,6 +223,13 @@ class FftMtfRunner:
             description=str(series.Description),
             x_label=str(series.XLabel),
             series_labels=labels,
+            analysis_api_name="New_FftMtf",
+            settings_implementation_type=settings_implementation_type,
+            sample_size_enum=sample_size_enum,
+            modulation_enum=modulation_enum,
+            data_series_count=len(series_items),
+            data_series_runtime_type=type(data_series).__name__,
+            selected_series_runtime_type=type(series).__name__,
         )
         result.validate()
         return result
