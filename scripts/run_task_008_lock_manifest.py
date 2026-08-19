@@ -10,7 +10,6 @@ import argparse
 import hashlib
 import json
 import subprocess
-from dataclasses import asdict
 from pathlib import Path
 
 from whole_eye_mvp.carriers import (
@@ -20,7 +19,7 @@ from whole_eye_mvp.carriers import (
     ResidualDefinition,
     validate_18_provisional_carriers,
 )
-from whole_eye_mvp.domain import ArtifactRecord, CURRENT_SCIENTIFIC_BASELINE_ID, ScientificBaseline
+from whole_eye_mvp.domain import CURRENT_SCIENTIFIC_BASELINE_ID, ArtifactRecord, ScientificBaseline
 from whole_eye_mvp.manifest import build_manifests, compute_lock_set_hash
 from whole_eye_mvp.residual_policy import RESIDUAL_VALIDATION_546_V1
 from whole_eye_mvp.store import open_project_store, sha256_file

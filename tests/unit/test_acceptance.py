@@ -41,7 +41,6 @@ def bundle():
         residual_id = f"RES_{key.platform_id}"
         residual_sha = f"sha-{key.platform_id}"
         policy = ResidualValidationPolicy("POLICY_v1", 0.01, 0.05)
-        delta_f = 0.1
         locks.append(
             CarrierLock(
                 carrier,
@@ -49,14 +48,12 @@ def bundle():
                 residual_sha,
                 policy.policy_id,
                 policy.policy_hash,
-                delta_f,
                 compute_carrier_lock_hash(
                     carrier,
                     residual_id,
                     residual_sha,
                     policy.policy_id,
                     policy.policy_hash,
-                    delta_f,
                 ),
             )
         )
