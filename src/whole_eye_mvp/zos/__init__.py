@@ -19,6 +19,7 @@ from .errors import (
 )
 from .fft_mtf import FftMtfError, FftMtfResult, FftMtfRunner, FftMtfSettings
 from .mfe_effl import MfeEfflError, MfeEfflResult, MfeEfflRunner
+from .mfe_hoa_full import MfeFullHoaError, MfeFullHoaResult, MfeFullHoaRunner
 from .mfe_mtfa import MfeMtfaError, MfeMtfaResult, MfeMtfaRunner, MfeMtfaSettings
 from .mfe_powp import MfePowpError, MfePowpResult, MfePowpRunner, MfePowpSettings
 from .mfe_zernike import (
@@ -39,6 +40,9 @@ __all__ = [
     "MfeEfflError",
     "MfeEfflResult",
     "MfeEfflRunner",
+    "MfeFullHoaError",
+    "MfeFullHoaResult",
+    "MfeFullHoaRunner",
     "MfeMtfaError",
     "MfeMtfaResult",
     "MfeMtfaRunner",
