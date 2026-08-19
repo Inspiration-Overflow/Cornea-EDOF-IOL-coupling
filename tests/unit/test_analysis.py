@@ -19,6 +19,8 @@ from whole_eye_mvp.analysis import (
 )
 from whole_eye_mvp.domain import NOMINAL_MAIN_FFT_MTF_555_V2, OpticState
 from whole_eye_mvp.manifest import NominalConfig
+from whole_eye_mvp.quality import settings_hash
+from whole_eye_mvp.zos import TASK009_MFE_FULL_HOA_555_V1
 
 
 def config(state: str) -> NominalConfig:
@@ -35,6 +37,7 @@ def config(state: str) -> NominalConfig:
         residual_id="RES_WFS" if is_edof else None,
         residual_sha256="res-sha" if is_edof else None,
         residual_validation_policy_id="POLICY_v1" if is_edof else None,
+        residual_validation_policy_hash="policy-hash" if is_edof else None,
     )
 
 
@@ -50,35 +53,40 @@ def result(state: str, *, peak_d: float = 0.0, run_id: str = "run") -> ConfigRes
     tf_rows = rows(peak_d)
     summary = summarize_mtfa_curve(tf_rows)
     return ConfigResult(
-        config(state),
-        run_id,
-        tf_rows,
-        float(summary["distance_peak_retina_d"]),
-        float(summary["distance_peak_mtfa"]),
-        float(summary["mtfa_at_zero_d"]),
-        summary["dof50_far_d"],
-        summary["dof50_near_d"],
-        float(summary["dof50_width_d"]),
-        bool(summary["dof50_far_censored"]),
-        bool(summary["dof50_near_censored"]),
-        float(summary["tf_mtfa_mean"]),
-        bool(summary["peak_search_censored"]),
-        AberrationSummary(0.1, 0.02, 0.15),
-        5.5,
-        3.0,
-        5.0,
-        6.0,
-        "hash",
-        "hash",
-        23.95,
-        23.95,
-        4.5,
-        4.5,
-        4.5,
-        4.5,
-        False,
-        ConfigArtifacts("a.zmx", "tf.csv", "tf.png", "mtf.png"),
-        True,
+        config=config(state),
+        run_id=run_id,
+        rows=tf_rows,
+        distance_peak_retina_d=float(summary["distance_peak_retina_d"]),
+        distance_peak_mtfa=float(summary["distance_peak_mtfa"]),
+        mtfa_at_zero_d=float(summary["mtfa_at_zero_d"]),
+        dof50_far_d=summary["dof50_far_d"],
+        dof50_near_d=summary["dof50_near_d"],
+        dof50_width_d=float(summary["dof50_width_d"]),
+        dof50_far_censored=bool(summary["dof50_far_censored"]),
+        dof50_near_censored=bool(summary["dof50_near_censored"]),
+        tf_mtfa_mean=float(summary["tf_mtfa_mean"]),
+        peak_search_censored=bool(summary["peak_search_censored"]),
+        aberrations=AberrationSummary(0.1, 0.02, 0.15),
+        analysis_settings_hash=settings_hash(NOMINAL_MAIN_FFT_MTF_555_V2),
+        hoa_settings_id=TASK009_MFE_FULL_HOA_555_V1.settings_id,
+        hoa_settings_hash=TASK009_MFE_FULL_HOA_555_V1.settings_hash,
+        cornea_footprint_mm=5.5,
+        stop_footprint_mm=3.0,
+        iol_footprint_mm=5.0,
+        iol_optical_diameter_mm=6.0,
+        model_hash_before="hash",
+        model_hash_after="hash",
+        entity_fingerprint_before="entity",
+        entity_fingerprint_after="entity",
+        retina_position_before_mm=23.95,
+        retina_position_after_mm=23.95,
+        iol_position_before_mm=4.5,
+        iol_position_after_mm=4.5,
+        elp_before_mm=4.5,
+        elp_after_mm=4.5,
+        unintended_vignetting=False,
+        artifacts=ConfigArtifacts("a.zmx", "tf.csv", "tf.png", "mtf.png"),
+        completed=True,
     )
 
 
@@ -109,6 +117,8 @@ def test_completed_result_contract_and_artifact_rule() -> None:
 
     with pytest.raises(AnalysisError, match="model"):
         validate_completed_result(replace(good, model_hash_after="changed"))
+    with pytest.raises(AnalysisError, match="fingerprint"):
+        validate_completed_result(replace(good, entity_fingerprint_after="changed"))
     with pytest.raises(AnalysisError, match="IOL position"):
         validate_completed_result(replace(good, iol_position_after_mm=4.6))
     with pytest.raises(AnalysisError, match="ELP"):
@@ -134,6 +144,8 @@ def test_completed_result_rejects_wrong_config_run_nan_summary_and_shape_axis() 
         )
     with pytest.raises(AnalysisError, match="distance_peak_retina_d"):
         validate_completed_result(replace(good, distance_peak_retina_d=0.25))
+    with pytest.raises(AnalysisError, match="analysis-settings"):
+        validate_completed_result(replace(good, analysis_settings_hash="wrong"))
 
     bad_rows = list(good.rows)
     bad_rows[0] = replace(bad_rows[0], defocus_shape_d=999.0)
