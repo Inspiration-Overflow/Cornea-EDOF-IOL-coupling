@@ -1,6 +1,6 @@
 # RMD 执行状态
 
-> `RMD-0001` 的执行伴随记录。`docs/RMD.md` 仍规定任务依赖和 STOP 条件；本文件只记录当前真实状态。
+> `RMD-0001` 的执行伴随记录。`docs/RMD.md` 规定任务依赖和 STOP 条件；本文件只记录当前真实状态。
 
 ## 当前基线与活动项目
 
@@ -8,16 +8,16 @@
 Scientific baseline = MVP_2026_v2
 canonical OpticStudio lens format = .zmx
 active local project = project_mvp_2026_v2_zmx
-active branch = feat/task-005d-cornea-lock-assets
+integration target = main
 ```
 
 历史 `project_mvp_2026_v2` 中已经锁定的 `.zos` 继续作为原始 provenance，不改名、不改 hash。
 
-## 已完成核心工作
+## 已完成核心资产
 
 ### TASK-005B — 双基座
 
-`.zmx` 项目中已重新 build/reload/validate：
+已在 `.zmx` 项目中 build/reload/validate 并锁定：
 
 ```text
 BASE_LB_PSEUDOPHAKIC.zmx
@@ -27,81 +27,33 @@ BASE_ATC_M3_PSEUDOPHAKIC.zmx
 SHA256 217fc7417bd9ceaf6a8d69f48b33253b951204805bdae758d8eb94017c2e843c
 ```
 
-冻结几何继续为：
-
-```text
-LB AL = 23.950 mm
-ATC-M3 AL = 24.477 mm
-post-cornea → STOP = 3.150 mm
-post-cornea → IOL anterior reference = 4.500 mm
-n ≈ 1.336
-λ = 555 nm
-field = 0
-fixed IMAGE
-```
-
-005B 的两个角膜面只是重合模块参考面，不表示物理零厚度角膜。
+冻结几何：LB AL=23.950 mm；ATC-M3 AL=24.477 mm；post-cornea→STOP=3.150 mm；post-cornea→IOL anterior reference=4.500 mm；aqueous/vitreous n≈1.336；λ=555 nm；field=0；IMAGE 固定。
 
 ### TASK-005C — STD_IOL_EYE_2024
 
-已正式完成并锁定。生产 Zernike acquisition 使用 MFE `ZERN`，不依赖工作站不稳定的 `AS_ZernikeStandardCoefficients` settings type。
+已正式完成并锁定。生产 Zernike acquisition 使用 MFE `ZERN`。
 
 ```text
 EPD = 6.000 mm
 λ = 546.0 nm
 IOL-reference footprint = 5.22108317213591 mm
-Z11 = 0.4736063027853602 waves
-Z37 = 0.00026011052367169805 waves
 C40 = 0.2585890413208067 µm
 STD_IOL_EYE_2024.zmx SHA256 = 4dfc8d84d37f2ef6bf28c08a5b46436311ad0036e267cf5463cc4dc0d58fa414
 ```
 
-### `.zmx` canonical migration
+## TASK-005D / TASK-006 — 角膜 A/B/C 与 B0：完成并冻结
 
-PR #23 已合并。以后新 lens asset 使用 `.zmx`；历史 `.zos` 只保留 provenance。
-
-## 当前进行中 — TASK-005D 角膜冻结资产
-
-### 处方层
-
-共同主实验物理角膜：
+共同主实验物理角膜仍为 `MAIN_CORNEA_LIOU_555_v1`；A/B/C 只改变前表面，第一阶段固定后角膜。
 
 ```text
-MAIN_CORNEA_LIOU_555_v1
-λ = 555 nm
-reference anterior R/Q = +7.77 / -0.18
-CT = 0.50 mm
-posterior R/Q = +6.40 / -0.60
-cornea n = 1.376
-aqueous n = 1.336
+A0: Binary4, T=-3 D, EOZ≈5.0 mm, ΔC40 target=+0.13 µm
+B candidates: Even Asphere, T=-3 D, OZ=6.0 mm, ΔC40 target=+0.10…+0.30 µm
+C0: Binary4, T=-3 D, near diameter=3.0 mm, ADD_Rx=+1.75 D, transition=0.75 mm, OZ=6.5 mm
 ```
 
-A/B/C 继续只改变前表面，第一阶段固定后角膜。
+### Phase A / A.1 — PASS
 
-```text
-A0:
-  Binary4
-  T=-3D
-  EOZ≈5.0 mm
-  ΔC40 target=+0.13 µm
-
-B0.10/B0.15/B0.20/B0.25/B0.30:
-  Even Asphere
-  T=-3D
-  OZ=6.0 mm
-
-C0:
-  Binary4
-  T=-3D
-  near diameter=3.0 mm
-  ADD_Rx=+1.75 D
-  transition=0.75 mm
-  OZ=6.5 mm
-```
-
-### Phase A — PASS
-
-真实 OpticStudio 已完成 reference/distance cornea、A0、五个 B 和 C0 N4/N8/N16 的构建与 MFE-ZERN readback。
+真实 OpticStudio build/readback 已通过。主要结果：
 
 ```text
 reference C40 = +0.2573993720 µm
@@ -112,116 +64,90 @@ B0.20 = +0.2002078217 µm
 B0.25 = +0.2463973195 µm
 B0.30 = +0.2990855153 µm
 C0 N8→N16 ΔC40 change = -0.0002593781 µm
+A0 N8→N16 ΔC40 change = -0.0001341103 µm
 ```
 
-Phase A 首次相对路径运行暴露了 OpticStudio native SaveAs 与 Python cwd 的路径解释差异；005D 两个入口现已 `project_dir.resolve()`。绝对路径重跑结果有效。
+A0 nominal N8 已冻结；不增加 N32，不重新调 conic。
 
-### Phase A.1 — PASS
+### Phase B.0 — 历史 STOP
 
-A0 固定 `inner_conic=-0.1125`，只比较 transition slices 4/8/16：
+旧 `AS_HuygensMtf` production 路径因 Python.NET / `ZemaxEngine.dll` settings-type 加载失败停止。该失败仅属于 Huygens MTF Analysis API 路径，不外推到 Huygens PSF。B0 production 后续已改为 MFE `MTFA`。
 
-```text
-ΔC40 N8→N16 = -0.0001341103 µm
-Z37  N8→N16 = +0.0019070625 waves
-```
+### Phase B.1 — PASS；B0 production 参数冻结
 
-结论：A0 nominal N8 足够稳定；不增加 N32，不重新调 conic。
-
-### Phase B.0 — Huygens MTF production path STOP
-
-首次长扫描在 A0 候选特异 REF_MONO 已成功构建后，首次创建 Huygens MTF analysis settings 类型时触发：
+冻结 `CORNEA_LOCK_B0_555_v2`：
 
 ```text
-Failed to create Python type for ... AS_HuygensMtf
-System.IO.FileLoadException:
-A procedure imported by 'ZemaxEngine.dll' could not be loaded.
-```
-
-无正式结果 JSON、无正式 lock、残留进程 0。
-
-该失败属于 ZOS-API/Python.NET settings-type 路径，不是角膜、REF_MONO 或 B0 排序失败。不得继续反复重试 `AS_HuygensMtf`。
-
-证据：
-
-```text
-docs/TASK_005D_PHASE_B_STOP_2026-08-19.md
-```
-
-### B0 acquisition v2 — 已实现并实机验证
-
-生产 B0 MTF 已改为：
-
-```text
-CORNEA_LOCK_B0_555_v2
 MFE MTFA diffraction MTF
 Samp = 3
 Grid = 0
 Data Type = 0
 Wave = 1
 Field = 1
-frequency = 0..50 cycles/mm, production step 5
+frequency = 0..50 cycles/mm, step 5
+EPD = 3/5 mm
+defocus = +0.50 → -3.50 D, 17 planes
 ```
 
-代码已具备：
+实机敏感性证据：
 
 ```text
-MFE MTFA temporary-operand primitive
-adjacent rows + one CalculateMeritFunction()
-operand header/type validation
-finally cleanup + MFE row-count restore
-0–50 cycles/mm trapezoidal Q_lock
-B0 acquisition switch to MTFA
-B0 scan-hash provenance switch to v2
-A0/B0.20 focused probe helper
-Phase B.1 evidence validator
-full scan evidence gate
-full scan Git/input-hash provenance
-morphology review → deterministic rerank → immutable B0 lock path
-unit tests
+Samp 2→3      max |ΔQ_lock| = 0.00221683
+Samp 3→4      max |ΔQ_lock| = 0.00067564
+5→2.5 cyc/mm  max |ΔQ_lock| = 0.00492149
 ```
 
-`Q_lock`、EPD3/EPD5、17-plane defocus grid、distance-retention gates 和 `rank_b0_candidates()` 全部不变。
+这些值只作为工程冻结证据，不构成新的自动科学 threshold。
 
-### Phase B.1 — PASS；生产参数已冻结
+### Phase B.2 — PASS；完整五候选 scan
 
-实机 probe 覆盖：
+在 commit `c9720ae6975cb2b0176045a2eb1975569c70d704`、clean Git checkout、冻结 v2 settings 下完成真实 OpticStudio full scan；exit 0，`scan_complete=true`，无 hard error，残留 OpticStudio/Zemax 进程=0。
+
+source scan hash：
 
 ```text
-A0 + B0.20
-EPD3 + EPD5
-defocus = 0D / -1.5D
-Samp = 2 / 3 / 4
-frequency step = 5 / 2.5 cycles/mm
+11d8eac7a79696d4f5219b60bd79cadad7bdc114994b77e8afe1b6325ae7af84
 ```
 
-实测最大绝对 `Q_lock` 差异：
+五候选结果：
+
+| candidate | ΔC40 (µm) | EPD3 retention | EPD5 retention | EPD3 DOF_lock_abs (D) | EPD5 DOF_lock_abs (D) | eligible | rank |
+| --- | ---: | ---: | ---: | ---: | ---: | --- | ---: |
+| B0.10 | 0.10228 | 0.98882 | 0.83211 | 1.21641 | 1.28146 | true | 3 |
+| B0.15 | 0.14864 | 0.98294 | 0.76782 | 1.22015 | 1.32341 | true | 2 |
+| B0.20 | 0.20021 | 0.97581 | 0.72053 | 1.22231 | 1.33766 | true | 1 |
+| B0.25 | 0.24640 | 0.96839 | 0.68355 | 1.22578 | 1.39449 | false | — |
+| B0.30 | 0.29909 | 0.95877 | 0.63851 | 1.23080 | 1.26312 | false | — |
+
+所有 A0/B candidate-specific `REF_MONO` calibration 均 PASS。
+
+### Phase B.3 — PASS；morphology review
+
+原始 A0 + 五候选曲线重新构造后 source scan hash 与保存值完全一致，scan report 逐字段一致。五个 B 候选均未出现预先规定的“明显、稳定双峰 + 有意义深谷”；因此五项 `morphology_reject=false`，未增加新阈值，deterministic recommendation 保持 `B0.20`。
+
+### Phase B.4 — PASS；B0.20 正式锁定
+
+通过现有 `scripts/review_task_005d_b0.py` 写入不可变正式 artifact：
 
 ```text
-Samp 2→3      0.00221683
-Samp 3→4      0.00067564
-5→2.5 cyc/mm  0.00492149
+locks/B0_LOCK.json
+candidate_id = B0.20
+recommendation_id = B0.20
+override = false
+formal_artifact = true
+selection_locked = true
+artifact SHA256 = 24c25fea95db394998c0a4dd2ef7b0499e1e792c1275c117c23faeba0d2ea06c
+source scan hash = 11d8eac7a79696d4f5219b60bd79cadad7bdc114994b77e8afe1b6325ae7af84
+reviewed scan hash = 11d8eac7a79696d4f5219b60bd79cadad7bdc114994b77e8afe1b6325ae7af84
 ```
 
-工程复核后冻结：
+`locks/artifact_index.csv` 的 B0_LOCK SHA-256 与磁盘独立复算一致，`locked=true`。最终离线检查：`pytest tests/unit = 157 passed`、Ruff PASS、compileall PASS、`uv lock --check` PASS。
 
-```text
-production Samp = 3
-production frequency step = 5 cycles/mm
-```
+**A0 / B0.20 / C0 从此作为冻结角膜输入；后续 IOL 结果不得回头调 B0。**
 
-这不是新自动科学阈值；旧 probe JSON 的 `passed=true` 只代表 runtime acquisition 成功。当前代码已把新 probe 语义改为 `runtime_passed`，同时允许读取旧 evidence 作为兼容证据，因此**无需重跑 Phase B.1**。
+## TASK-005D 与主实验 pipeline 的边界
 
-证据：
-
-```text
-docs/TASK_005D_PHASE_B1_MTFA_PROBE_REVIEW_2026-08-19.md
-```
-
-### TASK-005D 与主实验 pipeline 的边界
-
-TASK-005D 只把 B0 acquisition 改为 MFE MTFA。`AS_HuygensMtf` failure 不外推为 Huygens PSF 不可用。
-
-TASK-009/Run72 仍按 TDD v1.4：
+B0 使用 MFE MTFA 只是角膜冻结 acquisition。TASK-009/Run72 主实验仍保持：
 
 ```text
 Huygens PSF
@@ -232,43 +158,17 @@ Huygens PSF
 
 三代表配置的 sampling convergence 和独立 MTF cross-check 仍留在 TASK-009。
 
-## 当前唯一下一步 — Phase B.2 完整五候选 scan
+## 当前下一步 — TASK-007 IOL residual / carrier 科学 gate
 
-本地下一步运行：
+当前不需要继续修改角膜代码，也不需要重跑 TASK-005D OpticStudio。下一阶段首先在 Web 端完成 WFS-like / RAD-like / HOA-like residual scientific payload 的独立审核与版本冻结。
 
-```text
-scripts/run_task_005d_b0_scan.py
-```
+`TDD-TEST-999` 仍是正式 carrier/Run72 的唯一前置科学 STOP：
 
-脚本现在会在启动全量 scan 前 fail closed 检查 Phase B.1 evidence：
+1. 三个平台必须有 versioned residual scientific payload；
+2. 必须冻结 piston/global-defocus 数值 tolerance；
+3. 每个平台必须在其实际 carrier powers 的 low/median/high 代表点完成 residual calibration oracle。
 
-- runtime acquisition 成功；
-- settings 与当前 `CORNEA_LOCK_B0_555_v2` 完全一致；
-- `Samp=2/3/4` 证据存在；
-- `5 vs 2.5 cycles/mm` 证据存在；
-- summary 为有限非负值。
-
-完整 scan 固定：
-
-```text
-A0 + B0.10/B0.15/B0.20/B0.25/B0.30
-EPD3 + EPD5
-+0.50 → -3.50 D
-17 planes
-Samp = 3
-frequency step = 5 cycles/mm
-```
-
-输出还必须记录 clean Git commit、baseline、OpticStudio install path/label、Phase B.1 summary 和输入/REF_MONO SHA-256。
-
-full scan 只产生 provisional recommendation：
-
-```text
-morphology_review_pending = true
-selection_locked = false
-```
-
-随后进入 Phase B.3：用户为五候选逐一给出 morphology decision，纯 Python 重新调用 `rank_b0_candidates()`；确认 reviewed recommendation 或写 override reason 后，`scripts/review_task_005d_b0.py` 才允许通过 ProjectStore 写不可变 `locks/B0_LOCK.json`。
+上述定义完成后，再安排本地 OpticStudio 做最小代表点验证；不得先生成正式 carrier locks 或 Run72。
 
 ## RMD task 状态
 
@@ -277,13 +177,13 @@ selection_locked = false
 | TASK-001 | 完成 | 无 |
 | TASK-002 | ZOS session 实机通过 | 保持 worker/进程约束 |
 | TASK-003 | 完成 | 保持 baseline/hash provenance |
-| TASK-004 | metric engine 离线完成 | 后续代表配置 cross-check |
+| TASK-004 | metric engine 离线完成 | TASK-009 代表配置 cross-check |
 | TASK-005A | 完成 | 无 |
 | TASK-005B | 完成并锁定 | 下游只读 |
 | TASK-005C | 完成并锁定 | 下游只读 |
-| TASK-005D | **Phase A/A.1/B.1 PASS；B0 MTFA v2 production 已冻结** | Phase B.2 完整五候选 scan → Phase B.3 morphology review/lock |
-| TASK-006 | 排序 + morphology review/lock 代码路径完成 | 等待真实五候选 scan 后锁 B0 |
-| TASK-007 | carrier science gate framework 完成 | 等 B0 lock；TDD-999 仍阻断 formal locks |
+| TASK-005D | **完成；A0/B0.20/C0 冻结** | 无；下游只读 |
+| TASK-006 | **完成；B0.20 immutable lock 已生成** | 无 |
+| TASK-007 | science gate framework 完成 | **当前工作：解除 TDD-999** |
 | TASK-008 | manifest/lock 代码框架完成 | 等 TASK-007 |
 | TASK-009 | analysis API scaffold 完成 | 等正式 carriers；先 3 代表配置 |
 | TASK-010 | GUI scaffold 已复核 | 后续 full-flow smoke |
@@ -291,14 +191,12 @@ selection_locked = false
 
 ## 仍有效 STOP 条件
 
-1. 不得为 API 适配改变 `MVP_2026_v2`、standard-eye EPD6、546 nm、Liou/Norrby C40 gate 或平台 SA targets。
-2. 005B/005C 已锁资产不得被下游重写。
-3. A0/B0/C0 必须在 WFS/RAD/HOA 主结果可见前冻结；B0 只在 LB + `REF_MONO_CORNEA_LOCK` 中选择。
-4. full B0 scan 缺 Phase B.1 evidence、settings 漂移或 morphology decisions 不完整时不得生成 B0 lock。
-5. `TDD-999` 未解除前不得创建正式 EDOF carrier/pair locks 或 Run72。
-6. 三代表配置未完成 sampling convergence + 独立 MTF cross-check 前不得 Run72。
-7. synthetic/surrogate 数据不能进入正式科学 locks/manifests/论文结果。
+1. 005B/005C/B0 已锁资产不得被下游重写。
+2. A0/B0.20/C0 已冻结，不得根据 WFS/RAD/HOA 后续结果反向调参。
+3. `TDD-999` 未解除前不得创建正式 EDOF carrier/pair locks 或 Run72。
+4. 三代表配置未完成 sampling convergence + 独立 MTF cross-check 前不得 Run72。
+5. synthetic/surrogate 数据不能进入正式科学 locks/manifests/论文结果。
 
 ## 工作方式
 
-复杂任务必须小步 Git checkpoint。Web 端承担文档、研究、主要代码、静态审查和 Git 整合；本地 zcode 只做依赖 Windows + OpticStudio 的最小实机求解/读回，不把设计决策交给本地反复试错。
+复杂任务小步 Git checkpoint。Web 端承担文档、研究、主要代码、静态审查和 Git 整合；本地 ZCode 只做依赖 Windows + OpticStudio 的最小实机求解/读回，不把科学设计决策交给本地反复试错。
