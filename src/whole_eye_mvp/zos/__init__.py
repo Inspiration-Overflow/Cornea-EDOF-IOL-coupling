@@ -22,6 +22,7 @@ from .errors import (
     ZosSessionError,
 )
 from .mfe_mtfa import MfeMtfaError, MfeMtfaResult, MfeMtfaRunner, MfeMtfaSettings
+from .mfe_powp import MfePowpError, MfePowpResult, MfePowpRunner, MfePowpSettings
 from .mfe_zernike import (
     MfeZernikeError,
     MfeZernikeResult,
@@ -41,6 +42,10 @@ __all__ = [
     "MfeMtfaResult",
     "MfeMtfaRunner",
     "MfeMtfaSettings",
+    "MfePowpError",
+    "MfePowpResult",
+    "MfePowpRunner",
+    "MfePowpSettings",
     "MfeZernikeError",
     "MfeZernikeResult",
     "MfeZernikeStandardRunner",
