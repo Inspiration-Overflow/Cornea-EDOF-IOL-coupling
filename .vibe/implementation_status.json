@@ -1,18 +1,22 @@
 {
   "version": 2,
   "as_of": "2026-08-19",
-  "phase": "task005d-task006-complete_b0-20-locked_task007-next",
+  "phase": "task007-web-science-freeze_offline-validation-pending",
   "project_schema_version": 2,
   "offline_unit_tests": {
-    "status": "PASS",
-    "passed": 157,
-    "failed": 0,
-    "ruff": "PASS",
-    "compileall": "PASS",
-    "uv_lock_check": "PASS",
-    "validated_commit": "c9720ae6975cb2b0176045a2eb1975569c70d704"
+    "status": "rerun-required-after-task007-web-patch",
+    "last_recorded_passed": 157,
+    "last_recorded_failed": 0,
+    "last_validated_commit": "c9720ae6975cb2b0176045a2eb1975569c70d704",
+    "task007_new_tests_not_yet_executed": true
   },
-  "environment_pending": [],
+  "environment_pending": [
+    "uv run pytest tests/unit on feat/task-007-iol-residuals",
+    "uv run ruff check . on feat/task-007-iol-residuals",
+    "uv run python -m compileall -q src tests scripts on feat/task-007-iol-residuals",
+    "uv lock --check on feat/task-007-iol-residuals",
+    "TASK-007 real OpticStudio provisional carrier and residual calibration"
+  ],
   "tasks": {
     "RMD-TASK-001": "complete",
     "RMD-TASK-002": "zos-session-and-worker-gate-locally-validated",
@@ -20,15 +24,14 @@
     "RMD-TASK-004": "offline-complete_representative-zemax-crosscheck-later",
     "RMD-TASK-005": "complete_A0-B0.20-C0-frozen",
     "RMD-TASK-006": "complete_B0.20-immutable-lock",
-    "RMD-TASK-007": "evidence-backed-gate-and-lock-orchestration-complete_real-residual-science-and-calibration-pending",
+    "RMD-TASK-007": "web-residual-mechanisms-carrier-scaffold-low-order-policy-frozen_real-opticstudio-calibration-pending",
     "RMD-TASK-008": "manifest-builder-provenance-hardened_formal-output-blocked-by-task007",
     "RMD-TASK-009": "analysis-contract-provenance-hardened_representative-huygens-psf-zernike-pending",
     "RMD-TASK-010": "thread-safe-thin-gui-composition-complete_local-full-flow-smoke-pending",
     "RMD-TASK-011": "manifest-bound-acceptance-oracle-complete_real-run72-pending"
   },
-  "merged_prs": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 23],
   "science_gates_still_active": [
-    "TDD-TEST-999 residual scientific payload and low/median/high actual-power calibration",
+    "TDD-TEST-999: real physical residual payload/readback and low/median/high actual-power calibration",
     "representative-3-config-sampling-and-mtf-crosscheck"
   ],
   "task005d": {
@@ -46,12 +49,27 @@
     "override": false,
     "b0_lock_sha256": "24c25fea95db394998c0a4dd2ef7b0499e1e792c1275c117c23faeba0d2ea06c",
     "formal_artifact": true,
-    "selection_locked": true,
-    "next_action": "TASK-007 Web-side residual scientific payload review"
+    "selection_locked": true
+  },
+  "task007": {
+    "active_branch": "feat/task-007-iol-residuals",
+    "science_freeze_doc": "docs/TASK_007_IOL_RESIDUAL_SCIENCE_FREEZE_2026-08-19.md",
+    "carrier_scaffold": "CONTROLLED_IOL_CARRIER_546_v1",
+    "residual_seed_version": "TASK007_RESIDUAL_SEEDS_546_v1",
+    "residual_validation_policy": "RESIDUAL_VALIDATION_546_v1",
+    "piston_tolerance_um": 0.01,
+    "global_defocus_tolerance_d": 0.125,
+    "mechanism_seeds": {
+      "WFS": "public phase-shift residual seed",
+      "RAD": "public continuous cosine radial-power seed",
+      "HOA": "windowed opposite-sign OSA Z4/Z6 bench seed"
+    },
+    "formal_carrier_locks_created": false,
+    "tdd_999_cleared": false
   },
   "review_hardening": {
-    "status": "2026-08-19-B0-lock-complete",
-    "normative_science_changed": false,
+    "status": "2026-08-19-task007-web-science-freeze",
+    "task005d_normative_science_changed": false,
     "main_run72_pipeline_changed": false
   }
 }
