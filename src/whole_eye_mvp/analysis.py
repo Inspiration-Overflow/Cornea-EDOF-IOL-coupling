@@ -15,6 +15,7 @@ from .metrics import (
     through_focus_mean,
 )
 from .quality import settings_hash
+from .zos.mfe_hoa_full import TASK009_MFE_FULL_HOA_555_V1
 
 
 class AnalysisError(RuntimeError):
@@ -284,9 +285,10 @@ def validate_completed_result(
 
     if result.analysis_settings_hash != settings_hash(NOMINAL_MAIN_FFT_MTF_555_V2):
         raise AnalysisError("result analysis-settings hash differs from frozen FFT-MTF v2 settings")
-    for field_name in ("hoa_settings_id", "hoa_settings_hash"):
-        if not getattr(result, field_name).strip():
-            raise AnalysisError(f"{field_name} is required")
+    if result.hoa_settings_id != TASK009_MFE_FULL_HOA_555_V1.settings_id:
+        raise AnalysisError("result HOA settings ID differs from the frozen TASK-009 contract")
+    if result.hoa_settings_hash != TASK009_MFE_FULL_HOA_555_V1.settings_hash:
+        raise AnalysisError("result HOA settings hash differs from the frozen TASK-009 contract")
 
     if not result.model_hash_before.strip() or not result.model_hash_after.strip():
         raise AnalysisError("entity model hashes are required")
