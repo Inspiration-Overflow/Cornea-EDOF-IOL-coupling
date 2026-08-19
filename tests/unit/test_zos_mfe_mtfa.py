@@ -69,12 +69,14 @@ class FakeMfe:
         header_override: dict[int, str] | None = None,
         calculate_error: Exception | None = None,
         remove_is_broken: bool = False,
+        insert_returns_none_after_add: bool = False,
     ) -> None:
         self.baseline_operands = baseline_operands
         self.values = list(values)
         self.header_override = header_override
         self.calculate_error = calculate_error
         self.remove_is_broken = remove_is_broken
+        self.insert_returns_none_after_add = insert_returns_none_after_add
         self.extra: list[FakeOperand] = []
         self.created: list[FakeOperand] = []
         self.insert_calls: list[int] = []
@@ -85,11 +87,13 @@ class FakeMfe:
     def NumberOfOperands(self) -> int:
         return self.baseline_operands + len(self.extra)
 
-    def InsertNewOperandAt(self, row: int) -> FakeOperand:
+    def InsertNewOperandAt(self, row: int) -> FakeOperand | None:
         self.insert_calls.append(row)
         operand = FakeOperand(self.values.pop(0), self.header_override)
         self.extra.append(operand)
         self.created.append(operand)
+        if self.insert_returns_none_after_add:
+            return None
         return operand
 
     def RemoveOperandsAt(self, row: int, count: int) -> int:
@@ -183,6 +187,15 @@ def test_runner_fails_closed_on_unexpected_cell_layout_and_cleans_up() -> None:
     mfe = FakeMfe([1.0], header_override={5: "Mystery"})
     with pytest.raises(MfeMtfaError, match="cell layout"):
         _runner(mfe).run(MfeMtfaSettings((0.0,), sampling=2))
+    assert mfe.NumberOfOperands == 2
+
+
+@pytest.mark.unit
+def test_runner_cleans_native_side_effect_when_insert_returns_no_handle() -> None:
+    mfe = FakeMfe([1.0], insert_returns_none_after_add=True)
+    with pytest.raises(MfeMtfaError, match="returned no operand"):
+        _runner(mfe).run(MfeMtfaSettings((0.0,), sampling=2))
+    assert mfe.remove_calls == [(3, 1)]
     assert mfe.NumberOfOperands == 2
 
 
