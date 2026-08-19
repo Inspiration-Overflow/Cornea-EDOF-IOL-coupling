@@ -1,6 +1,6 @@
 # TASK-005D — 角膜冻结资产实现契约
 
-> 状态：**Web 端实现完成第一阶段，等待最小 OpticStudio 实机诊断**。本任务补齐 TASK-005 剩余角膜冻结链；不提前进入正式 EDOF carrier/pair lock，也不运行 Run72。
+> 状态：**Phase A 实机 PASS，等待 A0 最小离散检查后进入 Phase B**。本任务补齐 TASK-005 剩余角膜冻结链；不提前进入正式 EDOF carrier/pair lock，也不运行 Run72。
 
 ## 1. 目标
 
@@ -25,7 +25,7 @@
 冻结规则：
 
 - 只在 `LB_AL2395` 中选择/冻结 A0/B0/C0；
-- 使用平台独立 `REF_MONO_CORNEA_LOCK`；
+- 使用平台独立的 `REF_MONO_CORNEA_LOCK`；
 - ATC-M3 只在角膜冻结后进入主实验；
 - A0 是像差改变型准单焦；
 - B 是连续 Even Asphere / 受控球差延焦；
@@ -88,7 +88,15 @@ target ΔC40(6 mm) = +0.13 µm
 - 唯一主动标定自由度仍是内区 conic；
 - OpticStudio 自动求到 `ΔC40≈+0.13 µm`。
 
-0.75 mm 和 8 slices 是 **A0 的数值实现参数**，不是新增 scientific-baseline 变量。若首次实机表型/收敛不合理，再在 Web 端修订；本地不人工调 zone。
+Phase A 实机：
+
+```text
+achieved ΔC40 = +0.1329457134 µm
+inner conic = -0.1125
+Z37 = +0.1208970247 waves
+```
+
+A0 目标已 PASS。由于 A0 是 B0 排序的参考阈值，且当前 Z37 高于连续 B 候选，Phase B 前只追加一次固定 `inner_conic=-0.1125` 的 4/8/16 transition-slice 离散检查。该检查不重新优化 conic，不新增 scientific threshold。
 
 ## 5. B 五候选
 
@@ -106,7 +114,17 @@ surface family = Even Asphere
 
 当前实现只使用第一个不改变 paraxial power 的 `r^4` Even-Asphere 自由度调节 C40；C60 不主动控制，只作为后续派生结果记录。
 
-`ΔC40` 指固定后角膜后，前后表面联合 ray trace 的总角膜模块变化量。
+Phase A 实机 achieved ΔC40：
+
+```text
+B0.10 = +0.1022823683 µm
+B0.15 = +0.1486436926 µm
+B0.20 = +0.2002078217 µm
+B0.25 = +0.2463973195 µm
+B0.30 = +0.2990855153 µm
+```
+
+所需 `r^4` 系数随目标单调增加，五个候选均通过构造容差。`ΔC40` 指固定后角膜后，前后表面联合 ray trace 的总角膜模块变化量。
 
 ## 6. C0
 
@@ -151,7 +169,17 @@ S(t)=10t^3-15t^4+6t^5.
 
 这里 `ADD_Rx=+1.75D` 是**目标处方层设计输入**。最终实际局部/环带会聚、C40/C60、MTF/PSF 都由物理表面 ray trace 输出；不要求 `ADD_Rx = ΔV_ray-traced`。
 
-Binary4 nominal 使用 8 个 transition slices，并同时生成 4/8/16 三个版本作为第一阶段离散检查。`2.25→3.25 mm` 保留明确远用主导环带。
+Phase A 实机：
+
+```text
+C0 N4  ΔC40 = -0.5544338655 µm
+C0 N8  ΔC40 = -0.5556305062 µm
+C0 N16 ΔC40 = -0.5558898842 µm
+N4→N8  = -0.0011966407 µm
+N8→N16 = -0.0002593781 µm
+```
+
+因此 nominal N8 对当前 MVP 已有足够离散稳定性。`2.25→3.25 mm` 仍保留明确远用主导环带。
 
 ## 7. REF_MONO_CORNEA_LOCK
 
@@ -231,56 +259,41 @@ src/whole_eye_mvp/zos/huygens_mtf.py
 src/whole_eye_mvp/b0_zos.py
 ```
 
-本地只保留两条主要执行脚本：
+本地执行脚本：
 
 ```text
 scripts/build_task_005d_cornea_candidates.py
+scripts/run_task_005d_a0_convergence.py
 scripts/run_task_005d_b0_scan.py
 ```
 
-第一条自动写：
-
-```text
-project_mvp_2026_v2_zmx/diagnostics/task005d/corneas/
-  TASK_005D_CORNEA_CANDIDATES.json
-```
-
-第二条自动写：
-
-```text
-project_mvp_2026_v2_zmx/diagnostics/task005d/b0_scan/
-  TASK_006_B0_REAL_SCAN.json
-```
-
-两者都只是 diagnostics，不写正式 lock。
+所有输出都只是 diagnostics，不写正式 lock。
 
 ## 10. 分阶段实机策略
 
-为了降低本地思维负担，不一次跑完整长流程。
+### Phase A — PASS
 
-### Phase A — 先只构建角膜候选
+真实 OpticStudio 已完成 A/B/C 构造。完整结果见：
 
-本地仅运行：
+```text
+docs/TASK_005D_PHASE_A_REVIEW_2026-08-19.md
+```
+
+首次相对项目路径运行暴露了 OpticStudio 原生 `SaveAs` 与 Python cwd 对相对路径解析不同的问题；绝对路径重跑后全部 PASS。两个 005D 入口现已统一 `project_dir.resolve()`。
+
+### Phase A.1 — A0 最小离散检查
+
+只运行：
 
 ```powershell
-uv run python scripts/build_task_005d_cornea_candidates.py `
+uv run python scripts/run_task_005d_a0_convergence.py `
   --project-dir project_mvp_2026_v2_zmx `
   --baseline-id MVP_2026_v2
 ```
 
-然后只回传：
+固定 Phase A 已求得的 inner conic，只比较 N4/N8/N16 的 achieved ΔC40 和 Z37。若 N8→N16 已基本稳定，直接进入 Phase B。
 
-```text
-HEAD
-PASS/FAIL
-TASK_005D_CORNEA_CANDIDATES.json path
-native hard error if any
-residual OpticStudio/Zemax process count
-```
-
-Web 端读取 JSON、审核 A/B achieved ΔC40 与 C0 4/8/16 结果，再决定是否进入 Phase B。
-
-### Phase B — 只有 Phase A 通过才跑 B0 scan
+### Phase B — A0 离散检查通过后
 
 本地只运行：
 
@@ -294,7 +307,7 @@ uv run python scripts/run_task_005d_b0_scan.py `
 
 ## 11. 尚未完成
 
-在实机结果回来前仍不得宣称：
+仍不得宣称：
 
 - A0/B0/C0 已正式冻结；
 - `REF_MONO_CORNEA_LOCK` 已形成正式 lock；
