@@ -169,8 +169,8 @@ def test_export_manifest_writes_versioned_exact_18_and_72_csv_rows(tmp_path: Pat
     loaded = load_formal_manifest_bundle(
         project,
         expected_manifest_hash=bundle.manifest_hash,
-        expected_physical_csv_sha256=sha256_file(paths.physical_carriers_csv),
-        expected_nominal_csv_sha256=sha256_file(paths.nominal_72_csv),
+        expected_physical_csv_sha256=sha256_file(Path(paths.physical_carriers_csv)),
+        expected_nominal_csv_sha256=sha256_file(Path(paths.nominal_72_csv)),
     )
     assert loaded == bundle
 
