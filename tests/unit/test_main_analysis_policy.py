@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from whole_eye_mvp.domain import NOMINAL_MAIN_FFT_MTF_555_V2
+from whole_eye_mvp.quality import assert_trace_coverage
 
 
 ACTIVE_SPEC_FILES = (
@@ -41,9 +42,7 @@ def test_active_main_analysis_settings_are_fft_mtf_only() -> None:
     assert settings.mtfa_max_cpd == 60.0
     assert settings.mtf_frequency_step_cpd == 1.0
     assert settings.mtf_sample_frequencies_cpd == (10.0, 20.0, 30.0, 40.0, 50.0, 60.0)
-    # DOF50 is a named fixed metric definition, not a mutable settings field.
     assert not hasattr(settings, "dof_relative_fraction")
-    # B0 selection has its own independent settings identity.
     assert not hasattr(settings, "b0_q_lock_max_cycles_per_mm")
 
 
@@ -74,3 +73,13 @@ def test_active_scripts_do_not_reintroduce_removed_paths() -> None:
 def test_active_specs_do_not_reintroduce_removed_paths() -> None:
     findings = _scan(ACTIVE_SPEC_FILES)
     assert not findings, "removed analysis path leaked into active specs: " + ", ".join(findings)
+
+
+@pytest.mark.unit
+def test_current_trace_map_covers_the_current_document_id_universe() -> None:
+    trace = Path("docs/TRACE.md").read_text(encoding="utf-8")
+    assert_trace_coverage(trace)
+    assert "URD-0001 v1.6" in trace
+    assert "ADD-0001 v1.6" in trace
+    assert "MDD-0001 v1.5" in trace
+    assert "TDD-0001 v1.6" in trace
