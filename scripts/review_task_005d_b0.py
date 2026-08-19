@@ -84,12 +84,18 @@ def main() -> None:
         raise SystemExit(f"Completed B0 scan is missing: {scan_path}")
     source_scan = _load_json_object(scan_path)
     decisions = _load_decisions(args.decisions_json.resolve())
+    candidate_id = args.candidate_id.strip()
+    selection_reason = args.selection_reason.strip()
+    if not candidate_id:
+        raise SystemExit("--candidate-id must not be empty")
+    if not selection_reason:
+        raise SystemExit("--selection-reason must not be empty")
 
     reviewed = review_and_lock_b0_scan_payload(
         source_scan,
         decisions,
-        args.candidate_id.strip(),
-        selection_reason=args.selection_reason.strip(),
+        candidate_id,
+        selection_reason=selection_reason,
     )
     payload = {
         "formal_artifact": True,
