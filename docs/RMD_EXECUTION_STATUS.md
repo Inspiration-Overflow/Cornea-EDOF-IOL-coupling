@@ -26,8 +26,6 @@ MVP_2026_v2
 
 ## TASK-005B v2 正式实机证据
 
-基础眼仍为：
-
 ```text
 BASE_LB_PSEUDOPHAKIC.zos
 SHA-256 3213828f34dcf6371af870af4c0d7cf085fcf4d8ec64d6d78929470a72f54c8c
@@ -108,6 +106,8 @@ Epsilon=0
 Vertex=0      # chief-ray OPD reference / Ref OPD To Vertex OFF
 ```
 
+这些是精确冻结值。若 Term/Wave/Samp/Field/Type/Epsilon/Vertex 任意漂移，production settings validation 必须 fail closed。
+
 API 路径：
 
 ```text
@@ -133,8 +133,6 @@ delta   = 1.06e-06 waves
 ```
 
 工程等价性 gate：`|MFE-GUI| ≤ 1e-5 waves`。
-
-独立 code review 后又把 `MfeZernikeStandardSettings` 加固为**只能取上述精确冻结值**；不得通过修改 settings 对象静默改变 Term/Wave/Samp/Field/Type/Epsilon/Vertex。该 review hardening 不改变已通过的默认实机光路和结果，但合并 PR 前需在最新 head 上补一次小范围本地回归。
 
 ---
 
@@ -209,6 +207,27 @@ production TASK-005C 没有调用 `AS_ZernikeStandardCoefficients`；旧 indepen
 
 ---
 
+## 独立 review hardening
+
+对 production commit 独立复核时发现：`MfeZernikeStandardSettings` 虽然默认值正确，但原 `validate()` 允许改变部分参数；这与“frozen acquisition contract”不一致，而且若 `term_primary` 改为其他 term，返回字段仍叫 `z11_waves`，会产生语义错误。
+
+因此 review hardening 已将 settings 改为只能精确接受：
+
+```text
+term_primary=11
+term_maximum=37
+wavelength_number=1
+field_number=1
+sampling=1
+zernike_type=1
+epsilon=0
+vertex=0
+```
+
+并增加逐参数 drift 单测。该修改不改变 production 默认值和光学计算路径；55ed85f 的正式实机结果继续有效，但 PR 合并前必须在最新 head 上补一次小范围 regression。
+
+---
+
 ## RMD task 状态
 
 | RMD task | 当前状态 | 下一阶段 |
@@ -255,7 +274,7 @@ OpticStudio 2026 R1 GUI 推荐使用 `.zmx`。当前 005B/005C 正式资产仍�
 
 ## 当前合并前入口
 
-PR #22 当前仍 Draft。最新独立 review 已把 MFE-ZERN settings 锁为精确 contract，因此在 merge 前仅需在最新 branch head 上执行一次小范围回归：
+PR #22 当前仍 Draft。最新 review 已把 MFE-ZERN settings 锁为精确 contract，因此在 merge 前仅需在最新 branch head 上执行一次小范围回归：
 
 ```powershell
 uv run pytest tests/unit/test_zos_mfe_zernike.py -vv
@@ -269,4 +288,4 @@ uv run pytest tests/zemax/test_zos_standard_eye.py -vv
 uv run python scripts/build_task_005c_standard_eye.py --project-dir $P --baseline-id MVP_2026_v2 --validate-only
 ```
 
-要求：现有正式 `.zos` hash 仍为 `4dfc8d84...`，所有 readback/C40 仍 PASS，且没有新的 hard native failure。通过后可进入 PR #22 最终独立审核；`.zmx` migration 另开后续工程变更。
+要求：现有正式 `.zos` hash 仍为 `4dfc8d84d37f2ef6bf28c08a5b46436311ad0036e267cf5463cc4dc0d58fa414`，所有 readback/C40 仍 PASS，且没有新的 hard native failure。通过后可进入 PR #22 最终独立审核；`.zmx` migration 另开后续工程变更。
