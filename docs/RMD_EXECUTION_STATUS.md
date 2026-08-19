@@ -74,21 +74,21 @@ SHA256 4dfc8d84d37f2ef6bf28c08a5b46436311ad0036e267cf5463cc4dc0d58fa414
 
 PR #23 已合并。以后新 lens asset 使用 `.zmx`；历史 `.zos` 只保留 provenance。
 
-新旧文件在本工作站上出现相同 SHA，说明此前 `.zos` 扩展名下的内容本身已采用相同序列化；项目仍按历史 path+hash 保留旧 lock。
+新旧文件在本工作站上出现相同 SHA；项目仍按历史 path+hash 保留旧 lock。
 
 ## 当前进行中 — TASK-005D 角膜冻结资产
 
-新分支：
+分支：
 
 ```text
 feat/task-005d-cornea-lock-assets
 ```
 
-005D 补齐 TASK-005 剩余的角膜冻结链，不提前进入正式 EDOF carrier/pair lock。
+005D 补齐 TASK-005 剩余角膜冻结链，不提前进入正式 EDOF carrier/pair lock。
 
-### 已冻结的处方层
+### 已完成的 Web 端实现
 
-新增共同主实验角膜 scaffold：
+共同主实验角膜 scaffold：
 
 ```text
 MAIN_CORNEA_LIOU_555_v1
@@ -110,7 +110,7 @@ distance target power = 39.251148573823 D
 anterior distance radius = 8.282294760256 mm
 ```
 
-A/B/C prescriptions：
+处方/构造：
 
 ```text
 A0:
@@ -118,12 +118,14 @@ A0:
   T=-3D
   EOZ≈5.0 mm
   ΔC40 target=+0.13 µm
+  2.50→3.25 mm numerical smooth transition
+  8 nominal transition slices
 
 B0.10/B0.15/B0.20/B0.25/B0.30:
   Even Asphere
   T=-3D
   OZ=6.0 mm
-  respective ΔC40 targets
+  r^4 control -> respective ΔC40 targets
 
 C0:
   Binary4
@@ -132,26 +134,57 @@ C0:
   ADD_Rx=+1.75 D
   transition=0.75 mm
   OZ=6.5 mm
+  4/8/16 transition-slice diagnostics
 ```
 
-C0 使用 quintic radial weight；`rN=1.50 mm`、`rT=2.25 mm`、`rOZ=3.25 mm`，2.25→3.25 mm 保留远用主导环带。
+C0 的 `ADD_Rx` 只定义目标处方分布；实际局部/环带光学结果由最终物理表面 ray trace 输出。
 
-详细实现契约见：
+`REF_MONO_CORNEA_LOCK` 的候选特异 radius solve、standard-eye near-SA-neutral conic solve、最多两轮 power–conic 回查已编码。
+
+B0 专用 Huygens MTF 采集和 17-plane `Q_lock` acquisition 已编码；五候选结果继续复用既有 `b0.py` 排序规则。
+
+本地主要入口已经收敛到：
+
+```text
+scripts/build_task_005d_cornea_candidates.py
+scripts/run_task_005d_b0_scan.py
+```
+
+详细契约：
 
 ```text
 docs/TASK_005D_CORNEA_LOCK_ASSETS.md
 ```
 
+### 当前唯一下一步 — Phase A
+
+先只运行：
+
+```text
+build_task_005d_cornea_candidates.py
+```
+
+让 OpticStudio 实机产生：
+
+- reference / distance cornea；
+- A0；
+- 五个 B candidates；
+- C0 N4/N8/N16；
+- `TASK_005D_CORNEA_CANDIDATES.json`。
+
+Web 端审核该 JSON 后，才决定是否运行真实 B0 scan。当前不要求本地做设计判断或手工调参数。
+
 ### 尚未完成
 
-005D 仍需真实 OpticStudio 完成：
+必须等真实 OpticStudio 结果后才能确认：
 
-- `REF_MONO_CORNEA_LOCK` power/conic；
-- A0 最终 Binary4 zone 参数和 ΔC40 readback；
-- 五个 B 的 Even Asphere 系数和 achieved ΔC40；
-- C0 Binary4 离散及基本 convergence；
+- A0 achieved ΔC40 与表型；
+- 五个 B 的 achieved ΔC40 / Even-Asphere coefficients；
+- C0 Binary4 4/8/16 基本离散稳定性；
+- `REF_MONO_CORNEA_LOCK` 的真实 radius/conic；
 - A0 + 五个 B 的 EPD3/EPD5 lock curves；
-- B0 recommendation + 用户确认。
+- B0 recommendation、形态审核和用户确认；
+- 正式 A0/B0/C0/REF_MONO locks。
 
 这些结果不得由 Web 端伪造。
 
@@ -166,8 +199,8 @@ docs/TASK_005D_CORNEA_LOCK_ASSETS.md
 | TASK-005A | 完成 | 无 |
 | TASK-005B | 完成并锁定 | 下游只读 |
 | TASK-005C | 完成并锁定 | 下游只读 |
-| TASK-005D | **进行中** | REF_MONO + A/B/C 实体构造/验证 |
-| TASK-006 | B0 排序算法完成 | 等待真实五点 scan 后锁 B0 |
+| TASK-005D | **Web 端实现完成，待 Phase A 实机** | 构建 A/B/C diagnostics |
+| TASK-006 | B0 排序算法完成 | Phase A 通过后跑真实五点 scan |
 | TASK-007 | carrier science gate framework 完成 | 等 TASK-005/006；TDD-999 仍阻断 formal locks |
 | TASK-008 | manifest/lock 代码框架完成 | 等 TASK-007 |
 | TASK-009 | analysis API scaffold 完成 | 等正式 carriers；先 3 代表配置 |
@@ -185,4 +218,4 @@ docs/TASK_005D_CORNEA_LOCK_ASSETS.md
 
 ## 工作方式
 
-Web 端承担文档、研究、主要代码编写、静态审查和 Git 整合；本地 zcode 只做必须依赖 Windows + OpticStudio 的最小实机求解/读回，不再把设计决策交给本地反复试错。
+Web 端承担文档、研究、主要代码编写、静态审查和 Git 整合；本地 zcode 只做必须依赖 Windows + OpticStudio 的最小实机求解/读回。复杂任务按小步提交 Git，避免长时间工作只保存在未提交状态。
