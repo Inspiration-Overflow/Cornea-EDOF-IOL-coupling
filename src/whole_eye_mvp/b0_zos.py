@@ -80,13 +80,10 @@ def q_lock_from_mtfa_samples(
     if any(value < -1.0e-9 or value > 1.01 for value in mtf_average):
         raise B0ZosError("MTFA modulation lies outside expected [0, 1] range")
 
+    points = tuple(zip(frequencies_cyc_per_mm, mtf_average, strict=True))
     area = math.fsum(
         0.5 * (left_y + right_y) * (right_x - left_x)
-        for (left_x, left_y), (right_x, right_y) in zip(
-            zip(frequencies_cyc_per_mm, mtf_average, strict=True),
-            zip(frequencies_cyc_per_mm[1:], mtf_average[1:], strict=True),
-            strict=True,
-        )
+        for (left_x, left_y), (right_x, right_y) in zip(points, points[1:])
     )
     result = area / maximum_frequency
     if not math.isfinite(result) or result < 0 or result > 1.01:
