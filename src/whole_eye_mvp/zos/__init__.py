@@ -17,6 +17,7 @@ from .errors import (
     ZosModeError,
     ZosSessionError,
 )
+from .fft_mtf import FftMtfError, FftMtfResult, FftMtfRunner, FftMtfSettings
 from .mfe_mtfa import MfeMtfaError, MfeMtfaResult, MfeMtfaRunner, MfeMtfaSettings
 from .mfe_powp import MfePowpError, MfePowpResult, MfePowpRunner, MfePowpSettings
 from .mfe_zernike import (
@@ -30,6 +31,10 @@ from .session import ZosSession, ZosSessionAdapter, open_zos_session
 
 __all__ = [
     "Binary4Zone",
+    "FftMtfError",
+    "FftMtfResult",
+    "FftMtfRunner",
+    "FftMtfSettings",
     "MfeMtfaError",
     "MfeMtfaResult",
     "MfeMtfaRunner",
