@@ -9,6 +9,7 @@ from whole_eye_mvp.cornea_assets import (
     MAIN_CORNEA_SCAFFOLD,
     MAIN_CORNEA_SCAFFOLD_ID,
     CorneaSurfaceFamily,
+    cornea_lock_eye_geometry,
     cornea_lock_prescriptions,
     distance_corrected_cornea_power_d,
     distance_corrected_front_radius_mm,
@@ -37,6 +38,24 @@ def test_main_cornea_scaffold_freezes_liou_geometry_separately_from_standard_eye
         42.251148573823,
         abs=1e-12,
     )
+
+
+@pytest.mark.unit
+def test_physical_cornea_slot_preserves_locked_lb_posterior_landmarks_and_al() -> None:
+    baseline = ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID)
+    geometry = cornea_lock_eye_geometry(baseline)
+    assert geometry.base_id == "LB_AL2395"
+    assert geometry.axial_length_mm == 23.950
+    assert geometry.cornea_thickness_mm == 0.50
+    assert geometry.post_cornea_to_stop_mm == 3.150
+    assert geometry.post_cornea_to_iol_ant_mm == 4.500
+    assert geometry.stop_to_iol_ant_mm == pytest.approx(1.350)
+    assert geometry.iol_ant_to_image_mm == pytest.approx(18.950)
+    assert (
+        geometry.cornea_thickness_mm
+        + geometry.post_cornea_to_iol_ant_mm
+        + geometry.iol_ant_to_image_mm
+    ) == pytest.approx(geometry.axial_length_mm)
 
 
 @pytest.mark.unit
