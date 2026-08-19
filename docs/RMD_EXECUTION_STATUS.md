@@ -74,21 +74,21 @@ SHA256 4dfc8d84d37f2ef6bf28c08a5b46436311ad0036e267cf5463cc4dc0d58fa414
 
 PR #23 已合并。以后新 lens asset 使用 `.zmx`；历史 `.zos` 只保留 provenance。
 
-新旧文件在本工作站上出现相同 SHA；项目仍按历史 path+hash 保留旧 lock。
+新旧文件在本工作站上出现相同 SHA，说明此前 `.zos` 扩展名下的内容本身已采用相同序列化；项目仍按历史 path+hash 保留旧 lock。
 
 ## 当前进行中 — TASK-005D 角膜冻结资产
 
-分支：
+新分支：
 
 ```text
 feat/task-005d-cornea-lock-assets
 ```
 
-005D 补齐 TASK-005 剩余角膜冻结链，不提前进入正式 EDOF carrier/pair lock。
+005D 补齐 TASK-005 剩余的角膜冻结链，不提前进入正式 EDOF carrier/pair lock。
 
-### 已完成的 Web 端实现
+### 已冻结的处方层
 
-共同主实验角膜 scaffold：
+新增共同主实验角膜 scaffold：
 
 ```text
 MAIN_CORNEA_LIOU_555_v1
@@ -110,7 +110,7 @@ distance target power = 39.251148573823 D
 anterior distance radius = 8.282294760256 mm
 ```
 
-处方/构造：
+A/B/C prescriptions：
 
 ```text
 A0:
@@ -118,14 +118,12 @@ A0:
   T=-3D
   EOZ≈5.0 mm
   ΔC40 target=+0.13 µm
-  2.50→3.25 mm numerical smooth transition
-  8 nominal transition slices
 
 B0.10/B0.15/B0.20/B0.25/B0.30:
   Even Asphere
   T=-3D
   OZ=6.0 mm
-  r^4 control -> respective ΔC40 targets
+  respective ΔC40 targets
 
 C0:
   Binary4
@@ -134,59 +132,53 @@ C0:
   ADD_Rx=+1.75 D
   transition=0.75 mm
   OZ=6.5 mm
-  4/8/16 transition-slice diagnostics
 ```
 
-C0 的 `ADD_Rx` 只定义目标处方分布；实际局部/环带光学结果由最终物理表面 ray trace 输出。
+C0 使用 quintic radial weight；`rN=1.50 mm`、`rT=2.25 mm`、`rOZ=3.25 mm`，2.25→3.25 mm 保留远用主导环带。
 
-`REF_MONO_CORNEA_LOCK` 的候选特异 radius solve、standard-eye near-SA-neutral conic solve、最多两轮 power–conic 回查已编码。
-
-B0 专用 Huygens MTF 采集和 17-plane `Q_lock` acquisition 已编码；五候选结果继续复用既有 `b0.py` 排序规则。
-
-本地主要入口已经收敛到：
-
-```text
-scripts/build_task_005d_cornea_candidates.py
-scripts/run_task_005d_b0_scan.py
-```
-
-详细契约：
+详细实现契约见：
 
 ```text
 docs/TASK_005D_CORNEA_LOCK_ASSETS.md
 ```
 
-### 当前唯一下一步 — Phase A
+### Phase A 实机诊断 — PASS
 
-先只运行：
+真实 OpticStudio 已完成 reference/distance cornea、A0、五个 B 候选、C0 N4/N8/N16 的构建和 MFE-ZERN readback。
+
+关键结果：
 
 ```text
-build_task_005d_cornea_candidates.py
+reference C40 = +0.2573993720 µm
+A0 achieved ΔC40 = +0.1329457134 µm
+
+B0.10 = +0.1022823683 µm
+B0.15 = +0.1486436926 µm
+B0.20 = +0.2002078217 µm
+B0.25 = +0.2463973195 µm
+B0.30 = +0.2990855153 µm
+
+C0 N4→N8  ΔC40 change = -0.0011966407 µm
+C0 N8→N16 ΔC40 change = -0.0002593781 µm
 ```
 
-让 OpticStudio 实机产生：
+五个 B 候选目标和控制系数单调、构造稳定；C0 nominal N8 已达到足够的 MVP 离散稳定性。
 
-- reference / distance cornea；
-- A0；
-- 五个 B candidates；
-- C0 N4/N8/N16；
-- `TASK_005D_CORNEA_CANDIDATES.json`。
+A0 目标本身 PASS，但其 `Z37≈0.121 waves` 高于连续 B 候选。由于 A0 将作为 B0 排序阈值参考，在 Phase B 前只追加一次低成本 A0 N4/N8/N16 离散检查；不改变 scientific prescription，不重新优化每个 N 的 conic。
 
-Web 端审核该 JSON 后，才决定是否运行真实 B0 scan。当前不要求本地做设计判断或手工调参数。
+Phase A 首次使用相对 `--project-dir` 时暴露了 OpticStudio 原生 SaveAs 与 Python cwd 的相对路径差异。Web 端已把 005D 两个入口统一 `resolve()`；该问题不影响绝对路径重跑后的成功实机光学结果。
 
-### 尚未完成
+### 当前下一步
 
-必须等真实 OpticStudio 结果后才能确认：
+只运行：
 
-- A0 achieved ΔC40 与表型；
-- 五个 B 的 achieved ΔC40 / Even-Asphere coefficients；
-- C0 Binary4 4/8/16 基本离散稳定性；
-- `REF_MONO_CORNEA_LOCK` 的真实 radius/conic；
-- A0 + 五个 B 的 EPD3/EPD5 lock curves；
-- B0 recommendation、形态审核和用户确认；
-- 正式 A0/B0/C0/REF_MONO locks。
+```text
+scripts/run_task_005d_a0_convergence.py
+```
 
-这些结果不得由 Web 端伪造。
+固定 Phase A 已求得的 `inner_conic=-0.1125`，比较 A0 transition slices 4/8/16 的 achieved ΔC40 与 Z37。
+
+若 N8→N16 已基本稳定，则直接进入 Phase B `REF_MONO + B0 real scan`；否则只修 A0 数值离散实现。
 
 ## RMD task 状态
 
@@ -199,8 +191,8 @@ Web 端审核该 JSON 后，才决定是否运行真实 B0 scan。当前不要�
 | TASK-005A | 完成 | 无 |
 | TASK-005B | 完成并锁定 | 下游只读 |
 | TASK-005C | 完成并锁定 | 下游只读 |
-| TASK-005D | **Web 端实现完成，待 Phase A 实机** | 构建 A/B/C diagnostics |
-| TASK-006 | B0 排序算法完成 | Phase A 通过后跑真实五点 scan |
+| TASK-005D | **Phase A PASS** | A0 最小离散检查 → Phase B |
+| TASK-006 | B0 排序算法完成 | 等待真实五点 scan 后锁 B0 |
 | TASK-007 | carrier science gate framework 完成 | 等 TASK-005/006；TDD-999 仍阻断 formal locks |
 | TASK-008 | manifest/lock 代码框架完成 | 等 TASK-007 |
 | TASK-009 | analysis API scaffold 完成 | 等正式 carriers；先 3 代表配置 |
@@ -218,4 +210,4 @@ Web 端审核该 JSON 后，才决定是否运行真实 B0 scan。当前不要�
 
 ## 工作方式
 
-Web 端承担文档、研究、主要代码编写、静态审查和 Git 整合；本地 zcode 只做必须依赖 Windows + OpticStudio 的最小实机求解/读回。复杂任务按小步提交 Git，避免长时间工作只保存在未提交状态。
+Web 端承担文档、研究、主要代码编写、静态审查和 Git 整合；本地 zcode 只做必须依赖 Windows + OpticStudio 的最小实机求解/读回，不再把设计决策交给本地反复试错。
