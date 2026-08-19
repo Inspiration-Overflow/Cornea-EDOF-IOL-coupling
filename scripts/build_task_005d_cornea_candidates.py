@@ -70,8 +70,9 @@ def main() -> None:
     if args.install_dir is None:
         raise SystemExit(f"Pass --install-dir or set {INSTALL_ENV}.")
 
+    project_dir = args.project_dir.resolve()
     baseline = ScientificBaseline(args.baseline_id)
-    store = open_project_store(args.project_dir, baseline)
+    store = open_project_store(project_dir, baseline)
     lb = next(
         item
         for item in base_asset_prescriptions(baseline)
@@ -81,7 +82,7 @@ def main() -> None:
     if not lb_path.is_file():
         raise SystemExit(f"Required locked LB base is missing: {lb_path}")
 
-    output_dir = args.project_dir / "diagnostics" / "task005d" / "corneas"
+    output_dir = project_dir / "diagnostics" / "task005d" / "corneas"
     reference_path = output_dir / REFERENCE_NAME
     distance_path = output_dir / DISTANCE_NAME
     a_path = output_dir / "CORNEA_A0.zmx"
