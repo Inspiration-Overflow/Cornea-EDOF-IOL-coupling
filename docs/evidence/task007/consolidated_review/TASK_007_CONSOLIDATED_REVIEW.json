@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "phase": "TASK-007-CONSOLIDATED-WEB-REVIEW",
+  "evidence_only": true,
+  "formal_artifact": false,
+  "source_phase": "TASK-007-CONSOLIDATED-FULL18-RESIDUAL-CALIBRATION",
+  "source_code_commit": "cb042a6cf548238276ed59f26b300deb77ae29e4",
+  "source_local_report_sha256": "29ed5ade15bc40e7ea8f5ac14d705fa909cc799d2a5f63b759d77367ca5e253a",
+  "source_numerical_hard_gates_passed": false,
+  "source_false_negative_explained": true,
+  "low_order_hard_gate_domain": "STD_IOL_EYE_2024_EPD6_imported_residual_readback",
+  "actual_eye_ssag_readback_role": "diagnostic_only_aperture_limited_mode0",
+  "standard_eye_low_order_gate_passed": true,
+  "all_ray_health_passed": true,
+  "all_18_carriers_validated": true,
+  "calibration_count": 9,
+  "mechanism_decisions": [
+    {
+      "platform_id": "WFS",
+      "passed": true,
+      "reason": "Across low/median/high actual powers, the EPD3 diagnostic keeps the distance peak at 0 D while broadening DOF50 from about 1.19-1.21 D to 1.29-1.33 D; standard-eye residual low-order readback and all ray-health checks pass, with no discrete diffraction-order behavior introduced."
+    },
+    {
+      "platform_id": "RAD",
+      "passed": true,
+      "reason": "Across low/median/high actual powers, the EPD3 diagnostic keeps the distance peak at 0 D and broadens DOF50 to about 2.44-2.46 D; standard-eye residual low-order readback and all ray-health checks pass. The source actual-eye piston failure is an aperture-limited SSAG Mode-0 readback artifact, not a residual or mechanism failure."
+    },
+    {
+      "platform_id": "HOA",
+      "passed": true,
+      "reason": "Across low/median/high actual powers, the EDOF whole-eye wavefront preserves the intended opposite-sign spherical-aberration pattern (C4<0, C6>0), broadens DOF50 to about 2.03-2.07 D, and shows a consistent -0.5 D peak shift; standard-eye residual low-order readback and all ray-health checks pass."
+    }
+  ],
+  "all_mechanisms_passed": true,
+  "tdd_999_evidence_complete": true,
+  "tdd_999_cleared": true,
+  "review_hash": "f325533cb86910399a2290426cdfe52215968450edb3a82c62553c38a8aaecc6",
+  "source_evidence_sha256": "88f89484d1684ce43005d5ce7a30feb88b485065962ee4df5ae517426a231c51",
+  "source_evidence_commit": "a67288a4af1bdd4a9ec692c3b797f0e3e3469d9d",
+  "decision_file_sha256": "3bfa14c485374c9eddf02142ca04e8491c034e263d0470388b920d643c021512",
+  "review_scope": {
+    "normative_low_order_gate": "STD_IOL_EYE_2024 EPD6 imported residual readback",
+    "actual_eye_low_order_readback": "diagnostic only; source SSAG Mode 0 is aperture-limited",
+    "actual_eye_hard_evidence": "ray health + through-focus + whole-eye wavefront/mechanism behavior"
+  },
+  "scientific_settings_changed": false,
+  "residual_payload_changed": false,
+  "requires_opticstudio_rerun": false,
+  "next_task": "TASK-008 formal carrier/pair locks and exact 18/72 manifests"
+}
