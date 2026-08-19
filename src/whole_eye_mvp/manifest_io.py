@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import csv
-from dataclasses import asdict
 from pathlib import Path
 
 from .carriers import CarrierKey, ProvisionalCarrier
@@ -155,6 +154,8 @@ def load_formal_manifest_bundle(
     loaded_configs = tuple(_nominal_config(row) for row in nominal_rows)
     if loaded_configs != rebuilt.nominal_configs:
         raise ManifestLoadError("nominal_72.csv does not reproduce the canonical generated config set")
+    if len({config.config_id for config in loaded_configs}) != 72:
+        raise ManifestLoadError("loaded nominal config IDs are not unique")
 
     if not hash_path.is_file():
         raise ManifestLoadError("manifest.sha256 is missing")
@@ -163,9 +164,4 @@ def load_formal_manifest_bundle(
         raise ManifestLoadError("manifest.sha256 does not match rebuilt formal manifest")
     if expected_manifest_hash and rebuilt.manifest_hash != expected_manifest_hash:
         raise ManifestLoadError("rebuilt manifest hash differs from TASK-008 evidence")
-
-    # Explicitly exercise dataclass serialization here: changes in public manifest
-    # fields must not be hidden by the CSV loader.
-    if len({tuple(asdict(config)) for config in rebuilt.nominal_configs}) != 72:
-        raise ManifestLoadError("rebuilt nominal configs are not uniquely serializable")
     return rebuilt
