@@ -24,7 +24,7 @@ def test_powp_settings_are_frozen_to_center_pupil_spherical_power() -> None:
     MfePowpSettings(surface=4).validate()
     with pytest.raises(ValueError, match="spherical power"):
         MfePowpSettings(surface=4, data=4).validate()
-    with pytest.raises(ValueError, match="\[-1, 1\]"):
+    with pytest.raises(ValueError, match=r"\[-1, 1\]"):
         MfePowpSettings(surface=4, px=1.1).validate()
 
 
