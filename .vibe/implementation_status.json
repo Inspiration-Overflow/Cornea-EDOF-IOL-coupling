@@ -1,14 +1,14 @@
 {
-  "version": 2,
+  "version": 3,
   "as_of": "2026-08-19",
-  "phase": "task009-fft-mtf-v2-web-migration_local-validation-pending",
+  "phase": "task009-fft-mtf-v2-review-hardened_local-validation-pending",
   "project_schema_version": 2,
   "active_branch": "feat/task-009-fft-mtf-main",
   "offline_unit_tests": {
     "last_fully_validated_status": "PASS-at-task008",
     "last_fully_validated_passed": 190,
     "last_fully_validated_commit": "d4a8f96bce50e01078623fbcbda015374967344a",
-    "task009_migration_requires_rerun": true
+    "task009_review_hardening_requires_rerun": true
   },
   "tasks": {
     "RMD-TASK-001": "complete",
@@ -19,9 +19,9 @@
     "RMD-TASK-006": "complete_B0.20-immutable-lock",
     "RMD-TASK-007": "complete_tdd999-cleared",
     "RMD-TASK-008": "complete_formal-18-carriers_3-residuals_72-configs",
-    "RMD-TASK-009": "fft-mtf-v2-web-implementation_complete_local-representative-validation-pending",
-    "RMD-TASK-010": "gui-scaffold-complete_full-flow-smoke-after-task009",
-    "RMD-TASK-011": "acceptance-migrated-to-mtfa_real-run72-after-task009"
+    "RMD-TASK-009": "web-migration-and-review-hardening-complete_local-validation-pending",
+    "RMD-TASK-010": "gui-scaffold-complete_full-flow-smoke-only-after-task009",
+    "RMD-TASK-011": "acceptance-migrated_real-run72-after-formal-sampling-lock"
   },
   "task007": {
     "status": "complete",
@@ -50,11 +50,18 @@
     "tdd_999_cleared": true
   },
   "task009": {
-    "status": "web-migration-complete_local-validation-pending",
+    "status": "web-review-hardened_local-validation-pending",
     "freeze_doc": "docs/TASK_009_FFT_MTF_MAIN_ANALYSIS_FREEZE_2026-08-19.md",
     "analysis_settings_id": "NOMINAL_MAIN_FFT_MTF_555_v2",
+    "analysis_settings_sha256": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+    "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+    "hoa_settings_sha256": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2",
     "production_acquisition": "OpticStudio FFT MTF Analysis",
+    "production_backend": "ZosFftMtfAnalysisBackend",
+    "production_batch_workflow": "run_analysis_batch",
+    "manifest_source": "TASK-008 frozen physical_carriers.csv + nominal_72.csv",
     "production_sampling_candidate": 128,
+    "production_sampling_locked": false,
     "convergence_samplings": [64, 128, 256],
     "defocus_start_d": 0.5,
     "defocus_stop_d": -3.0,
@@ -63,12 +70,7 @@
     "mtf_frequency_step_cpd": 1.0,
     "dof_metric": "distance-anchored DOF50",
     "through_focus_summary": "TF_MTFa_mean",
-    "removed_production_paths": [
-      "legacy wave-propagation PSF path",
-      "phase-sensitive two-dimensional transfer-function postprocessing",
-      "visual-Strehl weighting"
-    ],
-    "psf_mandatory_artifact": false,
+    "entity_invariant": "in-memory fingerprint excludes OBJECT vergence and covers physical eye/carrier identity",
     "representative_pairs": [
       "LB_AL2395_A0_WFS_EPD3",
       "ATC_M3_AL24477_B0_RAD_EPD5",
@@ -77,25 +79,44 @@
     "sampling_convergence_edof_configs": 3,
     "production_integration_configs": 6,
     "requires_opticstudio": true,
+    "run72_started": false,
+    "web_review_hardening_completed": [
+      "strict frozen manifest loader and canonical rebuild",
+      "main settings provenance narrowed and exact hash frozen",
+      "HOA readback separated into versioned settings identity",
+      "real FFT-MTF AnalysisBackend implemented",
+      "six-config integration moved to run_analysis_batch",
+      "in-memory entity fingerprint added",
+      "FFT runtime API metadata captured",
+      "TRACE rebuilt for current document ID universe",
+      "GUI/rerun/audit requirements restored in self-contained URD",
+      "active source/script/spec regression scope hardened"
+    ],
     "local_validation_pending": [
-      "active-spec stale-reference cleanup and full offline regression",
-      "FFT MTF 2026 R1 settings/DataSeries capability",
-      "EFFL frequency conversion",
-      "64/128/256 convergence on three representative EDOF configs",
-      "128-sampling repeatability",
-      "three representative MONO/EDOF matched-pair integration",
-      "limited independent FFT-family cross-check"
+      "full offline regression after review hardening",
+      "strict TASK-008 manifest reload/hash/lock-set",
+      "FFT MTF 2026 R1 settings/DataSeries/runtime metadata",
+      "real-ray footprint result tuple mapping",
+      "EFFL and full-HOA MFE capability",
+      "64/128/256 convergence on three frozen EDOF manifest rows",
+      "independent 128 repeatability",
+      "six frozen configs through real run_analysis_batch",
+      "limited independent FFT-family extraction check"
     ]
   },
   "science_gates_still_active": [
     "TASK-009 128-to-256 FFT-MTF sampling convergence",
     "TASK-009 repeatability",
-    "TASK-009 representative six-config matched-pair integration"
+    "TASK-009 real six-config production integration",
+    "Web review of independent extraction evidence",
+    "formal Web-side production sampling lock"
   ],
   "review_hardening": {
     "task005d_normative_science_changed": false,
     "task007_scientific_thresholds_changed": false,
     "task008_formal_hashes_changed": false,
-    "task009_main_analysis_architecture_simplified_before_run72": true
+    "task009_main_analysis_architecture_simplified_before_run72": true,
+    "task009_formal_manifest_identity_reused": true,
+    "task009_real_backend_moved_before_run72": true
   }
 }
