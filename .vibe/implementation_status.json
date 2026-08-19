@@ -1,41 +1,50 @@
 {
   "version": 2,
-  "as_of": "2026-08-17",
-  "phase": "offline-implementation-hardened_local-opticstudio-integration-pending",
+  "as_of": "2026-08-19",
+  "phase": "task005d-phase-b1-pass_full-b0-scan-pending",
   "project_schema_version": 2,
   "offline_unit_tests": {
-    "passed": 69,
-    "failed": 0,
-    "skipped_zemax": 2
+    "status": "rerun-required-after-2026-08-19-consistency-patch",
+    "last_recorded_passed": 69,
+    "last_recorded_failed": 0,
+    "last_recorded_skipped_zemax": 2
   },
   "environment_pending": [
-    "uv.lock",
-    "uv sync on target Windows workstation",
-    "ruff",
-    "OpticStudio session/license/worker-thread gate"
+    "uv run pytest tests/unit after current consistency patch",
+    "uv run ruff check . after current consistency patch",
+    "TASK-005D Phase B.2 full five-candidate OpticStudio scan"
   ],
   "tasks": {
-    "RMD-TASK-001": "scaffold-complete_env-lock-pending",
-    "RMD-TASK-002": "code-complete_zemax-validation-pending",
-    "RMD-TASK-003": "offline-complete_fail-closed-provenance-hardened",
-    "RMD-TASK-004": "offline-complete_zemax-crosscheck-pending",
-    "RMD-TASK-005": "offline-contract-complete_zos-model-build-pending",
-    "RMD-TASK-006": "ranking-lock-logic-hardened_real-scan-pending",
+    "RMD-TASK-001": "complete",
+    "RMD-TASK-002": "zos-session-and-worker-gate-locally-validated",
+    "RMD-TASK-003": "complete_fail-closed-provenance-hardened",
+    "RMD-TASK-004": "offline-complete_representative-zemax-crosscheck-later",
+    "RMD-TASK-005": "005A-005C-complete_005D-phase-A-A1-B1-pass_full-b0-scan-pending",
+    "RMD-TASK-006": "ranking-morphology-review-lock-path-complete_real-five-candidate-scan-pending",
     "RMD-TASK-007": "evidence-backed-gate-and-lock-orchestration-complete_real-pq-residual-calibration-pending",
     "RMD-TASK-008": "manifest-builder-provenance-hardened_formal-output-blocked-by-task007",
-    "RMD-TASK-009": "analysis-contract-provenance-hardened_real-huygens-zernike-pending",
-    "RMD-TASK-010": "thread-safe-thin-gui-composition-complete_local-smoke-thread-decision-pending",
+    "RMD-TASK-009": "analysis-contract-provenance-hardened_representative-huygens-psf-zernike-pending",
+    "RMD-TASK-010": "thread-safe-thin-gui-composition-complete_local-full-flow-smoke-pending",
     "RMD-TASK-011": "manifest-bound-acceptance-oracle-complete_real-run72-pending"
   },
-  "merged_prs": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+  "merged_prs": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 23],
   "science_gates_still_active": [
-    "TDD-TEST-401",
+    "TASK-005D-full-five-candidate-B0-scan-and-morphology-lock",
     "TDD-TEST-999",
     "representative-3-config-sampling-and-mtf-crosscheck"
   ],
+  "task005d": {
+    "analysis_settings": "CORNEA_LOCK_B0_555_v2",
+    "phase_b1": "PASS",
+    "production_mtfa_sampling": 3,
+    "production_frequency_step_cycles_per_mm": 5.0,
+    "q_lock_max_cycles_per_mm": 50.0,
+    "next_action": "scripts/run_task_005d_b0_scan.py",
+    "morphology_review_after_scan": "scripts/review_task_005d_b0.py"
+  },
   "review_hardening": {
-    "status": "implemented-and-offline-verified",
-    "audit": "docs/audit/code_review_hardening_2026-08-17.md",
-    "normative_science_changed": false
+    "status": "2026-08-19-pre-experiment-consistency-patch-applied",
+    "normative_science_changed": false,
+    "main_run72_pipeline_changed": false
   }
 }
