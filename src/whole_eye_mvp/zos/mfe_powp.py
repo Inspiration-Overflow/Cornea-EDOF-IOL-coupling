@@ -1,7 +1,7 @@
 """MFE ``POWP`` pupil-point power acquisition primitive for TASK-007.
 
 The production use is deliberately narrow: on-axis field, pupil center, spherical
-power, evaluated immediately after the IOL posterior surface.  The operand is
+power, evaluated immediately after the IOL posterior surface. The operand is
 inserted temporarily, evaluated, and removed again so lens files are never saved
 with diagnostic Merit Function rows.
 """
@@ -34,7 +34,11 @@ class MfePowpSettings:
             raise ValueError("POWP surface must be positive")
         if self.wavelength_number < 1:
             raise ValueError("POWP wavelength number must be positive")
-        if not all(math.isfinite(float(v)) and -1.0 <= float(v) <= 1.0 for v in (self.hx, self.hy, self.px, self.py)):
+        coordinates = (self.hx, self.hy, self.px, self.py)
+        if not all(
+            math.isfinite(float(value)) and -1.0 <= float(value) <= 1.0
+            for value in coordinates
+        ):
             raise ValueError("POWP normalized field/pupil coordinates must lie in [-1, 1]")
         if self.data != 0:
             raise ValueError("TASK-007 POWP Data is frozen to spherical power (0)")
@@ -80,7 +84,7 @@ class MfePowpRunner:
                 cell = cells[name]
                 try:
                     cell.IntegerValue = value
-                except Exception:  # noqa: BLE001 - numeric operand cells expose mixed setters
+                except Exception:  # noqa: BLE001 - numeric cells expose mixed setters
                     cell.DoubleValue = float(value)
             calculate()
             try:
@@ -141,12 +145,19 @@ class MfePowpRunner:
         return tuple(headers)
 
     @staticmethod
-    def _resolve_cells(operand: Any, headers: tuple[tuple[int, str], ...]) -> dict[str, Any]:
+    def _resolve_cells(
+        operand: Any,
+        headers: tuple[tuple[int, str], ...],
+    ) -> dict[str, Any]:
         expected = {"Surf", "Wave", "Hx", "Hy", "Px", "Py", "Data"}
-        positions = {header: position for position, header in headers if header in expected}
+        positions = {
+            header: position for position, header in headers if header in expected
+        }
         missing = expected - set(positions)
         if missing:
             raise MfePowpError(
-                "installed POWP cell layout is missing required headers: " + ", ".join(sorted(missing))
+                "installed POWP cell layout is missing required headers: "
+                + ", ".join(sorted(missing))
+                + f"; actual headers={headers!r}"
             )
         return {name: operand.GetCellAt(positions[name]) for name in expected}
