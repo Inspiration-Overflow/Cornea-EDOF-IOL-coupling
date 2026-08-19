@@ -4,8 +4,9 @@ import math
 from dataclasses import dataclass
 from typing import Any
 
-from .analyses import _analysis_settings, _is_valid_result, _matrix, _set_sample_size, _vector
 from .primitives import SystemAnalysisRunner
+
+SUPPORTED_SAMPLE_SIZES = frozenset(2**power for power in range(5, 15))
 
 
 class HuygensMtfError(RuntimeError):
@@ -23,9 +24,10 @@ class HuygensMtfSettings:
     use_polarization: bool = False
 
     def validate(self) -> None:
-        allowed = {32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384}
-        if self.pupil_sampling not in allowed or self.image_sampling not in allowed:
-            raise ValueError("unsupported Huygens MTF sampling")
+        if self.pupil_sampling not in SUPPORTED_SAMPLE_SIZES:
+            raise ValueError(f"unsupported Huygens MTF pupil sampling: {self.pupil_sampling}")
+        if self.image_sampling not in SUPPORTED_SAMPLE_SIZES:
+            raise ValueError(f"unsupported Huygens MTF image sampling: {self.image_sampling}")
         if not math.isfinite(self.image_delta_um) or self.image_delta_um <= 0:
             raise ValueError("Huygens MTF image delta must be finite and positive")
         if (
@@ -45,50 +47,68 @@ class HuygensMtfCurve:
     average: tuple[float, ...]
 
 
-def _split_mtf_rows(
-    frequencies: tuple[float, ...],
-    matrix: tuple[tuple[float, ...], ...],
-) -> tuple[tuple[float, ...], tuple[float, ...]]:
-    n = len(frequencies)
-    if not matrix:
-        raise HuygensMtfError("Huygens MTF returned an empty y-data matrix")
+def _sample_size(zosapi: Any, value: int) -> Any:
+    try:
+        return getattr(zosapi.Analysis.SampleSizes, f"S_{value}x{value}")
+    except AttributeError as exc:
+        raise HuygensMtfError(
+            f"installed API exposes no Huygens MTF sample size {value}x{value}"
+        ) from exc
 
-    # ZOS-API has exposed MTF data in both frequency-major and curve-major matrix shapes
-    # across examples/versions.  Accept either shape, but never guess if neither matches.
-    if len(matrix) == n and all(len(row) >= 2 for row in matrix):
-        first = tuple(float(row[0]) for row in matrix)
-        second = tuple(float(row[1]) for row in matrix)
-        return first, second
-    if len(matrix) >= 2 and len(matrix[0]) == n and len(matrix[1]) == n:
-        return tuple(float(value) for value in matrix[0]), tuple(
-            float(value) for value in matrix[1]
+
+def _copy_vector(data: Any) -> tuple[float, ...]:
+    try:
+        length = int(data.Length)
+        return tuple(float(data[index]) for index in range(length))
+    except (AttributeError, TypeError):
+        try:
+            length = int(data.GetLength(0))
+            return tuple(float(data.GetValue(index)) for index in range(length))
+        except (AttributeError, TypeError) as exc:
+            raise HuygensMtfError("unable to copy Huygens MTF x-data vector") from exc
+
+
+def _copy_series_matrix(data: Any, x_count: int, series_count: int) -> tuple[tuple[float, ...], ...]:
+    if x_count < 1 or series_count < 1:
+        raise HuygensMtfError("Huygens MTF series dimensions must be positive")
+    try:
+        rows = int(data.GetLength(0))
+        columns = int(data.GetLength(1))
+    except AttributeError as exc:
+        raise HuygensMtfError("unable to inspect Huygens MTF y-data matrix") from exc
+    if rows != x_count or columns < series_count:
+        raise HuygensMtfError(
+            "Huygens MTF y-data dimensions differ from the DataSeries contract: "
+            f"matrix={(rows, columns)}, x_count={x_count}, series_count={series_count}"
         )
-    if len(matrix) == n and all(len(row) == 1 for row in matrix):
-        single = tuple(float(row[0]) for row in matrix)
-        return single, single
-    if len(matrix) == 1 and len(matrix[0]) == n:
-        single = tuple(float(value) for value in matrix[0])
-        return single, single
-    raise HuygensMtfError(
-        f"unexpected Huygens MTF y-data shape: rows={len(matrix)}, "
-        f"columns={tuple(len(row) for row in matrix[:4])}, frequency_count={n}"
+    return tuple(
+        tuple(float(data.GetValue(x_index, series_index)) for series_index in range(series_count))
+        for x_index in range(x_count)
     )
 
 
 def _parse_curve(results: Any) -> HuygensMtfCurve:
-    if not _is_valid_result(results):
+    implementation = getattr(results, "__implementation__", results)
+    if not bool(implementation.IsValid):
         raise HuygensMtfError("Huygens MTF returned an invalid result")
-    if int(results.NumberOfDataSeries) < 1:
+    if int(implementation.NumberOfDataSeries) < 1:
         raise HuygensMtfError("Huygens MTF returned no data series")
-    series = results.GetDataSeries(0)
-    frequencies = tuple(float(value) for value in _vector(series.xData.Data))
-    tangential, sagittal = _split_mtf_rows(frequencies, _matrix(series.yData.Data))
-    if len(frequencies) < 2 or len(tangential) != len(frequencies):
-        raise HuygensMtfError("Huygens MTF returned inconsistent curve lengths")
-    if any(
-        not math.isfinite(value)
-        for value in (*frequencies, *tangential, *sagittal)
-    ):
+    series = implementation.GetDataSeries(0)
+    if series is None or series.XData is None or series.YData is None:
+        raise HuygensMtfError("Huygens MTF returned an incomplete DataSeries")
+    frequencies = _copy_vector(series.XData.Data)
+    series_count = int(series.NumSeries)
+    matrix = _copy_series_matrix(series.YData.Data, len(frequencies), series_count)
+    if series_count == 1:
+        tangential = tuple(row[0] for row in matrix)
+        sagittal = tangential
+    else:
+        tangential = tuple(row[0] for row in matrix)
+        sagittal = tuple(row[1] for row in matrix)
+    if len(frequencies) < 2:
+        raise HuygensMtfError("Huygens MTF returned fewer than two frequency samples")
+    values = (*frequencies, *tangential, *sagittal)
+    if not all(math.isfinite(value) for value in values):
         raise HuygensMtfError("Huygens MTF returned non-finite data")
     if any(right <= left for left, right in zip(frequencies, frequencies[1:])):
         raise HuygensMtfError("Huygens MTF frequencies must be strictly increasing")
@@ -105,18 +125,25 @@ class HuygensMtfRunner:
 
     def run(self, settings: HuygensMtfSettings) -> HuygensMtfCurve:
         settings.validate()
-        runner = SystemAnalysisRunner(self.system, self.zosapi)
-        analysis = runner.open_analysis("HuygensMtf")
+        lifecycle = SystemAnalysisRunner(self.system, self.zosapi)
+        analysis = lifecycle.open_analysis("HuygensMtf")
         try:
-            target = _analysis_settings(analysis.GetSettings())
-            _set_sample_size(target, "PupilSampleSize", settings.pupil_sampling, self.zosapi)
-            _set_sample_size(target, "ImageSampleSize", settings.image_sampling, self.zosapi)
+            raw = analysis.GetSettings()
+            target = getattr(raw, "__implementation__", raw)
+            target.PupilSampleSize = _sample_size(
+                self.zosapi,
+                settings.pupil_sampling,
+            )
+            target.ImageSampleSize = _sample_size(
+                self.zosapi,
+                settings.image_sampling,
+            )
             target.ImageDelta = float(settings.image_delta_um)
             target.MaximumFrequency = float(settings.maximum_frequency_cyc_per_mm)
             target.Wavelength.SetWavelengthNumber(settings.wavelength_number)
             target.Field.SetFieldNumber(settings.field_number)
             if hasattr(target, "UsePolarization"):
                 target.UsePolarization = bool(settings.use_polarization)
-            return runner.run_and_parse(analysis, _parse_curve)
+            return lifecycle.run_and_parse(analysis, _parse_curve)
         finally:
-            runner.close(analysis)
+            lifecycle.close(analysis)
