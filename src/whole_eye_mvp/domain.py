@@ -44,17 +44,11 @@ class AnalysisSettings:
     defocus_stop_d: float
     defocus_step_d: float
     dof_relative_fraction: float = 0.5
-    dof_absolute_threshold: float = 0.10
-    huygens_pupil_sampling: int = 128
-    huygens_image_sampling: int = 256
-    huygens_image_delta_um: float = 0.5
-    huygens_normalize: bool = True
-    huygens_use_centroid: bool = False
-    huygens_use_polarization: bool = False
-    otf_pad_factor: int = 4
-    radial_mtf_bin_cpd: float = 1.0
+    fft_mtf_sampling: int = 128
+    fft_mtf_convergence_samplings: tuple[int, ...] = (64, 128, 256)
+    fft_mtf_use_polarization: bool = False
+    mtf_frequency_step_cpd: float = 1.0
     mtfa_max_cpd: float = 60.0
-    vsotf_max_cpd: float = 60.0
     mtf_sample_frequencies_cpd: tuple[float, ...] = (10.0, 20.0, 30.0, 40.0, 50.0, 60.0)
     zernike_sample_size: int = 32
     zernike_maximum_terms: int = 37
@@ -76,11 +70,8 @@ class AnalysisSettings:
             self.defocus_stop_d,
             self.defocus_step_d,
             self.dof_relative_fraction,
-            self.dof_absolute_threshold,
-            self.huygens_image_delta_um,
-            self.radial_mtf_bin_cpd,
+            self.mtf_frequency_step_cpd,
             self.mtfa_max_cpd,
-            self.vsotf_max_cpd,
             self.zernike_center_x,
             self.zernike_center_y,
             self.zernike_normalized_radius,
@@ -101,19 +92,28 @@ class AnalysisSettings:
             raise ValueError("defocus step direction does not reach stop")
         if self.defocus_start_d < self.defocus_stop_d and self.defocus_step_d < 0:
             raise ValueError("defocus step direction does not reach stop")
-        if not 0 < self.dof_relative_fraction <= 1 or self.dof_absolute_threshold < 0:
-            raise ValueError("DOF thresholds are invalid")
-        if self.huygens_pupil_sampling <= 0 or self.huygens_image_sampling <= 0:
-            raise ValueError("Huygens sampling must be positive")
-        if self.huygens_image_delta_um <= 0 or self.otf_pad_factor < 1:
-            raise ValueError("Huygens image delta / OTF padding is invalid")
-        if self.radial_mtf_bin_cpd <= 0 or self.mtfa_max_cpd <= 0 or self.vsotf_max_cpd <= 0:
-            raise ValueError("metric frequency settings must be positive")
+        if not 0 < self.dof_relative_fraction <= 1:
+            raise ValueError("DOF relative fraction must be in (0, 1]")
+        if self.fft_mtf_sampling <= 0:
+            raise ValueError("FFT MTF sampling must be positive")
+        if not self.fft_mtf_convergence_samplings or not all(
+            isinstance(value, int) and value > 0 for value in self.fft_mtf_convergence_samplings
+        ):
+            raise ValueError("FFT MTF convergence samplings must be positive integers")
+        if self.fft_mtf_sampling not in self.fft_mtf_convergence_samplings:
+            raise ValueError("production FFT MTF sampling must be included in convergence samplings")
+        if tuple(sorted(set(self.fft_mtf_convergence_samplings))) != self.fft_mtf_convergence_samplings:
+            raise ValueError("FFT MTF convergence samplings must be unique and increasing")
+        if self.mtf_frequency_step_cpd <= 0 or self.mtfa_max_cpd <= 0:
+            raise ValueError("MTF frequency settings must be positive")
+        ratio = self.mtfa_max_cpd / self.mtf_frequency_step_cpd
+        if not math.isclose(ratio, round(ratio), rel_tol=0.0, abs_tol=1.0e-12):
+            raise ValueError("MTF cpd step must divide MTFa maximum exactly")
         if not self.mtf_sample_frequencies_cpd or not all(
-            math.isfinite(float(frequency)) and frequency > 0
+            math.isfinite(float(frequency)) and 0 < frequency <= self.mtfa_max_cpd
             for frequency in self.mtf_sample_frequencies_cpd
         ):
-            raise ValueError("MTF sample frequencies must be finite and positive")
+            raise ValueError("MTF sample frequencies must be finite and inside the MTFa domain")
         if self.zernike_sample_size <= 0 or self.zernike_maximum_terms < 28:
             raise ValueError("Zernike sampling / term count is invalid")
         if self.zernike_normalized_radius <= 0 or not 0 <= self.zernike_epsilon < 1:
@@ -136,6 +136,11 @@ class AnalysisSettings:
                 values.append(round(value, 10))
                 value += self.defocus_step_d
         return tuple(values)
+
+    def mtf_frequency_grid_cpd(self) -> tuple[float, ...]:
+        self.validate()
+        count = round(self.mtfa_max_cpd / self.mtf_frequency_step_cpd)
+        return tuple(round(index * self.mtf_frequency_step_cpd, 10) for index in range(count + 1))
 
 
 @dataclass(frozen=True, slots=True)
@@ -220,21 +225,6 @@ class B0LockMtfaSettings:
         return tuple(round(index * step, 10) for index in range(round(ratio) + 1))
 
 
-# Legacy v1 provenance: the first Phase B design used Huygens MTF and stopped on
-# the 2026 R1 workstation when AS_HuygensMtf triggered a Python.NET/ZemaxEngine
-# FileLoadException.  Keep the object available for the STOP record only.
-CORNEA_LOCK_B0_555_V1 = AnalysisSettings(
-    settings_id="CORNEA_LOCK_B0_555_v1",
-    wavelength_nm=555.0,
-    pupils_mm=(3.0, 5.0),
-    defocus_start_d=0.50,
-    defocus_stop_d=-3.50,
-    defocus_step_d=-0.25,
-)
-
-# v2 keeps the optical/selection rules unchanged and replaces only the MTF
-# acquisition primitive. Sampling=3 is the provisional production candidate;
-# Phase B.1 must compare adjacent sampling levels before the full scan is run.
 CORNEA_LOCK_B0_555_V2 = B0LockMtfaSettings(
     settings_id="CORNEA_LOCK_B0_555_v2",
     wavelength_nm=555.0,
@@ -247,13 +237,20 @@ CORNEA_LOCK_B0_555_V2 = B0LockMtfaSettings(
     mtfa_sampling=3,
 )
 
-NOMINAL_MAIN_555_V1 = AnalysisSettings(
-    settings_id="NOMINAL_MAIN_555_v1",
+NOMINAL_MAIN_FFT_MTF_555_V2 = AnalysisSettings(
+    settings_id="NOMINAL_MAIN_FFT_MTF_555_v2",
     wavelength_nm=555.0,
     pupils_mm=(3.0, 5.0),
     defocus_start_d=0.50,
     defocus_stop_d=-3.00,
     defocus_step_d=-0.25,
+    dof_relative_fraction=0.5,
+    fft_mtf_sampling=128,
+    fft_mtf_convergence_samplings=(64, 128, 256),
+    fft_mtf_use_polarization=False,
+    mtf_frequency_step_cpd=1.0,
+    mtfa_max_cpd=60.0,
+    mtf_sample_frequencies_cpd=(10.0, 20.0, 30.0, 40.0, 50.0, 60.0),
 )
 
 # URD-0001 v1.4 changes the standard-eye SA calibration pupil from 3 mm to 6 mm.
