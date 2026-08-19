@@ -64,7 +64,7 @@ residual OpticStudio/Zemax process count = 0
 
 但本次存在明确 `FileLoadException / ZemaxEngine.dll`，因此必须判为 hard failure，而不是可忽略 exit warning。
 
-## 后续约束
+## 替代采集原则
 
 不得反复重试 `AS_HuygensMtf` 路径，也不得因此改变：
 
@@ -77,4 +77,30 @@ residual OpticStudio/Zemax process count = 0
 
 后续只允许替换 **Huygens MTF acquisition primitive**。
 
-Ansys OpticStudio 官方说明 Huygens MTF 是对 Huygens PSF 做 FFT，且两者的 Image Sampling / Image Delta 定义一致。因此优先评估在保持 `128 pupil / 256 image / 0.5 µm` 不变的条件下，由 Huygens PSF 网格在 Python 中计算等价 MTF；在真实工作站验证 Huygens PSF API 路径之前，不启动完整 Phase B 重跑。
+Ansys OpticStudio 官方说明 Huygens MTF 是对 Huygens PSF 做 FFT，且两者的 Image Sampling / Image Delta 定义一致。因此 Web 端已实现：
+
+```text
+Huygens PSF grid
+→ normalized 2D FFT magnitude
+→ tangential/sagittal image-space MTF
+→ average MTF
+→ unchanged Q_lock integral
+```
+
+并保持冻结：
+
+```text
+pupil sampling = 128 x 128
+image sampling = 256 x 256
+image delta = 0.5 µm
+```
+
+不采用 MFE `MTHA` 作为正式替代，因为该 operand 将 pupil/image sampling 绑定为同一尺寸，不能保持本任务冻结的 128/256 组合。
+
+在重新启动完整 Phase B 之前，只允许先运行一次：
+
+```text
+scripts/probe_task_005d_huygens_psf.py
+```
+
+该 probe 只加载已保留的 `REF_MONO_A0.zmx`，使用 EPD3/0D 计算一次 Huygens PSF，再在 Python 中 FFT 得到 MTF/Q_lock。若当前 2026 R1 工作站对 `IAS_HuygensPsf` 也触发同类 Python.NET 硬错误，则 STOP 并改用不依赖 analysis settings type 的后备采集路径；不得直接开始完整五候选扫描。
