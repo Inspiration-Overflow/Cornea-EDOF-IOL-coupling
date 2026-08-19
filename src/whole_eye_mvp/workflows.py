@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import csv
 import json
-import math
 import os
 import tempfile
 from collections.abc import Mapping, Sequence
@@ -69,11 +68,14 @@ def _now() -> str:
 def finalize_carrier_locks(
     carriers: Sequence[ProvisionalCarrier],
     residuals: Sequence[ResidualDefinition],
-    delta_f_by_carrier_id: Mapping[str, float],
     *,
     residual_policy: ResidualValidationPolicy,
 ) -> tuple[CarrierLock, ...]:
-    """Create formal locks only from validated optical results and evidence."""
+    """Create formal physical locks only from validated carrier/residual evidence.
+
+    Residual-induced best-focus shift is intentionally excluded from the physical lock.
+    It is pupil/metric dependent and remains an analysis/result quantity.
+    """
 
     validate_18_provisional_carriers(carriers)
     if not residuals_ready(
@@ -86,16 +88,10 @@ def finalize_carrier_locks(
             "formal carrier locks require three evidence-backed validated residuals"
         )
     residual_by_platform = {residual.platform_id: residual for residual in residuals}
-    expected_ids = {carrier.key.carrier_id for carrier in carriers}
-    if set(delta_f_by_carrier_id) != expected_ids:
-        raise ScientificInvariantError("delta-F map must contain exactly one value per carrier")
 
     locks: list[CarrierLock] = []
     for carrier in carriers:
         residual = residual_by_platform[carrier.key.platform_id]
-        delta_f = float(delta_f_by_carrier_id[carrier.key.carrier_id])
-        if not math.isfinite(delta_f):
-            raise ScientificInvariantError("delta-F values must be finite")
         policy_hash = residual_policy.policy_hash
         lock_hash = compute_carrier_lock_hash(
             carrier,
@@ -103,7 +99,6 @@ def finalize_carrier_locks(
             residual.sha256,
             residual_policy.policy_id,
             policy_hash,
-            delta_f,
         )
         locks.append(
             CarrierLock(
@@ -112,7 +107,6 @@ def finalize_carrier_locks(
                 residual_sha256=residual.sha256,
                 residual_validation_policy_id=residual_policy.policy_id,
                 residual_validation_policy_hash=policy_hash,
-                delta_f_residual_d=delta_f,
                 lock_hash=lock_hash,
             )
         )
@@ -178,7 +172,6 @@ def export_manifest_bundle(bundle: ManifestBundle, output_dir: str | Path) -> Ma
                 "residual_sha256": lock.residual_sha256,
                 "residual_validation_policy_id": lock.residual_validation_policy_id,
                 "residual_validation_policy_hash": lock.residual_validation_policy_hash,
-                "delta_f_residual_d": lock.delta_f_residual_d,
                 "lock_hash": lock.lock_hash,
             }
         )
@@ -196,7 +189,6 @@ def export_manifest_bundle(bundle: ManifestBundle, output_dir: str | Path) -> Ma
 def finalize_and_export_manifests(
     carriers: Sequence[ProvisionalCarrier],
     residuals: Sequence[ResidualDefinition],
-    delta_f_by_carrier_id: Mapping[str, float],
     output_dir: str | Path,
     *,
     residual_policy: ResidualValidationPolicy,
@@ -204,7 +196,6 @@ def finalize_and_export_manifests(
     locks = finalize_carrier_locks(
         carriers,
         residuals,
-        delta_f_by_carrier_id,
         residual_policy=residual_policy,
     )
     bundle = build_manifests(locks)
