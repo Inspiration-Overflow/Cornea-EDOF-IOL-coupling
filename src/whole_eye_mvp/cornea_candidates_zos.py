@@ -12,6 +12,9 @@ from .cornea_assets import (
     CorneaSurfaceFamily,
     cornea_lock_prescriptions,
     distance_corrected_front_radius_mm,
+    front_radius_for_cornea_power_d,
+    paraxial_cornea_power_d,
+    quintic_smoothstep,
 )
 from .domain import CorneaId, ScientificBaseline
 from .standard_eye import _quick_focus_wavefront
@@ -27,6 +30,8 @@ from .zos.primitives import binary4_zone_columns, even_asphere_parameter_number
 CORNEA_C40_EPD_MM = 6.0
 CORNEA_SUPPORT_RADIUS_MM = 4.0
 CORNEA_DELTA_C40_SOLVE_TOLERANCE_UM = 0.005
+A_TRANSITION_WIDTH_MM = 0.75
+A_TRANSITION_SLICES_NOMINAL = 8
 A_CONIC_SCAN = (-8.0, -4.0, -2.0, -1.0, -0.5, -0.18, 0.0, 0.5, 1.0, 2.0, 4.0, 8.0)
 B_R4_SCAN = (
     -0.003,
@@ -192,19 +197,61 @@ def _solve_scalar_target(
 def _a_zones(
     prescription: CorneaLockPrescription,
     inner_conic: float,
+    *,
+    transition_slices: int = A_TRANSITION_SLICES_NOMINAL,
 ) -> tuple[Binary4Zone, ...]:
-    return (
+    if transition_slices < 1:
+        raise ValueError("A0 transition requires at least one slice")
+    inner_radius = prescription.optical_radius_mm
+    transition_outer = inner_radius + A_TRANSITION_WIDTH_MM
+    if transition_outer >= CORNEA_SUPPORT_RADIUS_MM:
+        raise ValueError("A0 transition leaves no untreated peripheral support zone")
+
+    distance_power = paraxial_cornea_power_d(prescription.distance_front_radius_mm)
+    reference_power = paraxial_cornea_power_d(MAIN_CORNEA_SCAFFOLD.front_radius_mm)
+    zones = [
         Binary4Zone(
-            radial_aperture=prescription.optical_radius_mm,
+            radial_aperture=inner_radius,
             radius=prescription.distance_front_radius_mm,
             conic=inner_conic,
-        ),
+        )
+    ]
+    width = A_TRANSITION_WIDTH_MM / transition_slices
+    for index in range(transition_slices):
+        inner = inner_radius + index * width
+        aperture = inner_radius + (index + 1) * width
+        midpoint = 0.5 * (inner + aperture)
+        t = (midpoint - inner_radius) / A_TRANSITION_WIDTH_MM
+        blend = quintic_smoothstep(t)
+        target_power = distance_power + (reference_power - distance_power) * blend
+        conic = inner_conic + (MAIN_CORNEA_SCAFFOLD.front_conic - inner_conic) * blend
+        zones.append(
+            Binary4Zone(
+                radial_aperture=aperture,
+                radius=front_radius_for_cornea_power_d(target_power),
+                conic=conic,
+            )
+        )
+    zones.append(
         Binary4Zone(
             radial_aperture=CORNEA_SUPPORT_RADIUS_MM,
             radius=MAIN_CORNEA_SCAFFOLD.front_radius_mm,
             conic=MAIN_CORNEA_SCAFFOLD.front_conic,
-        ),
+        )
     )
+    return tuple(zones)
+
+
+def _set_a_conic_profile(
+    editor: SequentialEditor,
+    prescription: CorneaLockPrescription,
+    inner_conic: float,
+) -> None:
+    zones = _a_zones(prescription, inner_conic)
+    for zone_number, zone in enumerate(zones, start=1):
+        parameter = binary4_zone_columns(zone_number, 0, 0).conic
+        editor.set_parameter(1, parameter, zone.conic)
+    editor.surface(1).Conic = float(inner_conic)
 
 
 def build_a_candidate(
@@ -230,12 +277,10 @@ def build_a_candidate(
         conic=MAIN_CORNEA_SCAFFOLD.front_conic,
     )
     editor.surface(1).SemiDiameter = CORNEA_SUPPORT_RADIUS_MM
-    zone1_conic_parameter = binary4_zone_columns(1, 0, 0).conic
     target = float(prescription.target_delta_c40_um)
 
     def setter(conic: float) -> None:
-        editor.set_parameter(1, zone1_conic_parameter, conic)
-        editor.surface(1).Conic = float(conic)
+        _set_a_conic_profile(editor, prescription, conic)
 
     def evaluator() -> float:
         return measure_best_focus_cornea_wavefront(session).c40_um - reference_c40_um
@@ -271,8 +316,6 @@ def build_b_candidate(
     session.system.LoadFile(str(Path(distance_cornea_path).resolve()), False)
     editor = SequentialEditor(session.system, session.zosapi)
     editor.set_comment(1, f"CORNEA_ANT_{prescription.candidate_id}")
-    # The verified Even Asphere mapping uses order 4 -> Par2.  The r^4 term changes
-    # primary spherical aberration without adding a paraxial r^2 power term.
     editor.configure_even_asphere(1, {4: 0.0})
     editor.set_radius_conic(
         1,
