@@ -55,7 +55,7 @@ def _run_worker(project_dir: Path, *extra_args: str) -> dict[str, Any]:
 def test_task_005c_standard_eye_build_reload_and_validate_without_rewrite(tmp_path: Path) -> None:
     project_dir = tmp_path / "project_mvp_2026_v2"
     built = _run_worker(project_dir)
-    asset = project_dir / "models" / "assets" / "STD_IOL_EYE_2024.zos"
+    asset = project_dir / "models" / "assets" / "STD_IOL_EYE_2024.zmx"
     hash_before = _sha256(asset)
 
     validated = _run_worker(project_dir, "--validate-only")
