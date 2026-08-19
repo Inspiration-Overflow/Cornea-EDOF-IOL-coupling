@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from ..domain import AnalysisSettings
 from .primitives import SystemAnalysisRunner, ZosPrimitiveError
 
 SUPPORTED_SAMPLE_SIZES = frozenset(2**power for power in range(5, 15))
@@ -19,6 +18,13 @@ class ZernikeStandardError(ZosPrimitiveError):
 
 @dataclass(frozen=True, slots=True)
 class ZernikeStandardSettings:
+    """Explicit generic settings for the text-export Zernike Standard analysis.
+
+    This generic helper is not the TASK-009 whole-eye HOA production readback. It is
+    intentionally not derived from the FFT-MTF main settings; TASK-009 uses the separately
+    versioned MFE ZERN contract in ``mfe_hoa_full.py``.
+    """
+
     sample_size: int
     maximum_terms: int = 37
     wavelength_number: int = 1
@@ -28,29 +34,6 @@ class ZernikeStandardSettings:
     center_y: float = 0.0
     normalized_radius: float = 1.0
     epsilon: float = 0.0
-
-    @classmethod
-    def from_analysis_settings(
-        cls,
-        settings: AnalysisSettings,
-        *,
-        wavelength_number: int = 1,
-        field_number: int = 1,
-    ) -> ZernikeStandardSettings:
-        settings.validate()
-        if settings.zernike_surface != "image":
-            raise ValueError("MVP Zernike acquisition requires the image surface")
-        return cls(
-            sample_size=settings.zernike_sample_size,
-            maximum_terms=settings.zernike_maximum_terms,
-            wavelength_number=wavelength_number,
-            field_number=field_number,
-            reference_opd_to_vertex=settings.zernike_reference_opd_to_vertex,
-            center_x=settings.zernike_center_x,
-            center_y=settings.zernike_center_y,
-            normalized_radius=settings.zernike_normalized_radius,
-            epsilon=settings.zernike_epsilon,
-        )
 
     def validate(self) -> None:
         if self.sample_size not in SUPPORTED_SAMPLE_SIZES:
