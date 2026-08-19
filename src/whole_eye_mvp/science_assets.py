@@ -67,11 +67,14 @@ class AssetBuildReport:
 
     @property
     def core_ok(self) -> bool:
-        return bool(self.validations) and all(v.status == NumericalStatus.PASS for v in self.validations)
+        return bool(self.validations) and all(
+            v.status == NumericalStatus.PASS for v in self.validations
+        )
 
 
 LB_BASE = BASELINE_BASE_SPECS[0]
 ATC_M3_BASE = BASELINE_BASE_SPECS[1]
+# Includes the current frozen standard-eye calibration pupil (6 mm in MVP_2026_v2).
 STD_IOL_EYE = BASELINE_STANDARD_EYE_SPEC
 A0_SPEC = next(spec for spec in BASELINE_CORNEA_SPECS if spec.cornea_id == CorneaId.A0)
 B_CANDIDATE_DELTA_C40_UM = BASELINE_B_CANDIDATES_DELTA_C40_UM
@@ -112,7 +115,9 @@ def summarize_asset_validations(
 ) -> AssetBuildReport:
     residuals = set(available_residual_platforms)
     missing = tuple(p.platform_id for p in PLATFORM_SPECS if p.platform_id not in residuals)
-    core_ok = bool(validations) and all(v.status == NumericalStatus.PASS for v in validations)
+    core_ok = bool(validations) and all(
+        v.status == NumericalStatus.PASS for v in validations
+    )
     return AssetBuildReport(
         tuple(validations), carrier_ready=core_ok and not missing, residual_missing=missing
     )

@@ -1,14 +1,14 @@
 # TDD — 角膜屈光术后 × 非衍射 EDOF IOL Zemax 自动化研究软件
 
-> **Check Plan / Test-Driven Document。** 目标不是增加测试数量，而是让少量关键 oracle 能发现“模型做错、指标算错、72 个结果漏跑”。来源：`URD-0001 v1.3`、`ADD-0001 v1.4`、`MDD-0001 v1.3`。
+> **Check Plan / Test-Driven Document。** 目标不是增加测试数量，而是让少量关键 oracle 能发现“模型做错、指标算错、72 个结果漏跑”。来源：`URD-0001 v1.4`、`ADD-0001 v1.4`、`MDD-0001 v1.3`。URD v1.4 仅改变 standard-eye calibration 科学条件，不改变既有 ADD/MDD 架构拆分。
 
 ## Metadata
 
 - document_id: TDD-0001
-- version: 1.2
+- version: 1.3
 - status: ready-for-final-review
-- source_docs: URD-0001 v1.3, ADD-0001 v1.4, MDD-0001 v1.3
-- last_updated: 2026-08-17
+- source_docs: URD-0001 v1.4, ADD-0001 v1.4, MDD-0001 v1.3
+- last_updated: 2026-08-18
 - target_test_runner: pytest
 - optical_integration_environment: Windows + OpticStudio 2026 R1 + valid ZOS-API license
 
@@ -17,6 +17,7 @@
 | ID | Decision |
 | --- | --- |
 | DEC-001 | `DOF_abs` 在 MVP 中统一使用 `VSOTF ≥ 0.10` 作为**工程比较阈值**，不解释为临床视力阈值；改变该阈值必须产生新 settings ID 并重跑受影响批次。 |
+| DEC-002 | `STD_IOL_EYE_2024` 的角膜 `C4^0`、IOL footprint、carrier `SA_base` 与 `Q(P)`/`ZERO_HOA` 标定统一使用 `EPD=6.0 mm`、约 546 nm；主实验 `EPD3/EPD5` 仅用于性能评估，不作为 carrier 基础球差设计条件。 |
 
 ## Frozen Analysis Settings
 
@@ -31,7 +32,7 @@
 | DOF_abs | 含 distance peak 的连续区间，`VSOTF ≥ 0.10` | 同左 |
 | threshold crossing | 相邻采样点线性插值；不外推；记录 `far_censored/near_censored` | 同左 |
 
-正式 B0 lock 和 Run72 开始后不得根据结果改变对应 settings；改变即新 ID、新批次。
+正式 B0 lock 和 Run72 开始后不得根据结果改变对应 settings；改变即新 ID、新批次。`STD_IOL_EYE_2024` 的 6 mm calibration condition 是独立科学资产条件，不改变以上 B0/main analysis settings ID。
 
 ### B0 Lock Metric / Recommendation
 
@@ -79,8 +80,8 @@ Metric provenance：VSOTF 的 complex-OTF/real-part 定义遵循 Cheng–Bradley
 
 | Type | MVP rule |
 | --- | --- |
-| scientific anchor | STD corneal `C4^0 ±0.005 µm`；carrier SA target `±0.01 µm`；A0 `ΔC4^0 ±0.02 µm`、EOZ `±0.20 mm` |
-| construction | 明确几何输入通常 `±0.001 mm`；介质 index `±1e-6` |
+| scientific anchor | STD corneal `C4^0(6 mm) ±0.005 µm`；carrier `SA_base(6 mm)` target `±0.01 µm`；A0 `ΔC4^0 ±0.02 µm`、EOZ `±0.20 mm` |
+| construction | 明确几何输入通常 `±0.001 mm`；介质 index `±1e-6`；standard-eye EPD `6.000±0.001 mm` |
 | convergence | MTFa/VSOTF 相对变化 `≤2%`；distance peak shift `≤0.25 D`；strict PSF outer-10% energy `≤0.5%` |
 | repeatability | MTFa/VSOTF 相对变化 `≤0.1%`；C4/C6 `≤0.001 µm`；distance-peak grid sample 相同 |
 | arithmetic | synthetic pure-math oracle 默认 `atol≤1e-10` |
@@ -93,13 +94,13 @@ scientific-anchor tolerance 是 MVP 工程验收带，不代表临床容差；�
 | --- | --- | --- | --- |
 | TDD-TEST-001 | URD-AC-001 | ZOS-API connection | valid path/license → non-null `PrimarySystem`、Sequential Mode、显式 close；bad path/license → typed failure 且无 completed run |
 | TDD-TEST-002 | URD-AC-002 | 双基座 | AL=`23.950/24.477±0.001 mm`；post-cornea→STOP=`3.150±0.001 mm`；→IOL ant=`4.500±0.001 mm`；aqueous/vitreous=`1.336±1e-6` |
-| TDD-TEST-003 | URD-AC-003 | `STD_IOL_EYE_2024` | corneal `C4^0=+0.258±0.005 µm`；IOL footprint `5.15±0.10 mm`；n=`1.336±1e-6`；aperture=`3.000±0.001 mm`；λ=`546±1 nm`；`ZERO_HOA_PARAXIAL_REFERENCE` 与待测 carrier 保持同 paraxial power/geometry/material/position，且其 IOL-induced SA reference=`0±0.005 µm` |
+| TDD-TEST-003 | URD-AC-003 | `STD_IOL_EYE_2024` | calibration EPD=`6.000±0.001 mm`；corneal `C4^0(6 mm)=+0.258±0.005 µm`；IOL footprint `(6 mm)=5.15±0.10 mm`；n=`1.336±1e-6`；λ=`546±1 nm`；`ZERO_HOA_PARAXIAL_REFERENCE` 与待测 carrier 保持同 paraxial power/geometry/material/position，并在同一 6 mm calibration state 下作为 IOL-induced SA zero reference |
 | TDD-TEST-004 | URD-AC-004 | A0/B candidate/B0/REF lock | A0：`T=-3D`、EOZ=`5.0±0.2 mm`、`ΔC4^0=+0.13±0.02 µm`、central flattening、`numerical_convergence_status=PASS`；B：achieved `ΔC4^0={0.10,0.15,0.20,0.25,0.30}±0.01 µm`，全部来自 `LB_AL2395+REF_MONO+CORNEA_LOCK_B0_555_v1`；软件输出 A0-derived thresholds、80/70% distance gates、DOF_lock_abs 与 deterministic rank；REF residual=null/platform-independent/不进72；B0 lock 保存 morphology decisions、rank、scan hash、selection reason；若 override recommendation，reason 必须非空 |
 | TDD-TEST-005 | URD-AC-005 | C0 construction | `D_near=3.000±0.001 mm`、`ADD=+1.750±0.001D`、`OZ=6.500±0.001 mm`、`wT=0.750±0.001 mm`；r≤1.5 mm near、r≥2.25 mm far；quintic transition 端点 value/1st/2nd derivative 连续；采样 sag finite；`numerical_convergence_status=PASS` |
-| TDD-TEST-006 | URD-AC-006 | power-specific `Q(P)` | 每个 18 carrier 回放至 STD eye，以自身 `P_ijk,Q_ijk`，并相对同 power/geometry 的 `ZERO_HOA_PARAXIAL_REFERENCE` 重算 IOL-induced SA：WFS=`−0.20±0.01 µm`、RAD=`−0.27±0.01 µm`、HOA=`0.00±0.01 µm`；`q_source_power_d == P_ijk`；**不要求不同 power 的 Q 数值必须不同** |
+| TDD-TEST-006 | URD-AC-006 | power-specific `Q(P)` | 每个 18 carrier 回放至 STD eye，在 `EPD=6.0 mm, λ≈546 nm` 下以自身 `P_ijk,Q_ijk`，并相对同 power/geometry 的 `ZERO_HOA_PARAXIAL_REFERENCE` 重算 IOL-induced SA：WFS=`−0.20±0.01 µm`、RAD=`−0.27±0.01 µm`、HOA=`0.00±0.01 µm`；`q_source_power_d == P_ijk`；**不要求不同 power 的 Q 数值必须不同** |
 | TDD-TEST-007 | URD-AC-007 | matched MONO/EDOF | pair 的 power/R_ant/R_post/Q/CT/material/IOL position/carrier_id exact equal；MONO residual=null；EDOF residual platform-match；residual calibration record 包含 low/median/high actual-power gate；`ΔF_residual` 非空且来自 retina-anchored frame |
 | TDD-TEST-008 | URD-AC-008 | 18 carriers | count=18；unique(`base,cornea,platform`)=18；2×3×3 全覆盖 |
-| TDD-TEST-009 | URD-AC-009 | 72 manifest | count=72；unique config IDs=72；λ=555；EPD∈{3,5}；field=0；cornea/IOL decentration=0；IOL tilt=0；micro-monovision defocus=0 |
+| TDD-TEST-009 | URD-AC-009 | 72 manifest | count=72；unique config IDs=72；λ=555；EPD∈{3,5}；field=0；cornea/IOL decentration=0；IOL tilt=0；micro-monovision defocus=0；EPD3/EPD5 不得覆盖 carrier 的 6 mm calibration identity |
 | TDD-TEST-010 | URD-AC-010 | single pair analysis | 每 config 有 15-plane TF、10/20/30/40/50/60-cpd MTF、MTFa、VSOTF、3 PSF、C4/C6/HOA；每 TF row 同时有 `defocus_retina_d` 与 `defocus_shape_d`；贯焦前后实体模型 hash/retina/IOL/ELP 不变；paired scalar=`EDOF−MONO` 与直接减法 `atol≤1e-10` |
 | TDD-TEST-011 | URD-AC-011 | result traceability | config ID 可追到 carrier ID、P、Q、base/cornea/platform/state/pupil；存在 `.zos`、through-focus plot、MTF plot、3 PSF images；cornea/STOP/IOL footprint 均存在，IOL footprint≤其 optical diameter，且无 unintended-vignetting flag |
 | TDD-TEST-012 | URD-AC-012 | failure/rerun | parameterized 注入 1 个 carrier-stage failure 与 1 个 config export failure：failed target 不计 completed；其他完成结果不回滚；Rerun 只重跑 selected target，生成新 run_id |
@@ -162,7 +163,7 @@ fixture 明确规定 `OTF_DL=1` 于这 9 个离散点，并按同一离散 measu
 | TDD-TEST-302 | residual payload 缺失 | core Build 可完成；Validate `carrier_ready=False`；Build Carriers refuses |
 | TDD-TEST-303 | residual platform/hash 错、payload piston/global-defocus 实测超 tolerance，或 low/median/high power gate 未完成 | no formal residual lock；metadata `defocus_removed=true` 单独不能通过 |
 | TDD-TEST-304 | 5-point 未完成就 Lock B0 | rejected；no B0 lock |
-| TDD-TEST-305 | 某 carrier 被替换为错误 power 的 Q | 回放 STD eye 后 achieved SA 超 tolerance → key validation fail；不以“Q 是否和别人相同”作为 oracle |
+| TDD-TEST-305 | 某 carrier 被替换为错误 power 的 Q，或在非 6 mm standard-eye calibration pupil 下重放 SA | 6 mm STD-eye achieved SA 超 tolerance/校准身份不匹配 → key validation fail；不以“Q 是否和别人相同”作为 oracle |
 | TDD-TEST-306 | EDOF branch 改 carrier power/Q | pair invariant fails before lock |
 | TDD-TEST-307 | duplicate config ID | manifest rejected |
 | TDD-TEST-308 | distance peak 本身低于 absolute threshold | 合法结果：`DOF_abs=0/empty + below_absolute_threshold=True` |
@@ -214,12 +215,13 @@ fixture 明确规定 `OTF_DL=1` 于这 9 个离散点，并按同一离散 measu
 - [x] A/B/C 不只检查“文件存在”，而有最小科学/构造放行 oracle。
 - [x] B0 与 nominal main settings 分离；B0 使用 A0-derived Q_lock 阈值/距离 gate/确定性推荐 + 人工确认。
 - [x] MTF/MTFa/VSOTF 只有一条 canonical production pipeline；FFT shift convention 与完整 complex golden fixture 均已冻结，并有 Zemax MTF 交叉检查。
-- [x] `Q(P)` 通过 STD-eye achieved-SA 回放验证，而不是仅检查 CSV 字段。
+- [x] `Q(P)` 通过 **EPD=6 mm** STD-eye achieved-SA 回放验证，而不是仅检查 CSV 字段。
+- [x] `ZERO_HOA_PARAXIAL_REFERENCE` 与 carrier 的 6 mm standard-eye calibration identity 已冻结。
+- [x] EPD3/EPD5 保留为 B0/main 性能条件，不作为 `SA_base` 设计瞳孔。
 - [x] tolerance 被分成 scientific/construction/convergence/repeatability/arithmetic 五类。
 - [x] 72 configs / 36 matched pairs / 1080 TF rows 有 end-to-end completeness oracle。
 - [x] 未加入患者级、多色、偏心/倾斜、全矩阵 convergence、阈值敏感性或复杂 GUI。
 - [x] retina-anchored / shape-recentered 双坐标和 analysis-vergence 贯焦因果边界已冻结。
-- [x] `ZERO_HOA_PARAXIAL_REFERENCE` 已进入标准眼/carrier oracle。
 - [x] residual scientific payload + low/median/high actual-power calibration 仍是唯一显式 STOP gate。
 
-**Result:** `TDD-0001 v1.2` 已完成基线一致性小修；测试 ID 数量不增加，进入 RMD 前只需最终审核。
+**Result:** `TDD-0001 v1.3` 已将 standard-eye carrier SA calibration 从 3 mm 修订为 6 mm，并保持既有 ADD/MDD 架构、测试 ID、主实验 EPD3/EPD5 与 TDD-999 边界不变。

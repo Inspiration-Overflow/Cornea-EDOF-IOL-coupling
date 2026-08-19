@@ -53,7 +53,7 @@ def _run_base_worker(project_dir: Path, *extra_args: str) -> dict[str, Any]:
 
 @pytest.mark.zemax
 def test_task_005b_base_assets_build_reload_and_validate_without_rewrite(tmp_path: Path) -> None:
-    project_dir = tmp_path / "project"
+    project_dir = tmp_path / "project_mvp_2026_v2"
     built = _run_base_worker(project_dir)
     paths = (
         project_dir / "models" / "assets" / "BASE_LB_PSEUDOPHAKIC.zos",

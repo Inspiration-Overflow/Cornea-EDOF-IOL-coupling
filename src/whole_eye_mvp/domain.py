@@ -156,6 +156,11 @@ NOMINAL_MAIN_555_V1 = AnalysisSettings(
     defocus_step_d=-0.25,
 )
 
+# URD-0001 v1.4 changes the standard-eye SA calibration pupil from 3 mm to 6 mm.
+# Because the full ScientificBaseline is hashed by ProjectStore, this is a real
+# scientific-baseline revision rather than an implementation-only setting change.
+CURRENT_SCIENTIFIC_BASELINE_ID = "MVP_2026_v2"
+
 
 @dataclass(frozen=True, slots=True)
 class BaselineBaseSpec:
@@ -255,7 +260,7 @@ BASELINE_BASE_SPECS = (
     ),
 )
 BASELINE_STANDARD_EYE_SPEC = BaselineStandardEyeSpec(
-    "STD_IOL_EYE_2024", 0.258, 5.15, 0.10, 1.336, 3.0, 546.0
+    "STD_IOL_EYE_2024", 0.258, 5.15, 0.10, 1.336, 6.0, 546.0
 )
 BASELINE_CORNEA_SPECS = (
     BaselineCorneaSpec(CorneaId.A0, -3.0, 5.0, target_delta_c40_um=0.13),

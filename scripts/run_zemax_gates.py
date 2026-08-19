@@ -15,6 +15,7 @@ GATES = (
     "tests/zemax/test_zos_worker_gate.py",
     "tests/zemax/test_zos_zernike.py",
     "tests/zemax/test_zos_base_assets.py",
+    "tests/zemax/test_zos_standard_eye.py",
 )
 
 
