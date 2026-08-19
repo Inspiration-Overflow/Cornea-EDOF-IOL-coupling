@@ -27,6 +27,7 @@ from .huygens_mtf import (
     HuygensMtfRunner,
     HuygensMtfSettings,
 )
+from .mfe_mtfa import MfeMtfaError, MfeMtfaResult, MfeMtfaRunner, MfeMtfaSettings
 from .mfe_zernike import (
     MfeZernikeError,
     MfeZernikeResult,
@@ -46,6 +47,10 @@ __all__ = [
     "HuygensPsfGrid",
     "HuygensPsfRunner",
     "HuygensPsfSettings",
+    "MfeMtfaError",
+    "MfeMtfaResult",
+    "MfeMtfaRunner",
+    "MfeMtfaSettings",
     "MfeZernikeError",
     "MfeZernikeResult",
     "MfeZernikeStandardRunner",
