@@ -37,29 +37,25 @@ class RunStatus(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class AnalysisSettings:
+    """Frozen main-analysis settings that materially affect FFT-MTF/MTFa results.
+
+    TASK-009 intentionally keeps B0-lock and Zernike-acquisition settings out of this
+    identity. Those acquisitions have separate versioned contracts and therefore cannot
+    silently change the Run72 FFT-MTF settings hash.
+    """
+
     settings_id: str
     wavelength_nm: float
     pupils_mm: tuple[float, ...]
     defocus_start_d: float
     defocus_stop_d: float
     defocus_step_d: float
-    dof_relative_fraction: float = 0.5
     fft_mtf_sampling: int = 128
     fft_mtf_convergence_samplings: tuple[int, ...] = (64, 128, 256)
     fft_mtf_use_polarization: bool = False
     mtf_frequency_step_cpd: float = 1.0
     mtfa_max_cpd: float = 60.0
     mtf_sample_frequencies_cpd: tuple[float, ...] = (10.0, 20.0, 30.0, 40.0, 50.0, 60.0)
-    zernike_sample_size: int = 32
-    zernike_maximum_terms: int = 37
-    zernike_reference_opd_to_vertex: bool = False
-    zernike_center_x: float = 0.0
-    zernike_center_y: float = 0.0
-    zernike_normalized_radius: float = 1.0
-    zernike_epsilon: float = 0.0
-    zernike_surface: str = "image"
-    zernike_removed_terms: tuple[str, ...] = ("piston", "tip", "tilt", "defocus")
-    b0_q_lock_max_cycles_per_mm: float = 50.0
 
     def validate(self) -> None:
         if not self.settings_id.strip():
@@ -69,14 +65,8 @@ class AnalysisSettings:
             self.defocus_start_d,
             self.defocus_stop_d,
             self.defocus_step_d,
-            self.dof_relative_fraction,
             self.mtf_frequency_step_cpd,
             self.mtfa_max_cpd,
-            self.zernike_center_x,
-            self.zernike_center_y,
-            self.zernike_normalized_radius,
-            self.zernike_epsilon,
-            self.b0_q_lock_max_cycles_per_mm,
         )
         if not all(math.isfinite(float(value)) for value in scalar_values):
             raise ValueError("analysis settings must contain only finite numeric values")
@@ -92,8 +82,6 @@ class AnalysisSettings:
             raise ValueError("defocus step direction does not reach stop")
         if self.defocus_start_d < self.defocus_stop_d and self.defocus_step_d < 0:
             raise ValueError("defocus step direction does not reach stop")
-        if not 0 < self.dof_relative_fraction <= 1:
-            raise ValueError("DOF relative fraction must be in (0, 1]")
         if self.fft_mtf_sampling <= 0:
             raise ValueError("FFT MTF sampling must be positive")
         if not self.fft_mtf_convergence_samplings or not all(
@@ -114,14 +102,6 @@ class AnalysisSettings:
             for frequency in self.mtf_sample_frequencies_cpd
         ):
             raise ValueError("MTF sample frequencies must be finite and inside the MTFa domain")
-        if self.zernike_sample_size <= 0 or self.zernike_maximum_terms < 28:
-            raise ValueError("Zernike sampling / term count is invalid")
-        if self.zernike_normalized_radius <= 0 or not 0 <= self.zernike_epsilon < 1:
-            raise ValueError("Zernike reference radius / epsilon is invalid")
-        if self.zernike_surface != "image":
-            raise ValueError("MVP Zernike acquisition is frozen to the image surface")
-        if self.b0_q_lock_max_cycles_per_mm <= 0:
-            raise ValueError("B0 Q-lock frequency limit must be positive")
 
     def defocus_grid(self) -> tuple[float, ...]:
         self.validate()
@@ -244,7 +224,6 @@ NOMINAL_MAIN_FFT_MTF_555_V2 = AnalysisSettings(
     defocus_start_d=0.50,
     defocus_stop_d=-3.00,
     defocus_step_d=-0.25,
-    dof_relative_fraction=0.5,
     fft_mtf_sampling=128,
     fft_mtf_convergence_samplings=(64, 128, 256),
     fft_mtf_use_polarization=False,
@@ -253,7 +232,7 @@ NOMINAL_MAIN_FFT_MTF_555_V2 = AnalysisSettings(
     mtf_sample_frequencies_cpd=(10.0, 20.0, 30.0, 40.0, 50.0, 60.0),
 )
 
-# URD-0001 v1.4 changes the standard-eye SA calibration pupil from 3 mm to 6 mm.
+# URD-0001 v1.4 changed the standard-eye SA calibration pupil from 3 mm to 6 mm.
 # Because the full ScientificBaseline is hashed by ProjectStore, this is a real
 # scientific-baseline revision rather than an implementation-only setting change.
 CURRENT_SCIENTIFIC_BASELINE_ID = "MVP_2026_v2"
