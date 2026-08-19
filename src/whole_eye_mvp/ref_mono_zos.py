@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .base_assets import (
     IMAGE_ROLE,
+    IOL_ANT_ROLE,
     STOP_ROLE,
     _refractive_indices,
     _set_material_index_at_nominal_wavelength,
@@ -44,6 +45,7 @@ class RefMonoZosError(RuntimeError):
 
 @dataclass(frozen=True, slots=True)
 class RefMonoMeasurements:
+    cornea_ant_role: str
     radius_ant_mm: float
     radius_post_mm: float
     conic: float
@@ -79,6 +81,44 @@ def _require_distance_scaffold(
         )
 
 
+def _require_cornea_only_scaffold(
+    session: ZosSession,
+    baseline: ScientificBaseline,
+    path: Path,
+) -> None:
+    session.system.LoadFile(str(path.resolve()), False)
+    lde = session.system.LDE
+    if int(lde.NumberOfSurfaces) != 6:
+        raise RefMonoZosError(
+            f"cornea-only candidate must contain 6 surfaces, got {lde.NumberOfSurfaces}"
+        )
+    expected = {
+        2: FIXED_CORNEA_POST_ROLE,
+        3: STOP_ROLE,
+        4: IOL_ANT_ROLE,
+        5: IMAGE_ROLE,
+    }
+    for surface_number, role in expected.items():
+        actual = str(lde.GetSurfaceAt(surface_number).Comment).strip()
+        if actual != role:
+            raise RefMonoZosError(
+                f"cornea-only surface {surface_number} role mismatch: expected {role!r}, got {actual!r}"
+            )
+
+    geometry = cornea_lock_eye_geometry(baseline)
+    posterior = lde.GetSurfaceAt(2)
+    stop = lde.GetSurfaceAt(3)
+    iol_ref = lde.GetSurfaceAt(4)
+    post_to_iol = float(posterior.Thickness) + float(stop.Thickness)
+    axial = sum(float(lde.GetSurfaceAt(index).Thickness) for index in range(1, 5))
+    if abs(post_to_iol - geometry.post_cornea_to_iol_ant_mm) > GEOMETRY_TOLERANCE_MM:
+        raise RefMonoZosError("cornea-only candidate changed post-cornea→IOL reference distance")
+    if abs(float(iol_ref.Thickness) - geometry.iol_ant_to_image_mm) > GEOMETRY_TOLERANCE_MM:
+        raise RefMonoZosError("cornea-only candidate changed IOL-reference→IMAGE distance")
+    if abs(axial - geometry.axial_length_mm) > GEOMETRY_TOLERANCE_MM:
+        raise RefMonoZosError("cornea-only candidate changed locked LB axial length")
+
+
 def insert_ref_mono(
     session: ZosSession,
     baseline: ScientificBaseline,
@@ -94,7 +134,7 @@ def insert_ref_mono(
 
     editor = SequentialEditor(session.system, session.zosapi)
     if int(editor.lde.NumberOfSurfaces) != 6:
-        raise RefMonoZosError("distance-cornea scaffold must have 6 surfaces before IOL insertion")
+        raise RefMonoZosError("cornea-only scaffold must have 6 surfaces before IOL insertion")
 
     editor.set_comment(4, REF_MONO_ANT_ROLE)
     editor.set_radius_conic(4, radius_mm=radius_mm, conic=conic)
@@ -153,7 +193,11 @@ def solve_ref_mono_radius_mm(
 
     if not math.isfinite(tolerance_mm) or tolerance_mm <= 0:
         raise ValueError("REF_MONO focus-shift tolerance must be finite and positive")
-    start = initial_radius_mm if initial_radius_mm is not None else initial_ref_mono_radius_mm(baseline)
+    start = (
+        initial_radius_mm
+        if initial_radius_mm is not None
+        else initial_ref_mono_radius_mm(baseline)
+    )
     if not math.isfinite(start) or start <= 0:
         raise ValueError("REF_MONO starting radius must be finite and positive")
 
@@ -195,6 +239,29 @@ def solve_ref_mono_radius_mm(
     return best_radius, best_shift
 
 
+def build_ref_mono_on_cornea_candidate(
+    session: ZosSession,
+    baseline: ScientificBaseline,
+    cornea_path: str | Path,
+    destination: str | Path,
+    *,
+    conic: float = REF_MONO_INITIAL_CONIC,
+    initial_radius_mm: float | None = None,
+) -> RefMonoMeasurements:
+    source = Path(cornea_path)
+    _require_cornea_only_scaffold(session, baseline, source)
+    start = (
+        initial_radius_mm
+        if initial_radius_mm is not None
+        else initial_ref_mono_radius_mm(baseline)
+    )
+    insert_ref_mono(session, baseline, start, conic=conic)
+    solve_ref_mono_radius_mm(session, baseline, initial_radius_mm=start)
+    output = Path(destination)
+    SequentialEditor(session.system, session.zosapi).save_as(output)
+    return measure_ref_mono_candidate(session, baseline, output)
+
+
 def build_ref_mono_candidate(
     session: ZosSession,
     baseline: ScientificBaseline,
@@ -206,12 +273,14 @@ def build_ref_mono_candidate(
 ) -> RefMonoMeasurements:
     source = Path(distance_cornea_path)
     _require_distance_scaffold(session, baseline, source)
-    start = initial_radius_mm if initial_radius_mm is not None else initial_ref_mono_radius_mm(baseline)
-    insert_ref_mono(session, baseline, start, conic=conic)
-    solve_ref_mono_radius_mm(session, baseline, initial_radius_mm=start)
-    output = Path(destination)
-    SequentialEditor(session.system, session.zosapi).save_as(output)
-    return measure_ref_mono_candidate(session, baseline, output)
+    return build_ref_mono_on_cornea_candidate(
+        session,
+        baseline,
+        source,
+        destination,
+        conic=conic,
+        initial_radius_mm=initial_radius_mm,
+    )
 
 
 def measure_ref_mono_candidate(
@@ -226,19 +295,19 @@ def measure_ref_mono_candidate(
             f"REF_MONO candidate must contain 7 surfaces, got {lde.NumberOfSurfaces}"
         )
     rows = tuple(lde.GetSurfaceAt(index) for index in range(1, 7))
-    expected_roles = (
-        DISTANCE_CORNEA_ANT_ROLE,
-        FIXED_CORNEA_POST_ROLE,
-        STOP_ROLE,
-        REF_MONO_ANT_ROLE,
-        REF_MONO_POST_ROLE,
-        IMAGE_ROLE,
-    )
-    actual_roles = tuple(str(row.Comment).strip() for row in rows)
-    if actual_roles != expected_roles:
-        raise RefMonoZosError(
-            f"REF_MONO surface roles differ: expected={expected_roles}, got={actual_roles}"
-        )
+    expected_roles = {
+        2: FIXED_CORNEA_POST_ROLE,
+        3: STOP_ROLE,
+        4: REF_MONO_ANT_ROLE,
+        5: REF_MONO_POST_ROLE,
+        6: IMAGE_ROLE,
+    }
+    for surface_number, role in expected_roles.items():
+        actual = str(lde.GetSurfaceAt(surface_number).Comment).strip()
+        if actual != role:
+            raise RefMonoZosError(
+                f"REF_MONO surface {surface_number} role mismatch: expected {role!r}, got {actual!r}"
+            )
 
     radius_ant = float(rows[3].Radius)
     radius_post = float(rows[4].Radius)
@@ -252,6 +321,7 @@ def measure_ref_mono_candidate(
     _set_epd(session, REF_MONO_FOCUS_EPD_MM)
     focus_shift = _focus_shift_mm(session)
     return RefMonoMeasurements(
+        cornea_ant_role=str(rows[0].Comment).strip(),
         radius_ant_mm=radius_ant,
         radius_post_mm=radius_post,
         conic=conic_ant,
