@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import math
 from dataclasses import asdict, dataclass
 from typing import Any, Mapping, Sequence
@@ -31,6 +32,13 @@ class B0ReviewedSelection:
     lock: B0Lock
     decisions: tuple[MorphologyDecision, ...]
     source_scan_hash: str
+
+
+def _json_normalized(value: Any) -> Any:
+    try:
+        return json.loads(json.dumps(value, ensure_ascii=False, sort_keys=True))
+    except (TypeError, ValueError) as exc:
+        raise B0ReviewError("scan analysis settings are not JSON-serializable") from exc
 
 
 def _curve_from_payload(value: Any, label: str) -> LockCurve:
@@ -77,8 +85,9 @@ def review_b0_scan_payload(
     and delegates all thresholds, gates, DOF and ranking to ``rank_b0_candidates``.
     """
 
-    settings = payload.get("analysis_settings")
-    if settings != asdict(CORNEA_LOCK_B0_555_V2):
+    settings = _json_normalized(payload.get("analysis_settings"))
+    expected_settings = _json_normalized(asdict(CORNEA_LOCK_B0_555_V2))
+    if settings != expected_settings:
         raise B0ReviewError("scan analysis settings do not match CORNEA_LOCK_B0_555_v2")
     if payload.get("selection_locked") is True:
         raise B0ReviewError("source scan is already marked locked")
@@ -108,6 +117,8 @@ def review_b0_scan_payload(
             target = float(row["delta_c40_um"])
         except (KeyError, TypeError, ValueError) as exc:
             raise B0ReviewError("source scan report candidate identity is malformed") from exc
+        if candidate_id in target_by_id:
+            raise B0ReviewError("source scan report candidate IDs must be unique")
         target_by_id[candidate_id] = target
 
     evidence_by_id: dict[str, Mapping[str, Any]] = {}
@@ -161,6 +172,8 @@ def review_and_lock_b0_scan_payload(
         source_scan_hash = str(payload["scan_report"]["scan_hash"])
     except (KeyError, TypeError) as exc:
         raise B0ReviewError("source scan hash is missing") from exc
+    if not source_scan_hash.strip():
+        raise B0ReviewError("source scan hash is empty")
     lock = lock_b0(
         report,
         candidate_id,
