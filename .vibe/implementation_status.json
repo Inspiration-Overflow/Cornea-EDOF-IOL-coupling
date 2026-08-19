@@ -1,114 +1,101 @@
 {
   "version": 2,
   "as_of": "2026-08-19",
-  "phase": "task007-phase-b-evidence-reviewed_offline-review-and-task008-ready",
+  "phase": "task009-fft-mtf-v2-web-migration_local-validation-pending",
   "project_schema_version": 2,
+  "active_branch": "feat/task-009-fft-mtf-main",
   "offline_unit_tests": {
-    "status": "PASS-at-task007-phase-b-source",
-    "passed": 186,
-    "failed": 0,
-    "ruff": "PASS",
-    "compileall": "PASS",
-    "uv_lock_check": "PASS",
-    "validated_source_run_commit": "cb042a6",
-    "web_review_and_task008_changes_require_rerun": true
+    "last_fully_validated_status": "PASS-at-task008",
+    "last_fully_validated_passed": 190,
+    "last_fully_validated_commit": "d4a8f96bce50e01078623fbcbda015374967344a",
+    "task009_migration_requires_rerun": true
   },
-  "environment_pending": [
-    "run pure-Python TASK-007 consolidated review CLI and materialize reviewed evidence",
-    "run complete offline test suite after Web review/schema changes",
-    "run TASK-008 offline formal carrier/residual lock plus exact 18/72 manifest batch",
-    "TASK-009 representative three-configuration Huygens PSF validation after TASK-008"
-  ],
   "tasks": {
     "RMD-TASK-001": "complete",
-    "RMD-TASK-002": "zos-session-and-worker-gate-locally-validated",
-    "RMD-TASK-003": "complete_fail-closed-provenance-hardened",
-    "RMD-TASK-004": "offline-complete_representative-zemax-crosscheck-later",
+    "RMD-TASK-002": "complete-zos-lifecycle-locally-validated",
+    "RMD-TASK-003": "complete",
+    "RMD-TASK-004": "metric-layer-migrated-to-fft-mtf-v2-local-rerun-pending",
     "RMD-TASK-005": "complete_A0-B0.20-C0-frozen",
     "RMD-TASK-006": "complete_B0.20-immutable-lock",
-    "RMD-TASK-007": "phase-a0-a1-a2-a3-pass_phase-b-full18-and-nine-calibrations-acquired_web-mechanism-review-pass_pending-cli-materialization",
-    "RMD-TASK-008": "offline-lock-manifest-implementation-ready_blocked-only-by-task007-reviewed-evidence-materialization",
-    "RMD-TASK-009": "analysis-contract-provenance-hardened_representative-huygens-psf-zernike-pending",
-    "RMD-TASK-010": "thread-safe-thin-gui-composition-complete_local-full-flow-smoke-pending",
-    "RMD-TASK-011": "manifest-bound-acceptance-oracle-complete_real-run72-pending"
-  },
-  "science_gates_still_active": [
-    "TDD-TEST-999 machine-readable clearance requires pure-Python reviewed evidence to pass locally",
-    "TASK-008 immutable 18 carrier/residual locks and exact 72 nominal manifest must exist before TASK-009",
-    "representative-3-config-sampling-and-Huygens-PSF/MTF crosscheck"
-  ],
-  "task005d": {
-    "status": "complete",
-    "analysis_settings": "CORNEA_LOCK_B0_555_v2",
-    "phase_b1": "PASS",
-    "phase_b2": "PASS",
-    "phase_b3": "PASS",
-    "phase_b4": "PASS",
-    "selected_candidate": "B0.20",
-    "b0_lock_sha256": "24c25fea95db394998c0a4dd2ef7b0499e1e792c1275c117c23faeba0d2ea06c",
-    "formal_artifact": true,
-    "selection_locked": true
+    "RMD-TASK-007": "complete_tdd999-cleared",
+    "RMD-TASK-008": "complete_formal-18-carriers_3-residuals_72-configs",
+    "RMD-TASK-009": "fft-mtf-v2-web-implementation_complete_local-representative-validation-pending",
+    "RMD-TASK-010": "gui-scaffold-complete_full-flow-smoke-after-task009",
+    "RMD-TASK-011": "acceptance-migrated-to-mtfa_real-run72-after-task009"
   },
   "task007": {
-    "active_branch": "feat/task-007-iol-residuals",
-    "phase_a0": {"status": "PASS", "validated_commit": "3337be56ca7f70b61763f4b03643867fa01acbf7"},
-    "phase_a1": {"status": "PASS", "validated_commit": "2d97b8fedc11010fd66416f804d83262bf7578e2"},
-    "phase_a2": {
-      "status": "PASS",
-      "validated_code_commit": "10f5d5b229df9d1ce8cfdb39744c9686572f1b61",
-      "evidence_commit": "19678920503b115d3c526daca54c8a0834d74d85",
-      "reference_model": "same_physical_carrier_q0_no_residual"
-    },
-    "phase_a3": {
-      "status": "PASS",
-      "validated_code_commit": "caf6282cb13021465370d54eba3e5df953b8ea7a",
-      "evidence_commit": "dafb04cae2d6246e10143bcf256ed8bc234a75b8",
-      "all_rechecks_converged": true
-    },
-    "phase_b": {
-      "status": "source-batch-complete_web-reviewed",
-      "source_evidence_commit": "a67288a4af1bdd4a9ec692c3b797f0e3e3469d9d",
-      "source_evidence_sha256": "88f89484d1684ce43005d5ce7a30feb88b485065962ee4df5ae517426a231c51",
-      "shared_p0_count": 6,
-      "carrier_count": 18,
-      "calibration_count": 9,
-      "source_numerical_hard_gates_passed": false,
-      "source_false_negative_cause": "actual-eye SSAG Mode-0 aperture/semi-diameter clipping in fixed-2.575-mm low-order readback",
-      "normative_low_order_gate_domain": "STD_IOL_EYE_2024_EPD6_imported_residual_readback",
-      "standard_eye_low_order_gates_passed": true,
-      "all_ray_health_passed": true,
-      "web_mechanism_review": {"WFS": "PASS", "RAD": "PASS", "HOA": "PASS"},
-      "scientific_settings_changed": false,
-      "residual_payload_changed": false,
-      "opticstudio_rerun_required": false,
-      "review_cli": "scripts/review_task_007_consolidated.py",
-      "review_output": "docs/evidence/task007/consolidated_review/TASK_007_CONSOLIDATED_REVIEW.json",
-      "review_cli_local_validation_pending": true
-    },
-    "science_freeze_doc": "docs/TASK_007_IOL_RESIDUAL_SCIENCE_FREEZE_2026-08-19.md",
-    "phase_b_review_doc": "docs/TASK_007_PHASE_B_WEB_REVIEW_2026-08-19.md",
-    "carrier_scaffold": "CONTROLLED_IOL_CARRIER_546_v1",
-    "residual_validation_policy": "RESIDUAL_VALIDATION_546_v1",
-    "piston_tolerance_um": 0.01,
-    "global_defocus_tolerance_d": 0.125,
-    "formal_carrier_locks_created": false,
-    "tdd_999_cleared": false
+    "status": "complete",
+    "review_evidence_commit": "935415efe5152f9318654a60161aaa632c49540d",
+    "review_evidence_sha256": "c11b70f9ed5c2cb874484900445e62be8fc71ad05540a7cac7f12fa6b67ee93a",
+    "carrier_count": 18,
+    "calibration_count": 9,
+    "mechanism_decisions": {"WFS": "PASS", "RAD": "PASS", "HOA": "PASS"},
+    "normative_low_order_gate_domain": "STD_IOL_EYE_2024_EPD6_imported_residual_readback",
+    "scientific_settings_changed": false,
+    "residual_payload_changed": false,
+    "opticstudio_rerun_required": false,
+    "tdd_999_cleared": true
   },
   "task008": {
-    "status": "Web implementation ready for one offline local batch",
-    "script": "scripts/run_task_008_lock_manifest.py",
-    "schema_correction_doc": "docs/TASK_008_LOCK_SCHEMA_CORRECTION_2026-08-19.md",
-    "opticstudio_required": false,
-    "carrier_lock_identity_includes_delta_f_residual": false,
-    "delta_f_residual_role": "calibration/analysis result, not physical lock identity",
-    "expected_carrier_locks": 18,
-    "expected_nominal_configs": 72,
-    "expected_residual_locks": 3
+    "status": "complete",
+    "formal_evidence_commit": "d4a8f96bce50e01078623fbcbda015374967344a",
+    "formal_evidence_sha256": "ab7dc67badb2f74e3c2868f8778bc10beb34f0ea1f8ba37c50c9e6c1d14d7e6d",
+    "carrier_count": 18,
+    "residual_count": 3,
+    "nominal_config_count": 72,
+    "manifest_hash": "29205cf1bd27848bb378fad956709b7cde4686ffd917b10351a992fc0d59ad49",
+    "lock_set_hash": "b1dff4c05d2c817099c913c32d9eb8c0b1c9cfa3c9ca8a2022b20c6521e08923",
+    "formal_artifact": true,
+    "selection_locked": true,
+    "tdd_999_cleared": true
   },
+  "task009": {
+    "status": "web-migration-complete_local-validation-pending",
+    "freeze_doc": "docs/TASK_009_FFT_MTF_MAIN_ANALYSIS_FREEZE_2026-08-19.md",
+    "analysis_settings_id": "NOMINAL_MAIN_FFT_MTF_555_v2",
+    "production_acquisition": "OpticStudio FFT MTF Analysis",
+    "production_sampling_candidate": 128,
+    "convergence_samplings": [64, 128, 256],
+    "defocus_start_d": 0.5,
+    "defocus_stop_d": -3.0,
+    "defocus_step_d": -0.25,
+    "mtfa_max_cpd": 60.0,
+    "mtf_frequency_step_cpd": 1.0,
+    "dof_metric": "distance-anchored DOF50",
+    "through_focus_summary": "TF_MTFa_mean",
+    "removed_production_paths": [
+      "legacy wave-propagation PSF path",
+      "phase-sensitive two-dimensional transfer-function postprocessing",
+      "visual-Strehl weighting"
+    ],
+    "psf_mandatory_artifact": false,
+    "representative_pairs": [
+      "LB_AL2395_A0_WFS_EPD3",
+      "ATC_M3_AL24477_B0_RAD_EPD5",
+      "ATC_M3_AL24477_C0_HOA_EPD5"
+    ],
+    "sampling_convergence_edof_configs": 3,
+    "production_integration_configs": 6,
+    "requires_opticstudio": true,
+    "local_validation_pending": [
+      "active-spec stale-reference cleanup and full offline regression",
+      "FFT MTF 2026 R1 settings/DataSeries capability",
+      "EFFL frequency conversion",
+      "64/128/256 convergence on three representative EDOF configs",
+      "128-sampling repeatability",
+      "three representative MONO/EDOF matched-pair integration",
+      "limited independent FFT-family cross-check"
+    ]
+  },
+  "science_gates_still_active": [
+    "TASK-009 128-to-256 FFT-MTF sampling convergence",
+    "TASK-009 repeatability",
+    "TASK-009 representative six-config matched-pair integration"
+  ],
   "review_hardening": {
-    "status": "2026-08-19-task007-phase-b-reviewed-task008-offline-ready",
     "task005d_normative_science_changed": false,
     "task007_scientific_thresholds_changed": false,
-    "main_run72_pipeline_changed": false
+    "task008_formal_hashes_changed": false,
+    "task009_main_analysis_architecture_simplified_before_run72": true
   }
 }
