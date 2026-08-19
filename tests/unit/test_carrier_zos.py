@@ -6,7 +6,7 @@ from whole_eye_mvp.carrier_zos import (
     choose_paraxial_surface_type,
     iol_ant_to_image_mm_for_base,
 )
-from whole_eye_mvp.domain import BaseId, CURRENT_SCIENTIFIC_BASELINE_ID, ScientificBaseline
+from whole_eye_mvp.domain import CURRENT_SCIENTIFIC_BASELINE_ID, BaseId, ScientificBaseline
 
 
 def test_task007_base_specific_iol_to_image_distance_preserves_axial_length() -> None:

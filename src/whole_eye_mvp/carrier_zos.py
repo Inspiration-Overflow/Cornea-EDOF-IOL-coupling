@@ -14,7 +14,7 @@ from .base_assets import (
 )
 from .carrier_scaffold import CONTROLLED_IOL_CARRIER_546_V1
 from .cornea_zos import FIXED_CORNEA_POST_ROLE
-from .domain import BaseId, BaselineBaseSpec, ScientificBaseline
+from .domain import BaselineBaseSpec, ScientificBaseline
 from .ref_mono import initial_ref_mono_radius_mm, symmetric_biconvex_power_d
 from .ref_mono_zos import solve_ref_mono_radius_mm
 from .zos import SequentialEditor, ZosSession
@@ -93,7 +93,7 @@ def choose_paraxial_surface_type(surface_type_names: tuple[str, ...]) -> str | N
     matches = tuple(name for name in surface_type_names if "paraxial" in name.lower())
     if not matches:
         return None
-    return sorted(matches, key=lambda name: (len(name), name))[0]
+    return min(matches, key=lambda name: (len(name), name))
 
 
 def _set_epd(session: ZosSession, diameter_mm: float) -> None:
@@ -204,7 +204,7 @@ def solve_actual_eye_carrier_power(
     prepare_cornea_for_base(session, baseline, base_id, source)
     start = initial_radius_mm if initial_radius_mm is not None else initial_ref_mono_radius_mm(baseline)
     insert_controlled_carrier(session, baseline, base_id, start, q=0.0)
-    radius, focus_shift = solve_ref_mono_radius_mm(
+    _radius, focus_shift = solve_ref_mono_radius_mm(
         session,
         baseline,
         initial_radius_mm=start,
