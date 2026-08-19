@@ -1,6 +1,6 @@
 # TASK-005D — 角膜冻结资产实现契约
 
-> 状态：**Phase A / A.1 实机 PASS；Phase B 的 Huygens-MTF API 路径 STOP；B0 生产采集已修订为 MFE MTFA Grid=0，等待最小 MTFA 实机 probe。** 本任务补齐 TASK-005 剩余角膜冻结链；不提前进入正式 EDOF carrier/pair lock，也不运行 Run72。
+> 状态：**Phase A / A.1 / B.1 实机 PASS；Phase B 的原 Huygens-MTF API 路径 STOP；B0 生产采集已冻结为 MFE MTFA Grid=0、Samp=3、5 cycles/mm；等待完整五候选 scan 与 morphology review。** 本任务补齐 TASK-005 剩余角膜冻结链；不提前进入正式 EDOF carrier/pair lock，也不运行 Run72。
 
 ## 1. 目标
 
@@ -11,16 +11,17 @@
 3. 由 OpticStudio 构造并验证 A/B/C diagnostic 模型；
 4. 为 A0 和每个 B 候选建立平台独立 `REF_MONO_CORNEA_LOCK`；
 5. 在 LB + REF_MONO 中完成真实五候选 B0 scan；
-6. 复用既有 `b0.py` 排序规则，用户审核后才允许锁定 B0。
+6. 对五候选做显式人工 morphology review；
+7. 复用既有 `b0.py` 排序规则重新排序，用户审核后才允许锁定 B0。
 
-所有 005D 输出在最终确认前均保持：
+完整五候选 scan 完成前均保持：
 
 ```text
 formal_artifact = false
 selection_locked = false
 ```
 
-不得写正式角膜 lock。
+只有 morphology review 完整、reviewed rank 生成并由用户确认后，才允许通过 ProjectStore 写不可变 `B0_LOCK`。
 
 ## 2. 科学来源与冻结规则
 
@@ -29,7 +30,7 @@ selection_locked = false
 - `zemax_corneal_archetypes_ABC_design_v1_5.md`
 - `cornea_lock_analysis_protocol_v1_1.md`
 - `URD-0001 v1.4`
-- `TDD-0001 v1.3`
+- `TDD-0001 v1.4`
 
 冻结规则：
 
@@ -222,19 +223,19 @@ coaxial, no decentration/tilt
 
 LB diagnostic 中两面 `SemiDiameter=3.0 mm`。`REF_MONO` 只服务角膜冻结，不进入 72 配置。
 
-Phase B 首次实机运行已经证明 A0 的候选特异 REF_MONO 可以成功构建；失败发生在之后的 Huygens-MTF analysis settings 类型创建阶段，不属于 REF_MONO 光学求解失败。
+Phase B.0 实机已证明 A0 的候选特异 REF_MONO 可以成功构建；失败发生在之后的 Huygens-MTF analysis settings 类型创建阶段，不属于 REF_MONO 光学求解失败。Phase B.1 中 A0 与 B0.20 的 candidate-specific REF_MONO 也成功用于 MTFA probe。
 
 ## 8. B0 真实 scan
 
 ### 8.1 光学条件
 
-新的分析协议版本为：
+分析协议版本：
 
 ```text
 CORNEA_LOCK_B0_555_v2
 ```
 
-冻结光学条件不变：
+冻结光学条件：
 
 ```text
 λ = 555 nm
@@ -247,7 +248,7 @@ field = 0
 
 每个 defocus 点只临时改变 OBJECT vergence；角膜、IOL、ELP、IMAGE 均不动。0 D 使用模型保存的 nominal infinity OBJECT 状态。
 
-### 8.2 Q_lock 定义不变
+### 8.2 Q_lock 定义
 
 \[
 Q_{lock,p}(F)=\frac{1}{50}\int_0^{50}MTF(f,F)df.
@@ -269,78 +270,128 @@ B0 不再使用 Huygens MTF Analysis / `AS_HuygensMtf`。
 
 ```text
 operand = MTFA
+Samp = 3
 Wave = 1
 Field = 1
 Grid = 0
 Data Type = 0  # modulation amplitude
 ```
 
-`Grid=0` 使用 OpticStudio 推荐的快速、稀疏单频 diffraction-MTF 算法。它不是几何 MTF，也不是自行实现 FFT；OpticStudio FFT Through Focus MTF 的快速计算也使用与 `MTFA, Grid=0` 相同的算法族。
+`Grid=0` 使用 OpticStudio 的快速、稀疏单频 diffraction-MTF 算法。它不是几何 MTF，也不是自行实现 FFT。
 
 同一 plane 的 11 个 MTFA rows 相邻插入，一次 `CalculateMeritFunction()` 计算，随后读取每个 `Value`。临时 rows 必须在 `finally` 删除并验证 MFE row count 恢复；不得 Save lens。
 
-### 8.4 频率积分
+### 8.4 Phase B.1 频率与 sampling 冻结
 
-0–50 cycles/mm 的生产网格使用 5 cycles/mm step，直接梯形积分并除以 50 得到 `Q_lock`。
-
-第一次完整长扫描前，只对 A0 和 B0.20 做一次低成本 frequency-step sanity check：
+Phase B.1 代表状态：
 
 ```text
-5 cycles/mm
-vs
-2.5 cycles/mm
+A0 + B0.20
+EPD3 + EPD5
+0 D / -1.5 D
+Samp = 2 / 3 / 4
+frequency step = 5 / 2.5 cycles/mm
 ```
 
-目的只确认 Q_lock/排序对频率离散不敏感。若没有实质影响，则生产固定 5 cycles/mm；不继续加密。
+实测最大绝对 `Q_lock` 差异：
 
-### 8.5 MTFA sampling
+```text
+Samp 2→3      0.00221683
+Samp 3→4      0.00067564
+5→2.5 cyc/mm  0.00492149
+```
 
-正式 `Samp` 数值在第一次真实 MTFA probe 后冻结。遵循 OpticStudio 官方建议，只比较少数代表状态的相邻 sampling level，取满足本项目稳定性的最小级别；不对 204 个状态重复做 sampling convergence。
+据此冻结：
 
-若 sampling 过低导致 MTFA 返回 0 或明显非物理值，判为 sampling/runtime 问题，不得修改角膜或 B0 科学参数。
+```text
+production Samp = 3
+production frequency step = 5 cycles/mm
+```
 
-### 8.6 排序规则不变
+该决定是工程参数冻结，不新增自动 convergence threshold，不要求重跑 Phase B.1，也不对完整 204 个状态重复 convergence study。
 
-五个候选的真实曲线继续直接交给既有 `rank_b0_candidates()`。
+权威记录：
 
-A0 定义 50% `Q_lock` absolute threshold；B 的 distance-retention gate 仍为：
+```text
+docs/TASK_005D_PHASE_B1_MTFA_PROBE_REVIEW_2026-08-19.md
+```
+
+### 8.5 Full-scan Phase B.1 evidence gate
+
+完整五候选 scan 运行前必须读取既有：
+
+```text
+diagnostics/task005d/b0_mtfa_probe/TASK_005D_MTFA_PROBE.json
+```
+
+并验证：
+
+- runtime acquisition 成功；
+- probe settings 与当前 `CORNEA_LOCK_B0_555_v2` 完全一致；
+- `Samp=2/3/4` 与 `5 vs 2.5 cycles/mm` 证据存在；
+- 汇总差异均为有限非负值。
+
+旧 probe JSON 的 `passed=true` 只作为 `runtime_passed=true` 的兼容别名，不被解释为脚本内部自动收敛阈值。
+
+### 8.6 排序与 morphology review
+
+五个候选的真实曲线首先交给既有 `rank_b0_candidates()`，形成**未经过 morphology 审核的初步 deterministic recommendation**。
+
+A0 定义 50% `Q_lock` absolute threshold；B 的 distance-retention gate：
 
 ```text
 EPD3 >= 80% of A0 distance peak
 EPD5 >= 70% of A0 distance peak
 ```
 
-通过 gate 的候选继续按既有排序：
+通过 gate 的候选按：
 
 1. EPD3 absolute-threshold DOF；
 2. EPD5 absolute-threshold DOF；
 3. EPD3 distance retention；
 4. |ΔC40|。
 
-Morphology 不由软件代替：
+full scan 输出必须保持：
 
 ```text
 morphology_review_pending = true
 selection_locked = false
 ```
 
-用户看完曲线/形态后才允许正式 B0 lock。
-
-## 9. Huygens 的角色
-
-Phase B 首次运行在 `AS_HuygensMtf` 上触发 Python.NET / `ZemaxEngine.dll` hard failure，因此不得继续反复重试该 production 路径。
-
-Huygens 以后只保留为代表配置的独立 QA cross-check：
+随后用户对五候选逐一提供：
 
 ```text
-B0 production        → MFE MTFA Grid=0
-main production MTF  → FFT/diffraction-MTF path
-representative QA    → Huygens cross-check only
+candidate_id
+reject = true/false
+reason = <required when reject=true>
 ```
 
-这与 RMD 已有“3 个代表配置独立 MTF cross-check”要求一致，同时避免把高成本、API 脆弱的 Huygens Analysis 变成日常生产依赖。
+软件用原始实机曲线和全部 morphology decisions 重新调用同一 `rank_b0_candidates()`。因此 reviewed scan hash 会包含 morphology flags/reasons；如果人工排除了初步 rank #1，recommendation 会按同一确定性规则自动更新。
 
-Phase B STOP 后曾实现 `Huygens PSF → Python FFT` 备用路线。经本次复核，该路线不作为 B0 production fallback；OpticStudio 已提供更简单的 MFE `MTFA` diffraction-MTF operand。
+最后用户确认 reviewed recommendation，或明确写 override reason，才允许通过 ProjectStore 生成不可变 `B0_LOCK`。
+
+## 9. TASK-005D 与主实验 Huygens 的边界
+
+Phase B.0 的问题是 `AS_HuygensMtf` settings type 在本工作站触发 Python.NET / `ZemaxEngine.dll` hard failure。因此 TASK-005D/B0 production 不再重试 Huygens MTF Analysis。
+
+本任务只冻结：
+
+```text
+B0 production → MFE MTFA Grid=0
+```
+
+它**不改变 TASK-009/Run72 的主实验 acquisition**。主实验仍服从 TDD v1.4：
+
+```text
+Huygens PSF
+→ deterministic FFT
+→ complex OTF
+→ radial MTF / MTFa / VSOTF
+```
+
+`HuygensPsfRunner` 保留。后续三代表配置的 sampling convergence 和独立 MTF cross-check 在 TASK-009 决定，不把一次 `AS_HuygensMtf` failure 外推为 Huygens PSF 不可用。
+
+Phase B STOP 后曾实现 `Huygens PSF → Python FFT` 作为 TASK-005D B0 备用路线；该 fallback 已废弃，因为 MFE `MTFA` 对 B0 更简单。此决定不删除主实验所需的通用 Huygens PSF 基础设施。
 
 ## 10. 当前代码与输出
 
@@ -356,29 +407,31 @@ src/whole_eye_mvp/ref_mono_calibration.py
 src/whole_eye_mvp/ref_mono_coupled.py
 src/whole_eye_mvp/b0.py
 src/whole_eye_mvp/b0_zos.py
+src/whole_eye_mvp/b0_probe.py
+src/whole_eye_mvp/b0_review.py
 ```
 
-已有诊断脚本：
+脚本：
 
 ```text
 scripts/build_task_005d_cornea_candidates.py
 scripts/run_task_005d_a0_convergence.py
+scripts/probe_task_005d_mtfa.py
 scripts/run_task_005d_b0_scan.py
+scripts/review_task_005d_b0.py
 ```
 
-Phase B STOP 证据：
+证据文档：
 
 ```text
+docs/TASK_005D_PHASE_A_REVIEW_2026-08-19.md
+docs/TASK_005D_PHASE_A1_REVIEW_2026-08-19.md
 docs/TASK_005D_PHASE_B_STOP_2026-08-19.md
-```
-
-本次采集方法修订：
-
-```text
+docs/TASK_005D_PHASE_B1_MTFA_PROBE_REVIEW_2026-08-19.md
 docs/TASK_005D_B0_MTF_ACQUISITION_REVISION_2026-08-19.md
 ```
 
-所有现阶段输出仍只是 diagnostics，不写正式 lock。
+full scan 结果仍是 diagnostic/provisional；只有 `review_task_005d_b0.py` 在全部 morphology decisions 和最终选择已提供后才写正式不可变 B0 lock。
 
 ## 11. 实机执行顺序
 
@@ -394,33 +447,41 @@ A0 fixed-conic N4/N8/N16 已证明 nominal N8 足够稳定。
 
 A0 REF_MONO 构建成功；首次 Huygens MTF analysis settings type 创建触发 `FileLoadException / ZemaxEngine.dll`。不得重复尝试。
 
-### Phase B.1 — 下一步：最小 MTFA probe
+### Phase B.1 — PASS
 
-在 Web 端实现 MFE MTFA primitive 后，本地只运行一个小 probe：
+MFE MTFA runtime/API 路径成功；A0/B0.20、EPD3/EPD5、0D/-1.5D 的 `Samp=2/3/4` 和 frequency-step 5/2.5 evidence 已取得。生产冻结 `Samp=3`、5 cycles/mm。无需重跑。
 
-- A0；
-- B0.20；
-- 少量代表 defocus plane；
-- 比较相邻 `Samp`；
-- 比较 5 vs 2.5 cycles/mm frequency step；
-- 不运行五候选全量 scan。
+### Phase B.2 — 当前下一步：完整 B0 scan
 
-Probe PASS 后冻结 `CORNEA_LOCK_B0_555_v2` 的实际 MTFA `Samp`，再运行完整 Phase B。
+执行：
 
-### Phase B.2 — 完整 B0 scan
+```text
+scripts/run_task_005d_b0_scan.py
+```
 
-只有 Phase B.1 PASS 后才运行 A0 + 五个 B、EPD3/EPD5、17 plane 的完整 MTFA scan，并生成 provisional recommendation。
+只在 Phase B.1 evidence gate 通过后运行 A0 + 五个 B、EPD3/EPD5、17 plane 的完整 MTFA scan。输出必须带 clean Git commit、baseline、OpticStudio installation、probe evidence summary 和输入资产 SHA-256 provenance。
 
-Web 端负责审核曲线、排序和 morphology；用户确认后才允许 lock B0。
+### Phase B.3 — morphology review / rerank / lock
+
+完整 scan 后：
+
+1. 用户审核五候选真实曲线；
+2. 五候选 morphology decisions 必须完整；
+3. `scripts/review_task_005d_b0.py` 使用原始曲线重新排序；
+4. 用户确认 recommendation，或写 override reason；
+5. ProjectStore 写不可变 `locks/B0_LOCK.json`；
+6. B0 lock 后才允许进入 carrier 科学阶段。
 
 ## 12. 尚未完成
 
 仍不得宣称：
 
-- A0/B0/C0 已正式冻结；
-- `REF_MONO_CORNEA_LOCK` 已形成正式 lock；
 - B0 已最终确认；
+- `B0_LOCK` 已生成；
+- A0/B0/C0 已作为完整三原型集合进入正式 carrier 阶段；
 - 角膜 assets 已可进入正式 carrier/Run72。
+
+A0、五个 B 候选、C0 的处方与实机构造证据已经稳定；当前缺口只剩完整 B0 scan 和随后的人为 morphology review/lock。
 
 也不在本任务中处理正式 EDOF carrier/pair locks。
 
