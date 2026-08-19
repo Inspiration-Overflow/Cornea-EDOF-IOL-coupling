@@ -57,20 +57,37 @@ class MfeZernikeStandardSettings:
     vertex: int = 0
 
     def validate(self) -> None:
-        if self.term_primary < 11:
-            raise ValueError("Standard Zernike fit requires term_primary >= 11")
-        if self.term_maximum < self.term_primary:
-            raise ValueError("term_maximum must be at least term_primary")
-        if self.wavelength_number < 1 or self.field_number < 1:
-            raise ValueError("wavelength_number and field_number are 1-based")
-        if self.sampling < 1:
-            raise ValueError("sampling must select a valid pupil grid (1 = 32x32)")
-        if self.zernike_type != 1:
-            raise ValueError("only the verified Standard Zernike type (1) is supported")
-        if not math.isfinite(self.epsilon) or not 0.0 <= self.epsilon < 1.0:
-            raise ValueError("epsilon must lie in [0, 1)")
-        if self.vertex not in (0, 1):
-            raise ValueError("vertex reference must be 0 (chief ray) or 1")
+        expected = {
+            "term_primary": 11,
+            "term_maximum": 37,
+            "wavelength_number": 1,
+            "field_number": 1,
+            "sampling": 1,
+            "zernike_type": 1,
+            "epsilon": 0.0,
+            "vertex": 0,
+        }
+        actual = {
+            "term_primary": self.term_primary,
+            "term_maximum": self.term_maximum,
+            "wavelength_number": self.wavelength_number,
+            "field_number": self.field_number,
+            "sampling": self.sampling,
+            "zernike_type": self.zernike_type,
+            "epsilon": self.epsilon,
+            "vertex": self.vertex,
+        }
+        for name, expected_value in expected.items():
+            value = actual[name]
+            if isinstance(expected_value, float):
+                matches = math.isfinite(float(value)) and float(value) == expected_value
+            else:
+                matches = value == expected_value
+            if not matches:
+                raise ValueError(
+                    f"{name} is frozen to {expected_value!r} by the TASK-005C acquisition contract; "
+                    f"got {value!r}"
+                )
 
 
 @dataclass(frozen=True, slots=True)
