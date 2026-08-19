@@ -108,10 +108,22 @@ def _grid_sag_interpolation_cell(session: ZosSession, surface: Any) -> tuple[Any
             continue
         cell = surface.GetSurfaceCell(column)
         header = str(getattr(cell, "Header", "") or "").strip()
-        candidates.append((cell, header))
+        candidates.append((name, header))
         if "interpol" in header.lower():
             return cell, header
     raise GridSagResidualError(f"Grid Sag interpolation cell not found; candidates={candidates!r}")
+
+
+def _surface_number(surface_count: int, surface_role: str) -> int:
+    if surface_role not in {"anterior", "posterior"}:
+        raise ValueError("surface role must be anterior or posterior")
+    if surface_count == 7:  # actual-eye carrier
+        return 4 if surface_role == "anterior" else 5
+    if surface_count == 6:  # standard-eye carrier
+        return 3 if surface_role == "anterior" else 4
+    raise GridSagResidualError(
+        f"Grid Sag residual requires a 6-surface standard-eye or 7-surface actual-eye carrier; got {surface_count}"
+    )
 
 
 def apply_grid_sag_residual(
@@ -131,9 +143,7 @@ def apply_grid_sag_residual(
 
     session.system.LoadFile(str(source.resolve()), False)
     lde = session.system.LDE
-    if int(lde.NumberOfSurfaces) != 7:
-        raise GridSagResidualError(f"TASK-007 actual-eye carrier must have 7 surfaces, got {lde.NumberOfSurfaces}")
-    surface_number = 4 if candidate.surface_role == "anterior" else 5
+    surface_number = _surface_number(int(lde.NumberOfSurfaces), candidate.surface_role)
     surface = lde.GetSurfaceAt(surface_number)
     radius = float(surface.Radius)
     conic = float(surface.Conic)
@@ -168,8 +178,6 @@ def apply_grid_sag_residual(
     replay = session.system.LDE.GetSurfaceAt(surface_number)
     replay_type = str(getattr(replay, "TypeName", "") or "")
     if "grid" not in replay_type.lower() and "grid" not in str(replay.GetType()).lower():
-        # TypeName is not consistently populated through Python.NET; comment/import readback below
-        # is the stronger portable signal, so only fail when the surface no longer exposes ImportData.
         if not hasattr(replay, "ImportData"):
             raise GridSagResidualError("saved residual surface did not replay as Grid Sag")
 
@@ -208,7 +216,6 @@ def readback_residual_low_order(
     candidate: RadialResidualCandidate,
 ) -> ResidualReadbackResult:
     candidate.validate()
-    surface_number = 4 if candidate.surface_role == "anterior" else 5
     sample_count = round(READBACK_RADIUS_MM / READBACK_STEP_MM) + 1
     radii = tuple(index * READBACK_STEP_MM for index in range(sample_count))
     if not math.isclose(radii[-1], READBACK_RADIUS_MM, rel_tol=0.0, abs_tol=1e-12):
@@ -220,10 +227,16 @@ def readback_residual_low_order(
         raise GridSagResidualError("MONO/EDOF readback file is missing")
 
     session.system.LoadFile(str(mono.resolve()), False)
+    mono_count = int(session.system.LDE.NumberOfSurfaces)
+    surface_number = _surface_number(mono_count, candidate.surface_role)
     mono_sag = tuple(_ssag_mm(session, surface_number, radius) for radius in radii)
     session.system.LoadFile(str(edof.resolve()), False)
+    if int(session.system.LDE.NumberOfSurfaces) != mono_count:
+        raise GridSagResidualError("MONO/EDOF surface counts differ")
     edof_sag = tuple(_ssag_mm(session, surface_number, radius) for radius in radii)
-    residual_sag_um = tuple((right - left) * 1000.0 for left, right in zip(mono_sag, edof_sag, strict=True))
+    residual_sag_um = tuple(
+        (right - left) * 1000.0 for left, right in zip(mono_sag, edof_sag, strict=True)
+    )
 
     scaffold = CONTROLLED_IOL_CARRIER_546_V1
     if candidate.surface_role == "anterior":
@@ -236,7 +249,9 @@ def readback_residual_low_order(
         for radius in radii
     )
     low_order = fit_piston_and_global_defocus(radii, residual_opd)
-    max_error = max(abs(actual - target) for actual, target in zip(residual_opd, target_opd, strict=True))
+    max_error = max(
+        abs(actual - target) for actual, target in zip(residual_opd, target_opd, strict=True)
+    )
     return ResidualReadbackResult(
         platform_id=candidate.platform_id,
         surface_number=surface_number,
