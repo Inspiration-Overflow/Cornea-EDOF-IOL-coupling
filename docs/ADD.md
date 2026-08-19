@@ -1,258 +1,261 @@
 # ADD — 角膜屈光术后 × 非衍射 EDOF IOL Zemax 自动化研究软件
 
-> **文档角色：** Axiomatic Design Document / Design Split。  
-> **目标：** 把已批准的 `URD-0001 v1.4` 拆成尽量独立、可按顺序实现的功能需求（FR）和设计参数（DP），在进入模块设计与编码前检查耦合。  
-> **边界：** 本文不重新定义科学模型，不替代 URD；科学数值、冻结规则、18 个 physical carriers、72 个 nominal configurations、matched MONO/EDOF 原则均以 URD 为需求基线。URD v1.4 的 6 mm standard-eye 数值修订不改变本文 FR/DP 拆分。
+> **文档角色：** Axiomatic Design / Design Split。  
+> **来源：** `URD-0001 v1.5`。本文只规定功能需求到设计参数的拆分，不重新定义科学数值。
 
 ## Metadata
 
-- project: Corneal Archetypes × Nondiffractive EDOF IOL Whole-Eye Zemax Automation
-- document_id: ADD-0001
-- version: 1.4
-- status: approved
-- source_urd: URD-0001 v1.4
-- last_updated: 2026-08-19
-- document_strength: standard
-- target_stack_constraint: Python + ZOS-API + CustomTkinter
-- design_goal: MVP、低耦合、可追溯、可单阶段重跑
+- document_id: `ADD-0001`
+- version: `1.5`
+- status: `approved`
+- source_urd: `URD-0001 v1.5`
+- last_updated: `2026-08-19`
+- design_goal: MVP、低耦合、fail-closed、可追溯、可配置级重跑
 
 ---
 
-# 1. 设计拆分原则
+# 1. 总体设计原则
 
-本项目采用顺序型研究工作流，因此完全“零依赖”并不现实。目标不是把每一步做成彼此不知道对方存在，而是让：
+系统只保留一套科学真相：
 
-1. 每个设计部分只负责一个清楚的研究动作；
-2. 上一步通过明确的文件/数据契约把结果交给下一步；
-3. GUI 不包含科学计算逻辑；
-4. Zemax 会话细节不散落到各个科学流程；
-5. 已冻结的科学对象只能被读取，不能被后续步骤静默改写；
-6. 失败可以停在当前阶段，并从已完成的锁定产物继续。
+```text
+ScientificBaseline / frozen assets
+→ immutable carrier + residual locks
+→ exact 18/72 manifest
+→ versioned analysis settings
+→ Zemax acquisition
+→ deterministic scalar post-processing
+→ result/provenance store
+```
 
-最终设计允许**有明确执行顺序的解耦设计（decoupled design）**，不追求为了矩阵好看而拆出没有意义的小模块。
+设计必须满足：
+
+1. 上游 scientific locks 对下游只读；
+2. Zemax 是主光学计算 oracle；
+3. Python 只做确定性数据提取、单位转换、积分、贯焦摘要和 paired delta；
+4. 主分析只有一条 production acquisition：OpticStudio FFT MTF Analysis；
+5. 不为了结果漂亮回调 cornea/carrier/residual；
+6. 每个 long action 独立失败、独立记录、可按配置重跑；
+7. Web 端负责规范/主代码/审核，本地负责真实 ZOS-API 适配与实机 evidence。
 
 ---
 
-# 2. Functional Requirements
+# 2. FR / DP
 
-| ID | Source | Functional Requirement | 完成条件摘要 |
+| FR | 功能需求 | DP | 设计参数 |
 | --- | --- | --- | --- |
-| ADD-FR-001 | URD-REQ-001~004; URD-AC-001 | 建立可靠的 OpticStudio 运行环境边界，使软件能连接、检查、使用并关闭 ZOS-API 会话。 | 有效路径/license 成功；无效条件明确失败；Sequential Mode 可用。 |
-| ADD-FR-002 | URD-REQ-005~008,010; URD-AC-002~005 | 生成并验证 MVP 基础科学资产：两个基座、`STD_IOL_EYE_2024`、`REF_MONO_CORNEA_LOCK`、A0、五个 B 候选、C0。 | 关键几何与标准眼锚点通过；新模型保存为可追溯 `.zmx`。 |
-| ADD-FR-003 | URD-REQ-009,011; URD-ASM-003; URD-DEC-004 | 完成 B0 第一轮五点扫描，由用户确认一个代表性 B0 并冻结。 | 只在 `LB_AL2395 + REF_MONO_CORNEA_LOCK` 运行；B0 lock 生成后不可由主实验回调。 |
-| ADD-FR-004 | URD-REQ-012~016; URD-AC-006~007 | 为 18 个 `Base × Cornea × Platform` 条件生成平台特异 physical carrier，并建立严格匹配的 MONO/EDOF pair。 | 每个 `P_ijk` 有对应 `Q_k(P_ijk)`；pair carrier 完全相同；仅 residual 不同；保存 `ΔF_residual`。 |
-| ADD-FR-005 | URD-REQ-017~019; URD-AC-008~009 | 生成唯一、完整、可验证的实验清单：18 个 physical carrier 条件和 72 个 nominal analysis configurations。 | 组合计数、唯一性、555 nm、EPD3/EPD5、centered 条件全部通过。 |
-| ADD-FR-006 | URD-REQ-020~022; URD-AC-010 | 使用 Zemax 运行统一分析并形成主科学结果，包括 matched-pair `EDOF − MONO` 比较。 | 每个成功配置产出规定的 MTF/PSF/像差/贯焦数据与配对差值。 |
-| ADD-FR-007 | URD-REQ-023~027; URD-AC-011~014 | 保存 CSV、`.zmx`、图像和日志，维护配置级追溯、失败状态和单阶段/单配置重跑能力。 | 任一结果可追溯；失败不计 completed；可选择性 rerun；surrogate 命名正确。 |
-| ADD-FR-008 | URD-REQ-028; URD-AC-015; URD-DEC-001 | 提供极简 CustomTkinter GUI，让用户无需编辑代码即可执行 Build / Validate / B0 Scan / Build Carriers / Run 72 / Rerun。 | GUI 可选择路径和动作，显示进度、失败、日志和输出目录访问。 |
+| FR-001 | 可可靠建立/关闭 OpticStudio 会话 | DP-001 | `ZosSessionAdapter`，显式 lifecycle/typed errors |
+| FR-002 | 保存 immutable scientific provenance | DP-002 | `ProjectStore` + SHA-256 + artifact index + baseline hash |
+| FR-003 | 建立/验证 bases、standard eye、A/B/C scientific assets | DP-003 | `ScientificAssetWorkflow` |
+| FR-004 | 对五个 B candidate 产生可复现推荐并人工冻结 B0 | DP-004 | `B0Workflow` + deterministic rank + review lock |
+| FR-005 | 求 18 个 power-specific carriers 并验证 residual | DP-005 | `CarrierWorkflow` + P→Q(P) + low/median/high residual gate |
+| FR-006 | 产生 exact 18/72 immutable manifest | DP-006 | pure-data `ManifestBuilder` |
+| FR-007 | 对 nominal configs 运行主 MTF 分析 | DP-007 | FFT-MTF `AnalysisWorkflow` + MTFa engine |
+| FR-008 | 自动形成 MONO/EDOF paired deltas | DP-008 | `MatchedPairDelta` post-processing |
+| FR-009 | 隔离配置级失败与 rerun | DP-009 | append-only run history + target selection |
+| FR-010 | 提供最小桌面入口 | DP-010 | thin `CustomTkinter` shell，不持有 scientific truth |
 
 ---
 
-# 3. Design Parameters
+# 3. 关键解耦
 
-| ID | Satisfies FR | Design Parameter | Rationale |
-| --- | --- | --- | --- |
-| ADD-DP-001 | ADD-FR-001 | **OpticStudio Session Boundary**：统一承担安装路径检查、NetHelper/ZOSAPI 初始化、Application 创建、license 检查、Primary System 获取、Sequential Mode 确认和关闭。 | 把 ZOS-API 生命周期集中在一个边界，避免每个研究流程各自连接/关闭 OpticStudio。 |
-| ADD-DP-002 | ADD-FR-002 | **Scientific Asset Build & Validation Pipeline**：依据 URD 固定科学参数生成基础 `.zmx`，并立即运行对应最小验证。 | 把“生成”和“验证”视为一个完整研究动作，避免生成未验证模型被后续误用。 |
-| ADD-DP-003 | ADD-FR-003 | **B0 Scan & Human Lock Workflow**：只生成五个候选的统一扫描结果，等待用户选择后写入不可变 B0 lock。 | B0 是研究决策，不应由主 3×3 结果或复杂自动优化器反向决定。 |
-| ADD-DP-004 | ADD-FR-004 | **Carrier Solve & Pair Lock Pipeline**：按 `Base × Cornea × Platform` 求 `P_ijk → Q_k(P_ijk)`，进行有限工程回查，随后一次性生成 MONO/EDOF pair lock。 | 把 power–conic 和 matched-pair 约束放在同一设计边界，防止 EDOF 状态被单独重新优化。 |
-| ADD-DP-005 | ADD-FR-005 | **Deterministic Experiment Manifest Builder**：用稳定枚举和 ID 生成 18/72 清单，并在运行前验证组合计数与 nominal 条件。 | 实验矩阵是纯数据问题，应与 Zemax 计算分开，可在无 OpticStudio 时测试。 |
-| ADD-DP-006 | ADD-FR-006 | **Zemax Analysis Workflow**：对 manifest 中单个配置运行统一 Zemax 分析、提取结果，并在配置完成后生成平台内 matched-pair 派生数据。 | 统一分析流程，避免不同组合手工使用不同分析设置。 |
-| ADD-DP-007 | ADD-FR-007 | **Project Store & Run State Boundary**：统一规定项目目录、稳定配置 ID、CSV schema、`.zmx`/图像命名、科学 lock metadata、run status、failed/completed 状态和 rerun 输入；所有产生正式研究产物的工作流均通过这一边界写入。 | 追溯和重跑是从第一份科学资产开始就存在的基础能力，应作为共享持久化边界，而不是分析结束后的附加层；MVP 不需要数据库或复杂任务系统。 |
-| ADD-DP-008 | ADD-FR-008 | **Thin CustomTkinter Workflow Shell**：GUI 只调用应用工作流接口、显示状态和收集用户选择，不直接实现科学求解。 | 保持 GUI 极简，防止 UI 与光学逻辑耦合。 |
+## 3.1 Scientific asset 与 analysis 解耦
+
+A0/B0.20/C0、18 carriers、3 residuals、72 configs 在 analysis 开始前已经冻结。AnalysisWorkflow 只能读取：
+
+- carrier/model hash；
+- residual provenance；
+- manifest identity；
+- `NOMINAL_MAIN_FFT_MTF_555_v2`。
+
+它不得写回任何上游 lock。
+
+## 3.2 Carrier 与 residual 解耦
+
+physical carrier identity 包含：
+
+- P；
+- R_ant/R_post；
+- Q；
+- CT；
+- material；
+- IOL position；
+- achieved SA；
+- residual identity/policy provenance。
+
+`DeltaF_residual` 属于分析结果，不进入 physical carrier lock hash。
+
+## 3.3 Zemax acquisition 与 Python metric 解耦
+
+### Zemax 负责
+
+- FFT MTF sagittal/tangential modulation；
+- effective focal length；
+- Zernike；
+- ray/footprint 等光学 oracle。
+
+### Python 负责
+
+- cycles/mm→cycles/degree；
+- sagittal/tangential average；
+- 0..60 cpd deterministic interpolation；
+- MTFa；
+- distance peak；
+- distance-anchored DOF50；
+- TF_MTFa_mean；
+- shape-recentered axis；
+- EDOF−MONO deltas。
+
+Python 不重新传播光场。
 
 ---
 
-# 4. Design Matrix
+# 4. 主分析 DP
 
-## FR / DP Design Matrix
+## DP-007A — Settings identity
 
-符号：
+```text
+NOMINAL_MAIN_FFT_MTF_555_v2
+```
 
-- `X`：该 DP 直接决定该 FR；
-- `d`：该 FR 在执行时消费此前 DP 已提供的服务或已产生/冻结的产物，但不允许反向修改此前 DP。
+冻结：555 nm、EPD3/5、field0、15-plane +0.50→−3.00 D、1-cpd common grid、0..60 cpd、sampling candidate 128、convergence 64/128/256。
 
-为真实反映持久化依赖，矩阵按**实际执行顺序**排列，而不按 DP 编号排序。`DP-007 Project Store & Run State` 在第一份正式科学资产产生前即建立；之后 Assets、B0、Carrier、Manifest 和 Analysis 都通过它写入正式产物和状态。
+## DP-007B — FFT MTF primitive
 
-| FR \ DP | DP-001 Session | DP-007 Project Store | DP-002 Assets | DP-003 B0 | DP-004 Carrier | DP-005 Manifest | DP-006 Analysis | DP-008 GUI |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ADD-FR-001 Session | X |  |  |  |  |  |  |  |
-| ADD-FR-007 Persistence / audit / rerun |  | X |  |  |  |  |  |  |
-| ADD-FR-002 Scientific assets | d | d | X |  |  |  |  |  |
-| ADD-FR-003 B0 scan/lock | d | d | d | X |  |  |  |  |
-| ADD-FR-004 Carrier + pair locks | d | d | d | d | X |  |  |  |
-| ADD-FR-005 18/72 manifests |  | d |  | d | d | X |  |  |
-| ADD-FR-006 Zemax analyses | d | d |  |  | d | d | X |  |
-| ADD-FR-008 GUI workflow | d | d | d | d | d | d | d | X |
+单个 config/defocus plane：
 
-## Matrix Classification
+```text
+load formal model
+→ set EPD
+→ set analysis-layer object vergence
+→ run OpticStudio FFT MTF
+→ read cycles/mm + tangential + sagittal
+→ restore object vergence
+```
 
-- **classification:** decoupled
-- **reason:** 每个 FR 仍只有一个主要 DP；共享 Project Store、Session 和冻结产物的关系已显式画入矩阵。额外关系均为单向、按顺序消费，不允许下游反向修改上游科学定义或 lock。
-- **execution_order_if_decoupled:**
+禁止保存带临时贯焦状态的 carrier。
+
+## DP-007C — Frequency normalization
+
+使用真实 EFL：
 
 \[
-DP001
-\rightarrow
-DP007
-\rightarrow
-DP002
-\rightarrow
-DP003
-\rightarrow
-DP004
-\rightarrow
-DP005
-\rightarrow
-DP006
+mm/degree=EFL\tan(1^\circ)
 \]
 
-`DP008` 是薄 GUI 外壳，在工作流接口稳定后调用上述步骤，不改变科学执行顺序。
+只允许 acquired support 内插值到 0..60 cpd；不足覆盖即 fail。
 
-关键不可逆边界：
+## DP-007D — MTFa
 
 \[
-\boxed{B0\ LOCK}
+MTFa=\frac1{60}\int_0^{60}\frac{MTF_{sag}+MTF_{tan}}2df
 \]
 
-之后 carrier workflow 只能读取 B0；
+## DP-007E — Through-focus summary
 
-\[
-\boxed{PHYSICAL\ CARRIER\ LOCK}
-\]
+- distance peak：±0.50 D 内最大 MTFa；
+- DOF50：包含 distance peak 的 ≥50% distance-peak MTFa 连续区间；
+- `TF_MTFa_mean`：+0.50→−3.00 D 区间的平均 MTFa；
+- shape axis 只后处理，不改实体模型。
 
-之后 MONO/EDOF 分析只能读取 carrier；
+## DP-007F — Aberration / invariant readback
 
-\[
-\boxed{MANIFEST\ VALID}
-\]
-
-之后 nominal runner 只执行 manifest，不在运行中自行增加/删除配置。
-
-Project Store 只负责持久化、索引和状态，不拥有改变科学对象内容的权限。
+每 config 同时记录 C4/C6/HOA RMS、footprints、model hash、retina/IOL/ELP invariants 和 vignetting 状态。
 
 ---
 
-# 5. Coupling Retry Log
+# 5. TASK-009 risk gate 设计
 
-| Attempt | Problem | Change Made | Result |
-| --- | --- | --- | --- |
-| 1 | 初始直觉方案使用一个“Zemax Automation Controller”同时负责连接、建模、B0、carrier、分析、CSV 和 GUI；任何修改都会波及多数功能。 | 按研究阶段拆成 Session / Assets / B0 / Carrier / Manifest / Analysis / Persistence / GUI 八个设计责任，并用冻结产物传递状态。 | 从 dense coupling 降为顺序型依赖。 |
-| 2 | GUI 若直接访问 ZOS-API 和模型对象，会使界面状态与科学计算强耦合；manifest 若由 analysis runner 临时生成，也会使实验矩阵无法独立验证。 | 将 GUI 定义为薄 workflow shell；将 18/72 manifest 作为独立确定性 DP，在任何分析开始前生成和校验。 | 得到接近 triangular 的 decoupled 设计。 |
-| 3 | 前一版矩阵把 persistence 放在工作流末端，隐藏了 Assets/B0/Carrier/Manifest/Analysis 都需要保存 `.zmx`、CSV、图像、lock 和状态的真实依赖。 | 将 DP-007 明确定义为 `Project Store & Run State Boundary`，前移到科学资产生成之前，并在矩阵中显式标记所有工作流对它的单向依赖。 | 真实依赖被公开后，矩阵仍保持有序的 lower-triangular / decoupled 结构，无需增加新模块。 |
+Run72 之前，使用三个冻结代表 pair：
 
----
+1. LB+A0+WFS+EPD3；
+2. ATC+B0+RAD+EPD5；
+3. ATC+C0+HOA+EPD5。
 
-# 6. Accepted Coupling
+### Sampling gate
 
-**无需要接受的结构性耦合。**
+三个 EDOF config 均跑 64/128/256。
 
-以下属于明确的顺序依赖，不记录为 Accepted Coupling：
+128→256：
 
-1. 产生正式研究产物的工作流必须通过 `Project Store & Run State Boundary` 写入项目目录和状态；
-2. B0 scan 必须消费已验证的 LB/REF/B-candidate 模型；
-3. carrier 求解必须消费冻结的 A0/B0/C0 和标准眼；
-4. nominal analysis 必须消费 carrier locks 和 validated manifest；
-5. GUI 必须调用上述工作流；
-6. 所有真实 Zemax 工作流必须经统一 Session Boundary 访问 OpticStudio。
+- distance-peak MTFa relative ≤2%；
+- TF_MTFa_mean relative ≤2%；
+- distance peak shift ≤0.25 D；
+- DOF50 width change ≤0.25 D。
 
-这些依赖只允许**上游 → 下游**传播，不允许下游回写上游科学定义。
+### Repeatability gate
 
----
+128 同条件重复：
 
-# 7. 科学锁定边界
+- peak grid sample 相同；
+- distance-peak MTFa relative ≤0.1%；
+- TF_MTFa_mean relative ≤0.1%；
+- C4/C6 ≤0.001 µm。
 
-为了防止实现过程中“自动优化”破坏研究设计，ADD 把以下对象视为明确锁定边界：
+### Production-contract gate
 
-| Lock | 产生阶段 | 后续允许 | 后续禁止 |
-| --- | --- | --- | --- |
-| `STD_IOL_EYE_2024_LOCK` | DP-002 | 读取、复制用于校准 | 因某个平台结果改变标准眼 |
-| `A0_LOCK` | DP-002 | 用于两个基座 | 因 WFS/RAD/HOA 表现重新调整 |
-| `B0_LOCK` | DP-003 | 用于 carrier 和主实验 | 因主 3×3 结果重新选择 B0 |
-| `C0_LOCK` | DP-002 | 用于两个基座 | 优化 wT 或 ADD 以改善主结果 |
-| `CARRIER_LOCK_{i,j,k}` | DP-004 | 同时生成 MONO 与 EDOF | 为 EDOF 单独修改 P/R/Q/CT/material |
-| `RESIDUAL_LOCK_k` | DP-004/既定 surrogate 输入 | 叠加到对应 carrier | 为某个 Base/Cornea 单独重做 residual |
-| `MANIFEST_72_LOCK` | DP-005 | 顺序运行或选择性 rerun | runner 运行中静默新增/删除配置 |
+三个 pair 的 MONO+EDOF 共 6 configs 必须完整输出，并能形成 `DeltaF_residual` 和主要 paired deltas。
+
+### Independent extraction check
+
+允许使用 MFE `MTFA Grid=1` 或同 family 独立数据导出检查少量固定频率。该检查只用于发现 API/单位/列解析错误，不成为第二条 production path，也不新增未预注册 threshold。
 
 ---
 
-# 8. 失败与恢复设计要求
+# 6. 设计矩阵
 
-这些不是新的用户需求，而是为已存在的 URD failed/rerun 要求提供设计边界。
+按实现依赖排序：
 
-| Stage | Failure behavior | Recovery input |
-| --- | --- | --- |
-| Session | 不创建研究产物；显示连接/license 原因 | 修复路径/license 后重试 |
-| Asset build/validate | 当前 asset 标记 failed；不创建 lock | 重新 build/validate 该 asset |
-| B0 scan | 保留已完成候选结果；未完成候选可重跑 | 五点 scan manifest |
-| B0 user lock | 未选择时不得进入正式 carrier build | 用户选择 candidate ID |
-| Carrier solve | 单个 carrier failed，不生成该 pair lock | Base/Cornea/Platform ID |
-| Manifest validation | 不允许开始 Run 72 | 修复 lock/manifest 后重建 |
-| Nominal analysis | 仅该 config failed；其他完成结果保留 | config ID |
-| Export | 计算结果不得因图像/CSV 写入失败被标记为完整成功 | config ID + export stage |
+```text
+DP-001 Session
+   ↓
+DP-002 Store / provenance
+   ↓
+DP-003 Scientific assets
+   ↓
+DP-004 B0 lock
+   ↓
+DP-005 Carrier/residual science gate
+   ↓
+DP-006 Formal 18/72 manifest
+   ↓
+DP-007 FFT-MTF analysis
+   ↓
+DP-008 Pair deltas
+   ↓
+DP-009 Acceptance / rerun
+   ↓
+DP-010 GUI orchestration
+```
 
----
-
-# 9. MDD 入口边界
-
-本 ADD 已通过 checkpoint，MDD 按上述 DP 建立 Building Blocks。MDD 至少定义：
-
-- ZOS-API session adapter；
-- 科学配置/锁定数据结构；
-- model builder / validator；
-- B0 scan service；
-- carrier solver；
-- manifest builder；
-- analysis runner；
-- project store / run-state repository；
-- CustomTkinter GUI shell；
-- 公共接口的 inputs / outputs / preconditions / postconditions / invariants / side effects。
-
-MDD 不应把每一个 Zemax surface 做成一个 Python 模块，也不应为未来患者级建模、云端运行、并行集群或复杂 GUI 预先增加抽象层。
+主要为三角依赖，不存在需要下游反向优化上游 scientific assets 的设计耦合。
 
 ---
 
-# 10. ADD Completion Gate
+# 7. Error strategy
 
-- [x] 每个影响行为的已确认 URD requirement 均映射到 FR。
-- [x] 每个 FR 均有一个主要 DP。
-- [x] Design Matrix 已建立。
-- [x] Coupling classification 已明确。
-- [x] 已记录结构重试过程。
-- [x] 当前没有必须接受的 residual structural coupling。
-- [x] 科学 lock 边界已显式记录。
-- [x] 没有为了追求对角矩阵而把系统拆成无意义小块。
-- [x] 没有引入 URD Out-of-Scope 的未来功能。
-- [x] `docs/TRACE.md` 与 `.vibe/trace.json` 已按稳定 ID 建立逐条追踪，并使用 skill 兼容 schema。
+以下情况必须 fail-closed：
 
-## Checkpoint Result
+- ZOS runtime/license/API type 不可用；
+- active manifest/hash/lock-set 不匹配；
+- FFT MTF frequency support < 60 cpd；
+- sagittal/tangential 列无法唯一识别；
+- non-finite MTF/Zernike/EFL；
+- through-focus 修改了实体模型/retina/IOL/ELP；
+- unintended vignetting；
+- TASK-009 convergence/repeatability 不通过；
+- result artifact 不完整却试图标 completed。
 
-\[
-\boxed{
-ADD\ CLASSIFICATION = DECOUPLED
-}
-\]
+允许本地机械适配 API enum/header/cast；不得因 API 适配改科学阈值、模型或 lock。
 
-建议实现顺序为：
+---
 
-\[
-\boxed{
-Session
-\rightarrow
-Project\ Store
-\rightarrow
-Scientific\ Assets
-\rightarrow
-B0\ Lock
-\rightarrow
-Carrier\ Locks
-\rightarrow
-18/72\ Manifest
-\rightarrow
-Analysis
-}
-\]
+# 8. 当前冻结边界
 
-Project Store / Run State 从第一份正式资产开始贯穿记录；CustomTkinter GUI 作为薄外壳调用这些工作流。
+截至 2026-08-19：
 
-**状态：`ADD-0001 v1.4` 继续作为已批准的 Design Split 基线。项目已进入实现阶段；本次只同步 URD v1.4 source metadata 与 `.zmx` 规范，不改变 8 FR / 8 DP 或 DECOUPLED 分类。**
+- TASK-007 complete，TDD-999 cleared；
+- TASK-008 complete，18 carrier / 3 residual / 72 nominal manifest frozen；
+- TASK-009 analysis design 已简化并版本化；
+- Run72 尚未开始，因此 analysis settings v2 不触发正式主实验重跑；
+- TASK-009 只验证分析方法，不重建 TASK-005–008。
