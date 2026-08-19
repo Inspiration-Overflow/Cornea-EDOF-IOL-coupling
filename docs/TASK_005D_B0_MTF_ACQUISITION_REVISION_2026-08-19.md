@@ -1,7 +1,7 @@
 # TASK-005D — B0 MTF 采集方法修订
 
 日期：2026-08-19  
-状态：**文档冻结，代码待按本文实现**
+状态：**文档与 Web 端代码已按本文实现；等待 Phase B.1 最小 MTFA 实机 probe。**
 
 ## 1. 决定
 
@@ -206,17 +206,27 @@ representative QA   → Huygens cross-check only
 
 这与 RMD 原本要求的“代表配置独立 MTF cross-check”一致，同时显著减少 ZOS-API settings-type 暴露和运行时间。
 
-## 10. 旧 PSF→Python FFT 分支的处理
+## 10. 旧 Huygens / PSF→Python FFT 路线
 
-Phase B STOP 后曾实现 `Huygens PSF → Python FFT → MTF` 作为备用路线。经本次设计复核，该路线不再作为 TASK-005D 的目标生产实现：OpticStudio 已提供稳定且更简单的 MFE `MTFA` diffraction-MTF operand，没有必要在本任务中自行重建 MTF pipeline。
+Phase B STOP 后曾实现 `Huygens PSF → Python FFT → MTF` 作为临时备用路线。经本次设计复核，该路线不再作为 TASK-005D 的目标生产实现：OpticStudio 已提供更简单的 MFE `MTFA` diffraction-MTF operand，没有必要在本任务中自行重建 MTF pipeline。
 
-相关代码可以保留到本 PR 的清理阶段再决定是否删除；不得让其成为 B0 production fallback。
+本 PR 中仅服务 TASK-005D 的以下旧路线代码现已删除：
+
+```text
+scripts/probe_task_005d_huygens_psf.py
+src/whole_eye_mvp/zos/huygens_mtf.py
+src/whole_eye_mvp/zos/huygens_psf_mtf.py
+tests/unit/test_zos_huygens_mtf.py
+tests/unit/test_zos_huygens_psf_mtf.py
+```
+
+通用 `HuygensPsfRunner` 基础设施保留，供后续真正需要代表配置 Huygens cross-check 时独立使用；它不属于 B0 production path。
 
 ## 11. 版本与 provenance
 
 原 `CORNEA_LOCK_B0_555_v1` 对应首次 Huygens-MTF 设计，并已有明确 Phase B STOP 证据。
 
-新的 MTFA production acquisition 应记录为：
+新的 MTFA production acquisition 记录为：
 
 ```text
 CORNEA_LOCK_B0_555_v2
@@ -224,17 +234,32 @@ CORNEA_LOCK_B0_555_v2
 
 该变更是角膜冻结分析协议版本更新，不改变 `MVP_2026_v2` 的眼模型 scientific baseline。正式 B0 尚未锁定，因此无需迁移既有 B0 lock。
 
+Web 端已完成：
+
+```text
+MFE MTFA primitive
+Q_lock trapezoidal integration
+v2 settings/provenance
+B0 acquisition switch
+ranking provenance switch
+unit tests
+Phase B.1 probe script
+full Phase B v2 output isolation
+obsolete TASK-005D Huygens fallback cleanup
+```
+
 ## 12. 下一步
 
-严格按小步执行：
+当前只剩实机 Phase B.1：
 
-1. 更新 005D 主实现契约与执行状态；
-2. 实现通用 MFE MTFA primitive；
-3. 纯 Python 单测 operand contract / Q_lock integration；
-4. 最小实机 probe：A0/B0.20、少量 plane，确认 MTFA API 和 sampling；
-5. probe PASS 后才重新运行完整 Phase B；
-6. Web 端审核结果后，用户确认最终 B0；
-7. 最后才允许形成正式角膜 lock。
+1. 同步当前 branch；
+2. 运行 `scripts/probe_task_005d_mtfa.py`；
+3. A0/B0.20、EPD3/EPD5、0D/-1.5D；
+4. 比较 `Samp=2/3/4`；
+5. 比较 frequency step `5 vs 2.5 cycles/mm`；
+6. Web 端根据结果冻结实际 `Samp`；
+7. 冻结后才重新运行完整 Phase B；
+8. 用户审核最终 B0 后才允许形成正式角膜 lock。
 
 ## 参考
 
