@@ -1,13 +1,10 @@
-"""Run the consolidated TASK-009 FFT-MTF representative integration batch.
+"""Run the consolidated TASK-009 FFT-MTF representative validation batch.
 
-One local OpticStudio session performs:
-1. real FFT MTF / EFFL capability validation;
-2. 64/128/256 sampling convergence on three frozen EDOF representative configs;
-3. 128-sampling repeatability on the same three EDOF configs;
-4. production-setting MONO+EDOF integration for the three representative pair keys;
-5. a limited MFE MTFA Grid=1 diagnostic cross-check.
+The batch deliberately separates two roles:
+1. evidence-only sampling convergence/repeatability on three frozen EDOF manifest rows;
+2. a real six-config production-contract integration through ``run_analysis_batch``.
 
-The command never changes TASK-005/006/007/008 locks and never runs the full 72-config matrix.
+No TASK-005/006/007/008 formal asset is modified and the full 72-config run is not started.
 """
 
 from __future__ import annotations
@@ -23,23 +20,24 @@ import subprocess
 from dataclasses import asdict
 from pathlib import Path
 
-from whole_eye_mvp.analysis import summarize_mtfa_curve, with_shape_axis
-from whole_eye_mvp.b0_zos import object_thickness_for_defocus_d
-from whole_eye_mvp.domain import NOMINAL_MAIN_FFT_MTF_555_V2
-from whole_eye_mvp.grid_sag_residual import apply_grid_sag_residual
-from whole_eye_mvp.metrics import mm_per_degree, mtfa, resample_fft_mtf_to_cpd
-from whole_eye_mvp.residual_payload import (
-    RadialResidualCandidate,
-    build_hoa_residual_candidate,
-    build_rad_residual_candidate,
-    build_wfs_residual_candidate,
+from whole_eye_mvp import __version__
+from whole_eye_mvp.analysis import ConfigResult, matched_pair_delta, validate_completed_result
+from whole_eye_mvp.analysis_zos import ZosFftMtfAnalysisBackend
+from whole_eye_mvp.domain import (
+    CURRENT_SCIENTIFIC_BASELINE_ID,
+    NOMINAL_MAIN_FFT_MTF_555_V2,
+    OpticState,
+    RunEnvironment,
+    ScientificBaseline,
 )
-from whole_eye_mvp.store import sha256_file
+from whole_eye_mvp.manifest import ManifestBundle, NominalConfig, compute_lock_set_hash
+from whole_eye_mvp.manifest_io import load_formal_manifest_bundle
+from whole_eye_mvp.metrics import mm_per_degree
+from whole_eye_mvp.quality import settings_hash
+from whole_eye_mvp.store import open_project_store, sha256_file
+from whole_eye_mvp.workflows import run_analysis_batch
 from whole_eye_mvp.zos import (
-    FftMtfRunner,
-    FftMtfSettings,
-    MfeEfflRunner,
-    MfeFullHoaRunner,
+    TASK009_MFE_FULL_HOA_555_V1,
     MfeMtfaRunner,
     MfeMtfaSettings,
     open_zos_session,
@@ -108,59 +106,6 @@ def _load_json(path: Path) -> dict[str, object]:
     return payload
 
 
-def _candidate(platform: str) -> RadialResidualCandidate:
-    builders = {
-        "WFS": build_wfs_residual_candidate,
-        "RAD": build_rad_residual_candidate,
-        "HOA": build_hoa_residual_candidate,
-    }
-    try:
-        return builders[platform]()
-    except KeyError as exc:
-        raise ValueError(f"unknown platform: {platform}") from exc
-
-
-def _require_cycles_per_mm(session) -> None:
-    units = getattr(session.system.SystemData, "Units", None)
-    value = getattr(units, "MTFUnits", None)
-    if value is None:
-        raise RuntimeError("installed API exposes no SystemData.Units.MTFUnits")
-    text = str(value).casefold().replace("_", "")
-    if "millimeter" in text or "millimetre" in text:
-        return
-    try:
-        if int(value) == 0:
-            return
-    except (TypeError, ValueError):
-        pass
-    raise RuntimeError(f"TASK-009 requires cycles/mm MTF units; installed value is {value!r}")
-
-
-def _set_epd(session, pupil_mm: float) -> None:
-    aperture = session.system.SystemData.Aperture
-    aperture.ApertureType = session.zosapi.SystemData.ZemaxApertureType.EntrancePupilDiameter
-    aperture.ApertureValue = float(pupil_mm)
-
-
-def _assert_555_nm(session) -> None:
-    wavelength_nm = float(session.system.SystemData.Wavelengths.GetWavelength(1).Wavelength) * 1000.0
-    if abs(wavelength_nm - NOMINAL_MAIN_FFT_MTF_555_V2.wavelength_nm) > 1.0e-6:
-        raise RuntimeError(f"TASK-009 requires 555 nm, got {wavelength_nm:.12g} nm")
-
-
-def _sample_index_for_mtfa(pupil_sampling: int) -> int:
-    mapping = {32: 1, 64: 2, 128: 3, 256: 4, 512: 5, 1024: 6}
-    try:
-        return mapping[pupil_sampling]
-    except KeyError as exc:
-        raise ValueError(f"no MFE MTFA sampling index is frozen for {pupil_sampling}") from exc
-
-
-def _relative_change(first: float, second: float) -> float:
-    scale = max(abs(first), abs(second), 1.0e-15)
-    return abs(first - second) / scale
-
-
 def _prepare_output(path: Path, overwrite: bool) -> None:
     if path.exists() and any(path.iterdir()):
         if not overwrite:
@@ -169,107 +114,46 @@ def _prepare_output(path: Path, overwrite: bool) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
-def _make_edof(session, mono: Path, platform: str, residual_dat: Path, output: Path) -> Path:
-    apply_grid_sag_residual(session, mono, _candidate(platform), residual_dat, output)
-    return output
+def _relative_change(first: float, second: float) -> float:
+    scale = max(abs(first), abs(second), 1.0e-15)
+    return abs(first - second) / scale
 
 
-def _acquire_curve(session, model_path: Path, pupil_mm: float, sampling: int) -> dict[str, object]:
-    session.system.LoadFile(str(model_path.resolve()), False)
-    _assert_555_nm(session)
-    _require_cycles_per_mm(session)
-    _set_epd(session, pupil_mm)
-
-    object_surface = session.system.LDE.GetSurfaceAt(0)
-    saved_object_thickness = float(object_surface.Thickness)
-    object_surface.Thickness = saved_object_thickness
-    effl_mm = MfeEfflRunner(session.system, session.zosapi).run().effective_focal_length_mm
-    scale_mm_per_degree = mm_per_degree(effl_mm)
-    max_frequency_cyc_per_mm = math.ceil(65.0 / scale_mm_per_degree)
-    fft_runner = FftMtfRunner(session.system, session.zosapi)
-
-    common_cpd: tuple[float, ...] | None = None
-    mtfa_values: list[float] = []
-    fixed_columns: dict[float, list[float]] = {
-        frequency: [] for frequency in NOMINAL_MAIN_FFT_MTF_555_V2.mtf_sample_frequencies_cpd
-    }
-    native_series_meta: dict[str, object] | None = None
-    grid = NOMINAL_MAIN_FFT_MTF_555_V2.defocus_grid()
-    try:
-        for defocus_d in grid:
-            object_surface.Thickness = object_thickness_for_defocus_d(
-                defocus_d,
-                infinity_thickness_mm=saved_object_thickness,
-            )
-            fft = fft_runner.run(
-                FftMtfSettings(
-                    sampling=sampling,
-                    maximum_frequency_cyc_per_mm=float(max_frequency_cyc_per_mm),
-                    use_polarization=NOMINAL_MAIN_FFT_MTF_555_V2.fft_mtf_use_polarization,
-                )
-            )
-            cpd, avg = resample_fft_mtf_to_cpd(
-                fft.frequency_cycles_per_mm,
-                fft.sagittal_mtf,
-                fft.tangential_mtf,
-                effective_focal_length_mm=effl_mm,
-                max_cpd=NOMINAL_MAIN_FFT_MTF_555_V2.mtfa_max_cpd,
-                step_cpd=NOMINAL_MAIN_FFT_MTF_555_V2.mtf_frequency_step_cpd,
-            )
-            if common_cpd is None:
-                common_cpd = tuple(float(value) for value in cpd)
-                native_series_meta = {
-                    "description": fft.description,
-                    "x_label": fft.x_label,
-                    "series_labels": fft.series_labels,
-                    "native_frequency_min_cycles_per_mm": fft.frequency_cycles_per_mm[0],
-                    "native_frequency_max_cycles_per_mm": fft.frequency_cycles_per_mm[-1],
-                    "native_frequency_count": len(fft.frequency_cycles_per_mm),
-                }
-            elif tuple(float(value) for value in cpd) != common_cpd:
-                raise RuntimeError("TASK-009 common cpd grid changed between defocus planes")
-            mtfa_values.append(mtfa(cpd, avg, max_cpd=NOMINAL_MAIN_FFT_MTF_555_V2.mtfa_max_cpd))
-            for frequency in fixed_columns:
-                index = int(round(frequency / NOMINAL_MAIN_FFT_MTF_555_V2.mtf_frequency_step_cpd))
-                fixed_columns[frequency].append(float(avg[index]))
-    finally:
-        object_surface.Thickness = saved_object_thickness
-
-    rows = with_shape_axis(
-        grid,
-        tuple(mtfa_values),
-        tuple(tuple(fixed_columns[frequency]) for frequency in (10.0, 20.0, 30.0, 40.0, 50.0, 60.0)),
+def _select_pair(
+    bundle: ManifestBundle,
+    base_id: str,
+    cornea_id: str,
+    platform_id: str,
+    pupil_mm: float,
+) -> tuple[NominalConfig, NominalConfig]:
+    matches = tuple(
+        config
+        for config in bundle.nominal_configs
+        if config.base_id == base_id
+        and config.cornea_id == cornea_id
+        and config.platform_id == platform_id
+        and config.pupil_mm == pupil_mm
     )
-    summary = summarize_mtfa_curve(rows)
-    object_surface.Thickness = saved_object_thickness
-    hoa = MfeFullHoaRunner(session.system, session.zosapi).run()
-    return {
-        "sampling": sampling,
-        "pupil_mm": pupil_mm,
-        "effective_focal_length_mm": effl_mm,
-        "mm_per_degree": scale_mm_per_degree,
-        "requested_max_frequency_cycles_per_mm": max_frequency_cyc_per_mm,
-        "native_series": native_series_meta,
-        "through_focus": [asdict(row) for row in rows],
-        "summary": summary,
-        "aberrations": {
-            "c40_um": hoa.c40_um,
-            "c60_um": hoa.c60_um,
-            "hoa_rms_um": hoa.hoa_rms_um,
-        },
-    }
+    if len(matches) != 2:
+        raise SystemExit(
+            f"frozen manifest does not contain exactly one MONO/EDOF pair for "
+            f"{base_id}/{cornea_id}/{platform_id}/EPD{pupil_mm:g}"
+        )
+    mono = next((config for config in matches if config.optic_state == OpticState.MONO), None)
+    edof = next((config for config in matches if config.optic_state == OpticState.EDOF), None)
+    if mono is None or edof is None or mono.pair_key != edof.pair_key:
+        raise SystemExit("representative frozen manifest pair is malformed")
+    return mono, edof
 
 
-def _check_convergence(low: dict[str, object], nominal: dict[str, object], high: dict[str, object]) -> dict[str, object]:
-    del low  # retained in evidence; convergence gate is nominal 128 versus high 256
-    n = nominal["summary"]
-    h = high["summary"]
-    if not isinstance(n, dict) or not isinstance(h, dict):
-        raise TypeError("TASK-009 convergence summary is invalid")
-    peak_mtfa_rel = _relative_change(float(n["distance_peak_mtfa"]), float(h["distance_peak_mtfa"]))
-    tf_mean_rel = _relative_change(float(n["tf_mtfa_mean"]), float(h["tf_mtfa_mean"]))
-    peak_shift = abs(float(n["distance_peak_retina_d"]) - float(h["distance_peak_retina_d"]))
-    dof50_change = abs(float(n["dof50_width_d"]) - float(h["dof50_width_d"]))
+def _check_convergence(nominal: ConfigResult, high: ConfigResult) -> dict[str, object]:
+    peak_mtfa_rel = _relative_change(
+        nominal.distance_peak_mtfa,
+        high.distance_peak_mtfa,
+    )
+    tf_mean_rel = _relative_change(nominal.tf_mtfa_mean, high.tf_mtfa_mean)
+    peak_shift = abs(nominal.distance_peak_retina_d - high.distance_peak_retina_d)
+    dof50_change = abs(nominal.dof50_width_d - high.dof50_width_d)
     passed = (
         peak_mtfa_rel <= CONVERGENCE_REL_TOL
         and tf_mean_rel <= CONVERGENCE_REL_TOL
@@ -285,18 +169,12 @@ def _check_convergence(low: dict[str, object], nominal: dict[str, object], high:
     }
 
 
-def _check_repeatability(first: dict[str, object], second: dict[str, object]) -> dict[str, object]:
-    a = first["summary"]
-    b = second["summary"]
-    aa = first["aberrations"]
-    bb = second["aberrations"]
-    if not all(isinstance(item, dict) for item in (a, b, aa, bb)):
-        raise TypeError("TASK-009 repeatability evidence is invalid")
-    peak_rel = _relative_change(float(a["distance_peak_mtfa"]), float(b["distance_peak_mtfa"]))
-    tf_rel = _relative_change(float(a["tf_mtfa_mean"]), float(b["tf_mtfa_mean"]))
-    c40_delta = abs(float(aa["c40_um"]) - float(bb["c40_um"]))
-    c60_delta = abs(float(aa["c60_um"]) - float(bb["c60_um"]))
-    same_peak_sample = float(a["distance_peak_retina_d"]) == float(b["distance_peak_retina_d"])
+def _check_repeatability(first: ConfigResult, second: ConfigResult) -> dict[str, object]:
+    peak_rel = _relative_change(first.distance_peak_mtfa, second.distance_peak_mtfa)
+    tf_rel = _relative_change(first.tf_mtfa_mean, second.tf_mtfa_mean)
+    c40_delta = abs(first.aberrations.c40_um - second.aberrations.c40_um)
+    c60_delta = abs(first.aberrations.c60_um - second.aberrations.c60_um)
+    same_peak_sample = first.distance_peak_retina_d == second.distance_peak_retina_d
     passed = (
         peak_rel <= REPEAT_REL_TOL
         and tf_rel <= REPEAT_REL_TOL
@@ -314,18 +192,59 @@ def _check_repeatability(first: dict[str, object], second: dict[str, object]) ->
     }
 
 
-def _mtfa_crosscheck(session, model_path: Path, pupil_mm: float, production: dict[str, object]) -> dict[str, object]:
-    session.system.LoadFile(str(model_path.resolve()), False)
-    _assert_555_nm(session)
-    _require_cycles_per_mm(session)
-    _set_epd(session, pupil_mm)
-    object_surface = session.system.LDE.GetSurfaceAt(0)
-    saved = float(object_surface.Thickness)
-    object_surface.Thickness = saved
-    effl = float(production["effective_focal_length_mm"])
+def _summary(result: ConfigResult) -> dict[str, object]:
+    return {
+        "config_id": result.config.config_id,
+        "pair_key": result.config.pair_key,
+        "state": str(result.config.optic_state),
+        "pupil_mm": result.config.pupil_mm,
+        "distance_peak_retina_d": result.distance_peak_retina_d,
+        "distance_peak_mtfa": result.distance_peak_mtfa,
+        "mtfa_at_zero_d": result.mtfa_at_zero_d,
+        "dof50_far_d": result.dof50_far_d,
+        "dof50_near_d": result.dof50_near_d,
+        "dof50_width_d": result.dof50_width_d,
+        "tf_mtfa_mean": result.tf_mtfa_mean,
+        "c40_um": result.aberrations.c40_um,
+        "c60_um": result.aberrations.c60_um,
+        "hoa_rms_um": result.aberrations.hoa_rms_um,
+        "model_hash": result.model_hash_before,
+        "entity_fingerprint": result.entity_fingerprint_before,
+        "analysis_settings_hash": result.analysis_settings_hash,
+        "hoa_settings_id": result.hoa_settings_id,
+        "hoa_settings_hash": result.hoa_settings_hash,
+    }
+
+
+def _opticstudio_version(session) -> str:
+    for name in ("ZOSVersion", "Version"):
+        value = getattr(session.app, name, None)
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    raise RuntimeError("installed application exposes no OpticStudio version string")
+
+
+def _sample_index_for_mtfa(pupil_sampling: int) -> int:
+    mapping = {32: 1, 64: 2, 128: 3, 256: 4, 512: 5, 1024: 6}
+    try:
+        return mapping[pupil_sampling]
+    except KeyError as exc:
+        raise ValueError(f"no MFE MTFA sampling index is frozen for {pupil_sampling}") from exc
+
+
+def _mtfa_crosscheck(
+    session,
+    result: ConfigResult,
+    backend_diagnostics: dict[str, object],
+) -> dict[str, object]:
+    session.system.LoadFile(str(Path(result.artifacts.zos_path).resolve()), False)
+    aperture = session.system.SystemData.Aperture
+    aperture.ApertureType = session.zosapi.SystemData.ZemaxApertureType.EntrancePupilDiameter
+    aperture.ApertureValue = float(result.config.pupil_mm)
+    effl = float(backend_diagnostics["effective_focal_length_mm"])
     scale = mm_per_degree(effl)
     frequencies_mm = tuple(frequency / scale for frequency in CROSSCHECK_CPD)
-    result = MfeMtfaRunner(session.system, session.zosapi).run(
+    mfe = MfeMtfaRunner(session.system, session.zosapi).run(
         MfeMtfaSettings(
             frequencies_cyc_per_mm=frequencies_mm,
             sampling=_sample_index_for_mtfa(128),
@@ -333,18 +252,16 @@ def _mtfa_crosscheck(session, model_path: Path, pupil_mm: float, production: dic
             data_type=0,
         )
     )
-    rows = production["through_focus"]
-    if not isinstance(rows, list):
-        raise TypeError("production through-focus evidence is invalid")
-    zero = next(row for row in rows if abs(float(row["defocus_retina_d"])) <= 1.0e-12)
-    fft_values = tuple(float(zero[f"mtf{int(frequency)}"]) for frequency in CROSSCHECK_CPD)
-    deltas = tuple(abs(left - right) for left, right in zip(fft_values, result.mtf_average, strict=True))
+    zero = next(row for row in result.rows if abs(row.defocus_retina_d) <= 1.0e-12)
+    fft_values = (zero.mtf20, zero.mtf40, zero.mtf60)
+    deltas = tuple(abs(left - right) for left, right in zip(fft_values, mfe.mtf_average, strict=True))
     return {
         "cpd": CROSSCHECK_CPD,
         "cycles_per_mm": frequencies_mm,
         "fft_mtf_analysis_average": fft_values,
-        "mfe_mtfa_grid1": result.mtf_average,
+        "mfe_mtfa_grid1": mfe.mtf_average,
         "absolute_differences": deltas,
+        "fft_runtime": backend_diagnostics["fft_runtime"],
         "diagnostic_only_no_new_threshold": True,
     }
 
@@ -385,118 +302,210 @@ def main() -> None:
         or task008.get("nominal_config_count") != 72
     ):
         raise SystemExit("TASK-009 requires the frozen TASK-008 formal evidence")
+
+    manifest_artifacts = task008.get("manifest_artifact_sha256")
+    if not isinstance(manifest_artifacts, dict):
+        raise TypeError("TASK-008 evidence lacks manifest artifact hashes")
+    bundle = load_formal_manifest_bundle(
+        project_dir,
+        expected_manifest_hash=str(task008.get("manifest_hash", "")),
+        expected_physical_csv_sha256=str(manifest_artifacts.get("TASK008_PHYSICAL_CARRIER_LOCKS", "")),
+        expected_nominal_csv_sha256=str(manifest_artifacts.get("TASK008_NOMINAL_72", "")),
+    )
+    if compute_lock_set_hash(bundle.physical_carriers) != task008.get("lock_set_hash"):
+        raise SystemExit("rebuilt formal lock-set hash differs from TASK-008 evidence")
+
+    carrier_hashes = task008.get("carrier_asset_sha256")
+    residual_hashes = task008.get("residual_asset_sha256")
+    if not isinstance(carrier_hashes, dict) or not isinstance(residual_hashes, dict):
+        raise TypeError("TASK-008 evidence lacks carrier/residual asset hashes")
+
     output = project_dir / OUTPUT_REL
     _prepare_output(output, args.overwrite)
-
     settings = NOMINAL_MAIN_FFT_MTF_555_V2
     settings.validate()
+    store = open_project_store(project_dir, ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID))
+
+    pairs = tuple(_select_pair(bundle, *spec) for spec in REPRESENTATIVES)
+    selected_ids = tuple(config.config_id for pair in pairs for config in pair)
     convergence: dict[str, object] = {}
-    integration: dict[str, object] = {}
-    crosschecks: dict[str, object] = {}
-    csv_rows: list[dict[str, object]] = []
     all_convergence_passed = True
     all_repeatability_passed = True
 
     with open_zos_session(args.install_dir) as session:
-        for base, cornea, platform, pupil in REPRESENTATIVES:
-            key = f"{base}_{cornea}_{platform}_EPD{int(pupil)}"
-            carrier_id = f"CAR_{base}_{cornea}_{platform}"
-            mono_path = project_dir / "models" / "carriers" / f"{carrier_id}.zmx"
-            if not mono_path.is_file():
-                raise SystemExit(f"formal representative carrier missing: {carrier_id}")
-            carrier_hashes = task008.get("carrier_asset_sha256")
-            if not isinstance(carrier_hashes, dict) or sha256_file(mono_path) != carrier_hashes.get(carrier_id):
-                raise SystemExit(f"formal representative carrier hash mismatch: {carrier_id}")
-            residual_dat = project_dir / "models" / "assets" / "residuals" / f"RESIDUAL_{platform}_546_v1.DAT"
-            residual_hashes = task008.get("residual_asset_sha256")
-            if not isinstance(residual_hashes, dict) or not residual_dat.is_file() or sha256_file(residual_dat) != residual_hashes.get(platform):
-                raise SystemExit(f"formal representative residual hash mismatch: {platform}")
-            edof_path = output / "models" / f"{carrier_id}_EDOF.zmx"
-            _make_edof(session, mono_path, platform, residual_dat, edof_path)
+        opticstudio_version = _opticstudio_version(session)
+        for mono, edof in pairs:
+            key = edof.pair_key
+            samples: dict[str, ConfigResult] = {}
+            sample_diagnostics: dict[str, object] = {}
+            for sampling in settings.fft_mtf_convergence_samplings:
+                backend = ZosFftMtfAnalysisBackend(
+                    session,
+                    project_dir,
+                    carrier_hashes,
+                    residual_hashes,
+                    sampling=sampling,
+                )
+                result = backend.run_config(
+                    edof,
+                    output / "convergence" / key / str(sampling),
+                    f"task009-convergence-{sampling}",
+                )
+                validate_completed_result(result, require_files=True, expected_config=edof)
+                samples[str(sampling)] = result
+                sample_diagnostics[str(sampling)] = backend.diagnostics[edof.config_id]
 
-            samples = {
-                str(sampling): _acquire_curve(session, edof_path, pupil, sampling)
-                for sampling in settings.fft_mtf_convergence_samplings
-            }
-            repeat128 = _acquire_curve(session, edof_path, pupil, settings.fft_mtf_sampling)
-            convergence_gate = _check_convergence(samples["64"], samples["128"], samples["256"])
-            repeat_gate = _check_repeatability(samples["128"], repeat128)
+            repeat_backend = ZosFftMtfAnalysisBackend(
+                session,
+                project_dir,
+                carrier_hashes,
+                residual_hashes,
+                sampling=settings.fft_mtf_sampling,
+            )
+            repeat128 = repeat_backend.run_config(
+                edof,
+                output / "repeatability" / key,
+                "task009-repeat-128",
+            )
+            validate_completed_result(repeat128, require_files=True, expected_config=edof)
+            convergence_gate = _check_convergence(samples["128"], samples["256"])
+            repeatability_gate = _check_repeatability(samples["128"], repeat128)
             all_convergence_passed = all_convergence_passed and bool(convergence_gate["passed"])
-            all_repeatability_passed = all_repeatability_passed and bool(repeat_gate["passed"])
+            all_repeatability_passed = all_repeatability_passed and bool(repeatability_gate["passed"])
             convergence[key] = {
-                "pair": {"base_id": base, "cornea_id": cornea, "platform_id": platform, "pupil_mm": pupil},
-                "edof_model_sha256": sha256_file(edof_path),
-                "sampling_results": samples,
-                "repeat_128": repeat128,
+                "frozen_manifest_config_id": edof.config_id,
+                "sampling_results": {name: _summary(value) for name, value in samples.items()},
+                "sampling_diagnostics": sample_diagnostics,
+                "repeat_128": _summary(repeat128),
+                "repeat_128_diagnostics": repeat_backend.diagnostics[edof.config_id],
                 "convergence_gate": convergence_gate,
-                "repeatability_gate": repeat_gate,
+                "repeatability_gate": repeatability_gate,
             }
 
-            mono128 = _acquire_curve(session, mono_path, pupil, settings.fft_mtf_sampling)
-            edof128 = samples["128"]
-            mono_summary = mono128["summary"]
-            edof_summary = edof128["summary"]
-            if not isinstance(mono_summary, dict) or not isinstance(edof_summary, dict):
-                raise TypeError("representative integration summary is invalid")
-            delta_f = float(edof_summary["distance_peak_retina_d"]) - float(mono_summary["distance_peak_retina_d"])
-            integration[key] = {
-                "pair": {"base_id": base, "cornea_id": cornea, "platform_id": platform, "pupil_mm": pupil},
-                "mono": mono128,
-                "edof": edof128,
-                "delta_f_residual_d": delta_f,
-                "delta_distance_peak_mtfa": float(edof_summary["distance_peak_mtfa"]) - float(mono_summary["distance_peak_mtfa"]),
-                "delta_mtfa_at_zero_d": float(edof_summary["mtfa_at_zero_d"]) - float(mono_summary["mtfa_at_zero_d"]),
-                "delta_dof50_width_d": float(edof_summary["dof50_width_d"]) - float(mono_summary["dof50_width_d"]),
-                "delta_tf_mtfa_mean": float(edof_summary["tf_mtfa_mean"]) - float(mono_summary["tf_mtfa_mean"]),
+        integration_backend = ZosFftMtfAnalysisBackend(
+            session,
+            project_dir,
+            carrier_hashes,
+            residual_hashes,
+            sampling=settings.fft_mtf_sampling,
+        )
+        environment = RunEnvironment(
+            __version__,
+            opticstudio_version,
+            CURRENT_SCIENTIFIC_BASELINE_ID,
+            settings.settings_id,
+            bundle.manifest_hash,
+            compute_lock_set_hash(bundle.physical_carriers),
+        )
+        integration_run = run_analysis_batch(
+            integration_backend,
+            bundle,
+            project_dir / "results" / "task009_representative",
+            store=store,
+            environment=environment,
+            selection=selected_ids,
+            require_files=True,
+        )
+        integration_passed = len(integration_run.completed) == 6 and not integration_run.failed
+        integration: dict[str, object] = {
+            "run_id": integration_run.run_id,
+            "environment_ref": integration_run.environment_ref,
+            "completed_config_ids": [outcome.config_id for outcome in integration_run.completed],
+            "failed": [
+                {
+                    "config_id": outcome.config_id,
+                    "error_type": outcome.error_type,
+                    "error_message": outcome.error_message,
+                }
+                for outcome in integration_run.failed
+            ],
+            "production_workflow_exercised": True,
+            "passed": integration_passed,
+            "pairs": {},
+        }
+        crosschecks: dict[str, object] = {}
+        csv_rows: list[dict[str, object]] = []
+        result_by_id = {
+            outcome.config_id: outcome.result
+            for outcome in integration_run.completed
+            if outcome.result is not None
+        }
+        pair_block = integration["pairs"]
+        if not isinstance(pair_block, dict):
+            raise TypeError("internal integration pair block is invalid")
+        for mono_config, edof_config in pairs:
+            mono = result_by_id.get(mono_config.config_id)
+            edof = result_by_id.get(edof_config.config_id)
+            if mono is None or edof is None:
+                continue
+            delta = matched_pair_delta(mono, edof)
+            pair_block[edof.pair_key] = {
+                "mono": _summary(mono),
+                "edof": _summary(edof),
+                "paired_deltas": dict(delta.deltas),
+                "delta_f_residual_d": delta.deltas["distance_peak_retina_d"],
             }
-            crosschecks[key] = _mtfa_crosscheck(session, edof_path, pupil, edof128)
-
-            for state, result in (("MONO", mono128), ("EDOF", edof128)):
-                for row in result["through_focus"]:
+            crosschecks[edof.pair_key] = _mtfa_crosscheck(
+                session,
+                edof,
+                integration_backend.diagnostics[edof.config_id],
+            )
+            for state, result in (("MONO", mono), ("EDOF", edof)):
+                for row in result.rows:
                     csv_rows.append(
                         {
-                            "pair_key": key,
+                            "config_id": result.config.config_id,
+                            "pair_key": result.config.pair_key,
                             "state": state,
-                            "sampling": 128,
-                            **row,
+                            "sampling": settings.fft_mtf_sampling,
+                            **asdict(row),
                         }
                     )
 
     report: dict[str, object] = {
-        "schema_version": 1,
+        "schema_version": 2,
         "phase": "TASK-009-FFT-MTF-REPRESENTATIVE",
         "evidence_only": True,
         "formal_artifact": False,
         "run72_started": False,
         "code_commit": code_commit,
         "task008_evidence_sha256": sha256_file(TASK008_EVIDENCE),
-        "task008_manifest_hash": task008.get("manifest_hash"),
-        "task008_lock_set_hash": task008.get("lock_set_hash"),
-        "settings": asdict(settings),
-        "representatives": REPRESENTATIVES,
+        "task008_manifest_hash": bundle.manifest_hash,
+        "task008_lock_set_hash": compute_lock_set_hash(bundle.physical_carriers),
+        "analysis_settings": asdict(settings),
+        "analysis_settings_hash": settings_hash(settings),
+        "hoa_settings": asdict(TASK009_MFE_FULL_HOA_555_V1),
+        "hoa_settings_hash": TASK009_MFE_FULL_HOA_555_V1.settings_hash,
+        "representative_manifest_config_ids": selected_ids,
         "convergence": convergence,
         "integration": integration,
         "crosschecks": crosschecks,
         "all_convergence_passed": all_convergence_passed,
         "all_repeatability_passed": all_repeatability_passed,
+        "all_six_config_integration_passed": integration_passed,
         "crosscheck_review_pending_web": True,
-        "production_sampling_locked": all_convergence_passed and all_repeatability_passed,
-        "next_gate": "Web review of FFT-family diagnostic cross-check and TASK-009 evidence before Run72",
+        "production_sampling_candidate_passed": (
+            all_convergence_passed and all_repeatability_passed and integration_passed
+        ),
+        "production_sampling_locked": False,
+        "next_gate": "Web review of TASK-009 evidence before formal sampling lock / Run72",
     }
     local_report = output / LOCAL_REPORT
     local_report.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     local_csv = output / REPO_TF_CSV
-    _write_csv(local_csv, csv_rows)
+    if csv_rows:
+        _write_csv(local_csv, csv_rows)
     report["local_report_sha256"] = hashlib.sha256(local_report.read_bytes()).hexdigest()
 
     if args.write_repo_evidence:
         REPO_EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
         repo_payload = _sanitize(report)
         text = json.dumps(repo_payload, ensure_ascii=False, indent=2)
-        if ":\\" in text or ":/" in text or ".zmx" in text.casefold():
-            raise SystemExit("sanitized TASK-009 evidence still contains a local path")
+        if ":\\" in text or ":/" in text or ".zmx" in text.casefold() or ".dat" in text.casefold():
+            raise SystemExit("sanitized TASK-009 evidence still contains a local optical path")
         (REPO_EVIDENCE_DIR / REPO_EVIDENCE_NAME).write_text(text, encoding="utf-8")
-        _write_csv(REPO_EVIDENCE_DIR / REPO_TF_CSV, csv_rows)
+        if csv_rows:
+            _write_csv(REPO_EVIDENCE_DIR / REPO_TF_CSV, csv_rows)
 
     print(
         json.dumps(
@@ -504,14 +513,16 @@ def main() -> None:
                 "report": str(local_report.resolve()),
                 "all_convergence_passed": all_convergence_passed,
                 "all_repeatability_passed": all_repeatability_passed,
+                "all_six_config_integration_passed": integration_passed,
                 "crosscheck_review_pending_web": True,
+                "production_sampling_locked": False,
                 "run72_started": False,
             },
             ensure_ascii=False,
             indent=2,
         )
     )
-    if not all_convergence_passed or not all_repeatability_passed:
+    if not all_convergence_passed or not all_repeatability_passed or not integration_passed:
         raise SystemExit(2)
 
 
