@@ -127,7 +127,7 @@ Z37  N8→N16 = +0.0019070625 waves
 
 结论：A0 nominal N8 足够稳定；不增加 N32，不重新调 conic。
 
-### Phase B.0 — Huygens production path STOP
+### Phase B.0 — Huygens MTF production path STOP
 
 首次长扫描在 A0 候选特异 REF_MONO 已成功构建后，首次创建 Huygens MTF analysis settings 类型时触发：
 
@@ -147,13 +147,14 @@ A procedure imported by 'ZemaxEngine.dll' could not be loaded.
 docs/TASK_005D_PHASE_B_STOP_2026-08-19.md
 ```
 
-### B0 acquisition v2 — Web 实现完成
+### B0 acquisition v2 — 已实现并实机验证
 
 生产 B0 MTF 已改为：
 
 ```text
 CORNEA_LOCK_B0_555_v2
 MFE MTFA diffraction MTF
+Samp = 3
 Grid = 0
 Data Type = 0
 Wave = 1
@@ -161,7 +162,7 @@ Field = 1
 frequency = 0..50 cycles/mm, production step 5
 ```
 
-Web 端已经完成：
+代码已具备：
 
 ```text
 MFE MTFA temporary-operand primitive
@@ -172,32 +173,18 @@ finally cleanup + MFE row-count restore
 B0 acquisition switch to MTFA
 B0 scan-hash provenance switch to v2
 A0/B0.20 focused probe helper
-Phase B.1 probe script
-full v2 scan output isolation
-obsolete TASK-005D Huygens/PSF fallback cleanup
+Phase B.1 evidence validator
+full scan evidence gate
+full scan Git/input-hash provenance
+morphology review → deterministic rerank → immutable B0 lock path
 unit tests
 ```
 
 `Q_lock`、EPD3/EPD5、17-plane defocus grid、distance-retention gates 和 `rank_b0_candidates()` 全部不变。
 
-完整修订依据：
+### Phase B.1 — PASS；生产参数已冻结
 
-```text
-docs/TASK_005D_B0_MTF_ACQUISITION_REVISION_2026-08-19.md
-docs/TASK_005D_CORNEA_LOCK_ASSETS.md
-```
-
-Huygens 以后只用于 3 个代表性正式配置的独立 cross-check，不再作为 B0 或 Run72 默认生产采集器。
-
-## 当前唯一下一步 — Phase B.1
-
-本地只运行：
-
-```text
-scripts/probe_task_005d_mtfa.py
-```
-
-Probe 仅覆盖：
+实机 probe 覆盖：
 
 ```text
 A0 + B0.20
@@ -207,14 +194,81 @@ Samp = 2 / 3 / 4
 frequency step = 5 / 2.5 cycles/mm
 ```
 
-目的：
+实测最大绝对 `Q_lock` 差异：
 
-1. 验证当前工作站的 MFE `MTFA` API 路径；
-2. 比较相邻 `Samp` 的 Q_lock；
-3. 比较 5 vs 2.5 cycles/mm 的 Q_lock；
-4. 冻结最小足够的生产 `Samp`。
+```text
+Samp 2→3      0.00221683
+Samp 3→4      0.00067564
+5→2.5 cyc/mm  0.00492149
+```
 
-在 Phase B.1 PASS 并冻结实际 `Samp` 前，不运行完整五候选 scan。
+工程复核后冻结：
+
+```text
+production Samp = 3
+production frequency step = 5 cycles/mm
+```
+
+这不是新自动科学阈值；旧 probe JSON 的 `passed=true` 只代表 runtime acquisition 成功。当前代码已把新 probe 语义改为 `runtime_passed`，同时允许读取旧 evidence 作为兼容证据，因此**无需重跑 Phase B.1**。
+
+证据：
+
+```text
+docs/TASK_005D_PHASE_B1_MTFA_PROBE_REVIEW_2026-08-19.md
+```
+
+### TASK-005D 与主实验 pipeline 的边界
+
+TASK-005D 只把 B0 acquisition 改为 MFE MTFA。`AS_HuygensMtf` failure 不外推为 Huygens PSF 不可用。
+
+TASK-009/Run72 仍按 TDD v1.4：
+
+```text
+Huygens PSF
+→ deterministic FFT
+→ complex OTF
+→ radial MTF / MTFa / VSOTF
+```
+
+三代表配置的 sampling convergence 和独立 MTF cross-check 仍留在 TASK-009。
+
+## 当前唯一下一步 — Phase B.2 完整五候选 scan
+
+本地下一步运行：
+
+```text
+scripts/run_task_005d_b0_scan.py
+```
+
+脚本现在会在启动全量 scan 前 fail closed 检查 Phase B.1 evidence：
+
+- runtime acquisition 成功；
+- settings 与当前 `CORNEA_LOCK_B0_555_v2` 完全一致；
+- `Samp=2/3/4` 证据存在；
+- `5 vs 2.5 cycles/mm` 证据存在；
+- summary 为有限非负值。
+
+完整 scan 固定：
+
+```text
+A0 + B0.10/B0.15/B0.20/B0.25/B0.30
+EPD3 + EPD5
++0.50 → -3.50 D
+17 planes
+Samp = 3
+frequency step = 5 cycles/mm
+```
+
+输出还必须记录 clean Git commit、baseline、OpticStudio install path/label、Phase B.1 summary 和输入/REF_MONO SHA-256。
+
+full scan 只产生 provisional recommendation：
+
+```text
+morphology_review_pending = true
+selection_locked = false
+```
+
+随后进入 Phase B.3：用户为五候选逐一给出 morphology decision，纯 Python 重新调用 `rank_b0_candidates()`；确认 reviewed recommendation 或写 override reason 后，`scripts/review_task_005d_b0.py` 才允许通过 ProjectStore 写不可变 `locks/B0_LOCK.json`。
 
 ## RMD task 状态
 
@@ -227,9 +281,9 @@ frequency step = 5 / 2.5 cycles/mm
 | TASK-005A | 完成 | 无 |
 | TASK-005B | 完成并锁定 | 下游只读 |
 | TASK-005C | 完成并锁定 | 下游只读 |
-| TASK-005D | **Phase A/A.1 PASS；Huygens STOP；MTFA v2 Web 实现完成** | Phase B.1 最小实机 probe |
-| TASK-006 | B0 排序算法完成 | 等待 MTFA 真实五候选 scan 后锁 B0 |
-| TASK-007 | carrier science gate framework 完成 | 等 TASK-005/006；TDD-999 仍阻断 formal locks |
+| TASK-005D | **Phase A/A.1/B.1 PASS；B0 MTFA v2 production 已冻结** | Phase B.2 完整五候选 scan → Phase B.3 morphology review/lock |
+| TASK-006 | 排序 + morphology review/lock 代码路径完成 | 等待真实五候选 scan 后锁 B0 |
+| TASK-007 | carrier science gate framework 完成 | 等 B0 lock；TDD-999 仍阻断 formal locks |
 | TASK-008 | manifest/lock 代码框架完成 | 等 TASK-007 |
 | TASK-009 | analysis API scaffold 完成 | 等正式 carriers；先 3 代表配置 |
 | TASK-010 | GUI scaffold 已复核 | 后续 full-flow smoke |
@@ -240,9 +294,10 @@ frequency step = 5 / 2.5 cycles/mm
 1. 不得为 API 适配改变 `MVP_2026_v2`、standard-eye EPD6、546 nm、Liou/Norrby C40 gate 或平台 SA targets。
 2. 005B/005C 已锁资产不得被下游重写。
 3. A0/B0/C0 必须在 WFS/RAD/HOA 主结果可见前冻结；B0 只在 LB + `REF_MONO_CORNEA_LOCK` 中选择。
-4. `TDD-999` 未解除前不得创建正式 EDOF carrier/pair locks 或 Run72。
-5. 三代表配置未完成 sampling convergence + 独立 MTF cross-check 前不得 Run72。
-6. synthetic/surrogate 数据不能进入正式科学 locks/manifests/论文结果。
+4. full B0 scan 缺 Phase B.1 evidence、settings 漂移或 morphology decisions 不完整时不得生成 B0 lock。
+5. `TDD-999` 未解除前不得创建正式 EDOF carrier/pair locks 或 Run72。
+6. 三代表配置未完成 sampling convergence + 独立 MTF cross-check 前不得 Run72。
+7. synthetic/surrogate 数据不能进入正式科学 locks/manifests/论文结果。
 
 ## 工作方式
 
