@@ -147,9 +147,9 @@ A procedure imported by 'ZemaxEngine.dll' could not be loaded.
 docs/TASK_005D_PHASE_B_STOP_2026-08-19.md
 ```
 
-### B0 acquisition 修订 — 文档已冻结
+### B0 acquisition v2 — Web 实现完成
 
-生产 B0 MTF 改为：
+生产 B0 MTF 已改为：
 
 ```text
 CORNEA_LOCK_B0_555_v2
@@ -158,10 +158,25 @@ Grid = 0
 Data Type = 0
 Wave = 1
 Field = 1
-frequency = 0..50 cycles/mm, step 5
+frequency = 0..50 cycles/mm, production step 5
 ```
 
-每个 defocus plane 一次性插入相邻 MTFA rows，一次 `CalculateMeritFunction()`，读取 `Value` 后删除临时 rows，不保存 lens。
+Web 端已经完成：
+
+```text
+MFE MTFA temporary-operand primitive
+adjacent rows + one CalculateMeritFunction()
+operand header/type validation
+finally cleanup + MFE row-count restore
+0–50 cycles/mm trapezoidal Q_lock
+B0 acquisition switch to MTFA
+B0 scan-hash provenance switch to v2
+A0/B0.20 focused probe helper
+Phase B.1 probe script
+full v2 scan output isolation
+obsolete TASK-005D Huygens/PSF fallback cleanup
+unit tests
+```
 
 `Q_lock`、EPD3/EPD5、17-plane defocus grid、distance-retention gates 和 `rank_b0_candidates()` 全部不变。
 
@@ -174,26 +189,32 @@ docs/TASK_005D_CORNEA_LOCK_ASSETS.md
 
 Huygens 以后只用于 3 个代表性正式配置的独立 cross-check，不再作为 B0 或 Run72 默认生产采集器。
 
-## 当前下一步
+## 当前唯一下一步 — Phase B.1
 
-Web 端先完成代码：
+本地只运行：
 
-1. MFE MTFA primitive；
-2. 0–50 cycles/mm 梯形 `Q_lock`；
-3. 纯 Python 单测；
-4. B0 acquisition 从 Huygens runner 切到 MTFA；
-5. 删除/隔离不再使用的 PSF→Python FFT 临时路线。
+```text
+scripts/probe_task_005d_mtfa.py
+```
 
-然后本地只做 Phase B.1 最小 MTFA probe：
+Probe 仅覆盖：
 
 ```text
 A0 + B0.20
-少量代表 defocus planes
-相邻 MTFA Samp
-5 vs 2.5 cycles/mm frequency step
+EPD3 + EPD5
+defocus = 0D / -1.5D
+Samp = 2 / 3 / 4
+frequency step = 5 / 2.5 cycles/mm
 ```
 
-Probe PASS 后才冻结 `CORNEA_LOCK_B0_555_v2` 的实际 `Samp` 并重跑完整 Phase B。
+目的：
+
+1. 验证当前工作站的 MFE `MTFA` API 路径；
+2. 比较相邻 `Samp` 的 Q_lock；
+3. 比较 5 vs 2.5 cycles/mm 的 Q_lock；
+4. 冻结最小足够的生产 `Samp`。
+
+在 Phase B.1 PASS 并冻结实际 `Samp` 前，不运行完整五候选 scan。
 
 ## RMD task 状态
 
@@ -206,7 +227,7 @@ Probe PASS 后才冻结 `CORNEA_LOCK_B0_555_v2` 的实际 `Samp` 并重跑完整
 | TASK-005A | 完成 | 无 |
 | TASK-005B | 完成并锁定 | 下游只读 |
 | TASK-005C | 完成并锁定 | 下游只读 |
-| TASK-005D | **Phase A/A.1 PASS；Phase B Huygens STOP** | 实现 MTFA v2 → 最小 probe |
+| TASK-005D | **Phase A/A.1 PASS；Huygens STOP；MTFA v2 Web 实现完成** | Phase B.1 最小实机 probe |
 | TASK-006 | B0 排序算法完成 | 等待 MTFA 真实五候选 scan 后锁 B0 |
 | TASK-007 | carrier science gate framework 完成 | 等 TASK-005/006；TDD-999 仍阻断 formal locks |
 | TASK-008 | manifest/lock 代码框架完成 | 等 TASK-007 |
