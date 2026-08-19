@@ -149,7 +149,7 @@ def test_zero_hoa_reference_preserves_carrier_and_6mm_calibration_identity() -> 
         carrier, standard_eye_spec=baseline.standard_eye_spec
     )
     assert reference.power_d == carrier.power_d
-    assert reference.optical_model == "ideal_paraxial_zero_hoa"
+    assert reference.optical_model == "same_physical_carrier_q0_no_residual"
     assert reference.calibration_aperture_mm == 6.0
     assert reference.calibration_wavelength_nm == 546.0
 
