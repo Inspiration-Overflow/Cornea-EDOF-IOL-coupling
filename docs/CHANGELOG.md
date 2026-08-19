@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 2026-08-19 — TASK-005D 实验前一致性修订
+
+- 独立复核 TASK-005D 文档、B0/MTFA、REF_MONO、排序/锁定路径后，确认 A/B/C 光学处方、Q_lock 数学、17-plane defocus grid、80/70% distance gates 和既有排序算法无需重做；Phase A/A.1/B.1 不要求重跑。
+- 将 `CORNEA_LOCK_B0_555_v2` 正式写回 TDD：MFE `MTFA`、`Grid=0`、`Data Type=0`、`Samp=3`、0–50 cycles/mm、5 cycles/mm step；EPD3/EPD5 均参与 B0 threshold/gate/rank。
+- 根据 Phase B.1 实测冻结生产参数：Samp 2→3 最大 |ΔQ_lock|=`0.00221683`，Samp 3→4=`0.00067564`，5→2.5 cycles/mm=`0.00492149`；这些值只作为工程冻结证据，不新增自动 convergence threshold。
+- 修正 probe 结果语义：新输出使用 `runtime_passed`；历史 `passed=true` 只作为 runtime-success 兼容别名，不再被解释为自动数值收敛判据。
+- 新增 full-scan Phase B.1 evidence gate；缺 probe、settings 漂移、缺 Samp=2/3/4 或 5/2.5 evidence 时 fail closed。
+- 完整 B0 scan 增加 clean Git commit、baseline、OpticStudio installation、Phase B.1 summary，以及 standard-eye / cornea / REF_MONO SHA-256 provenance。
+- 新增纯 Python morphology review → deterministic rerank → immutable `B0_LOCK` 路径；五候选 morphology decisions 必须完整，reject 必须写理由，最终选择理由不能为空。
+- 修复 JSON round-trip 中 tuple→list 导致 probe/review settings 假失配的问题，并增加磁盘 JSON 往返单元测试。
+- 收回 TASK-005D 对 Run72 的过度扩张：B0 使用 MFE MTFA，但 TASK-009/Run72 仍保持 `Huygens PSF → deterministic FFT → complex OTF → radial MTF / MTFa / VSOTF` 主实验 pipeline。
+- 更新 TDD/RMD/RMD execution status、TASK-005D 设计与 STOP 文档、`.vibe/implementation_status.json`；ADD/MDD 仅同步 URD v1.4 source metadata 与 `.zmx` 规范，不改变 8 FR/DP、8 module/12 API 架构。
+- 当前下一科学动作变为完整五候选 B0 scan；随后人工 morphology review/re-rank/lock。`TDD-TEST-999` 与三代表配置 sampling/MTF cross-check 仍保持后续 STOP gate。
+
 ## 2026-08-17 — OpticStudio 2026 R1.00 本机联调
 
 - ZOS session 同时支持 2026 R1.00 根目录 DLL 布局和旧版 `ZOS-API/Libraries` 布局。
@@ -73,7 +87,7 @@
 ## 2026-08-17 — MDD v1.0
 
 - 将 ADD 的 8 个 DP 映射为 8 个 Building Blocks。
-- 定义 12 个公共接口及其输入、输出、前置/后置条件、不变量、副作用和失败行为。
+- 定义 12 个公共接口及其输入、输出、副作用、前置/后置条件和不变量。
 - 将 raw ZOS-API object 限制在 Zemax-facing 模块；GUI 和 manifest 不直接依赖 ZOSAPI。
 - 定义本地 Project Store、18/72 manifest、carrier/pair lock、分析结果和 GUI event 数据契约。
 - 明确 MVP 使用单一后台 worker 串行执行 Zemax 长流程，不增加并行或 Cancel 框架。
