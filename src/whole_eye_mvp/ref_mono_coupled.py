@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .domain import ScientificBaseline
+from .ref_mono import REF_MONO_ENVELOPE
 from .ref_mono_calibration import (
     REF_MONO_SA_NEUTRAL_TOLERANCE_UM,
     RefMonoSaCalibration,
@@ -13,9 +14,11 @@ from .ref_mono_calibration import (
 from .ref_mono_zos import (
     RefMonoMeasurements,
     build_ref_mono_on_cornea_candidate,
+    measure_ref_mono_candidate,
+    solve_ref_mono_radius_mm,
     validate_ref_mono_measurements,
 )
-from .zos import ZosSession
+from .zos import SequentialEditor, ZosSession
 
 MAX_REF_MONO_COUPLED_ROUNDS = 2
 
@@ -38,6 +41,26 @@ class RefMonoCoupledResult:
         )
 
 
+def _enforce_optic_and_refocus(
+    session: ZosSession,
+    baseline: ScientificBaseline,
+    path: Path,
+    initial_radius_mm: float,
+) -> RefMonoMeasurements:
+    session.system.LoadFile(str(path.resolve()), False)
+    editor = SequentialEditor(session.system, session.zosapi)
+    semi_diameter = REF_MONO_ENVELOPE.optic_diameter_mm / 2.0
+    editor.surface(4).SemiDiameter = semi_diameter
+    editor.surface(5).SemiDiameter = semi_diameter
+    solve_ref_mono_radius_mm(
+        session,
+        baseline,
+        initial_radius_mm=initial_radius_mm,
+    )
+    editor.save_as(path)
+    return measure_ref_mono_candidate(session, baseline, path)
+
+
 def calibrate_ref_mono_for_cornea(
     session: ZosSession,
     baseline: ScientificBaseline,
@@ -50,14 +73,18 @@ def calibrate_ref_mono_for_cornea(
     """Solve candidate-specific REF_MONO focus and near-neutral standard-eye C40."""
 
     if max_rounds < 1 or max_rounds > MAX_REF_MONO_COUPLED_ROUNDS:
-        raise ValueError(f"REF_MONO coupled rounds must lie in [1, {MAX_REF_MONO_COUPLED_ROUNDS}]")
+        raise ValueError(
+            f"REF_MONO coupled rounds must lie in [1, {MAX_REF_MONO_COUPLED_ROUNDS}]"
+        )
 
+    output = Path(destination)
     ref = build_ref_mono_on_cornea_candidate(
         session,
         baseline,
         cornea_path,
-        destination,
+        output,
     )
+    ref = _enforce_optic_and_refocus(session, baseline, output, ref.radius_ant_mm)
     findings = validate_ref_mono_measurements(ref, baseline)
     if findings:
         raise RefMonoCoupledError("initial REF_MONO validation failed: " + " | ".join(findings))
@@ -74,10 +101,11 @@ def calibrate_ref_mono_for_cornea(
             session,
             baseline,
             cornea_path,
-            destination,
+            output,
             conic=standard_eye.conic,
             initial_radius_mm=radius,
         )
+        ref = _enforce_optic_and_refocus(session, baseline, output, ref.radius_ant_mm)
         findings = validate_ref_mono_measurements(ref, baseline)
         if findings:
             raise RefMonoCoupledError(
