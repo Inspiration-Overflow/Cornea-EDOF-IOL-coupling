@@ -13,27 +13,22 @@ from .cornea_assets import (
     cornea_lock_prescriptions,
     distance_corrected_front_radius_mm,
 )
-from .cornea_surfaces_zos import (
-    CORNEA_SUPPORT_RADIUS_MM,
-    Binary4Zone,
-    configure_binary4,
-    configure_even_asphere,
-    set_binary4_zone_conic,
-    set_even_asphere_alpha1,
-)
 from .domain import CorneaId, ScientificBaseline
 from .standard_eye import _quick_focus_wavefront
 from .zos import (
+    Binary4Zone,
     MfeZernikeStandardRunner,
     MfeZernikeStandardSettings,
     SequentialEditor,
     ZosSession,
 )
+from .zos.primitives import binary4_zone_columns, even_asphere_parameter_number
 
 CORNEA_C40_EPD_MM = 6.0
+CORNEA_SUPPORT_RADIUS_MM = 4.0
 CORNEA_DELTA_C40_SOLVE_TOLERANCE_UM = 0.005
 A_CONIC_SCAN = (-8.0, -4.0, -2.0, -1.0, -0.5, -0.18, 0.0, 0.5, 1.0, 2.0, 4.0, 8.0)
-B_ALPHA1_SCAN = (
+B_R4_SCAN = (
     -0.003,
     -0.001,
     -0.0003,
@@ -194,16 +189,19 @@ def _solve_scalar_target(
     return best
 
 
-def _a_zones(prescription: CorneaLockPrescription, inner_conic: float) -> tuple[Binary4Zone, ...]:
+def _a_zones(
+    prescription: CorneaLockPrescription,
+    inner_conic: float,
+) -> tuple[Binary4Zone, ...]:
     return (
         Binary4Zone(
-            aperture_radius_mm=prescription.optical_radius_mm,
-            radius_mm=prescription.distance_front_radius_mm,
+            radial_aperture=prescription.optical_radius_mm,
+            radius=prescription.distance_front_radius_mm,
             conic=inner_conic,
         ),
         Binary4Zone(
-            aperture_radius_mm=CORNEA_SUPPORT_RADIUS_MM,
-            radius_mm=MAIN_CORNEA_SCAFFOLD.front_radius_mm,
+            radial_aperture=CORNEA_SUPPORT_RADIUS_MM,
+            radius=MAIN_CORNEA_SCAFFOLD.front_radius_mm,
             conic=MAIN_CORNEA_SCAFFOLD.front_conic,
         ),
     )
@@ -222,16 +220,22 @@ def build_a_candidate(
     session.system.LoadFile(str(Path(distance_cornea_path).resolve()), False)
     editor = SequentialEditor(session.system, session.zosapi)
     editor.set_comment(1, "CORNEA_ANT_A0")
-    configure_binary4(
-        session,
+    editor.configure_binary4(
         1,
         _a_zones(prescription, MAIN_CORNEA_SCAFFOLD.front_conic),
     )
-
+    editor.set_radius_conic(
+        1,
+        radius_mm=prescription.distance_front_radius_mm,
+        conic=MAIN_CORNEA_SCAFFOLD.front_conic,
+    )
+    editor.surface(1).SemiDiameter = CORNEA_SUPPORT_RADIUS_MM
+    zone1_conic_parameter = binary4_zone_columns(1, 0, 0).conic
     target = float(prescription.target_delta_c40_um)
 
     def setter(conic: float) -> None:
-        set_binary4_zone_conic(session, 1, 0, conic)
+        editor.set_parameter(1, zone1_conic_parameter, conic)
+        editor.surface(1).Conic = float(conic)
 
     def evaluator() -> float:
         return measure_best_focus_cornea_wavefront(session).c40_um - reference_c40_um
@@ -240,7 +244,7 @@ def build_a_candidate(
     setter(conic)
     wavefront = measure_best_focus_cornea_wavefront(session)
     output = Path(destination)
-    SequentialEditor(session.system, session.zosapi).save_as(output)
+    editor.save_as(output)
     return CorneaCandidateMeasurement(
         candidate_id=prescription.candidate_id,
         surface_family=prescription.surface_family,
@@ -267,26 +271,29 @@ def build_b_candidate(
     session.system.LoadFile(str(Path(distance_cornea_path).resolve()), False)
     editor = SequentialEditor(session.system, session.zosapi)
     editor.set_comment(1, f"CORNEA_ANT_{prescription.candidate_id}")
-    configure_even_asphere(
-        session,
+    # The verified Even Asphere mapping uses order 4 -> Par2.  The r^4 term changes
+    # primary spherical aberration without adding a paraxial r^2 power term.
+    editor.configure_even_asphere(1, {4: 0.0})
+    editor.set_radius_conic(
         1,
         radius_mm=prescription.distance_front_radius_mm,
         conic=MAIN_CORNEA_SCAFFOLD.front_conic,
-        alpha1=0.0,
     )
+    editor.surface(1).SemiDiameter = CORNEA_SUPPORT_RADIUS_MM
+    r4_parameter = even_asphere_parameter_number(4)
     target = float(prescription.target_delta_c40_um)
 
-    def setter(alpha1: float) -> None:
-        set_even_asphere_alpha1(session, 1, alpha1)
+    def setter(r4_coefficient: float) -> None:
+        editor.set_parameter(1, r4_parameter, r4_coefficient)
 
     def evaluator() -> float:
         return measure_best_focus_cornea_wavefront(session).c40_um - reference_c40_um
 
-    alpha1, _ = _solve_scalar_target(setter, evaluator, B_ALPHA1_SCAN, target)
-    setter(alpha1)
+    r4_coefficient, _ = _solve_scalar_target(setter, evaluator, B_R4_SCAN, target)
+    setter(r4_coefficient)
     wavefront = measure_best_focus_cornea_wavefront(session)
     output = Path(destination)
-    SequentialEditor(session.system, session.zosapi).save_as(output)
+    editor.save_as(output)
     return CorneaCandidateMeasurement(
         candidate_id=prescription.candidate_id,
         surface_family=prescription.surface_family,
@@ -294,8 +301,8 @@ def build_b_candidate(
         achieved_delta_c40_um=wavefront.c40_um - reference_c40_um,
         reference_c40_um=reference_c40_um,
         candidate_c40_um=wavefront.c40_um,
-        control_name="even_asphere_alpha1",
-        control_value=alpha1,
+        control_name="even_asphere_r4",
+        control_value=r4_coefficient,
         wavefront=wavefront,
     )
 
@@ -316,8 +323,8 @@ def c0_binary4_zones(
     assert near is not None and outer is not None
     zones = [
         Binary4Zone(
-            aperture_radius_mm=near,
-            radius_mm=design.target_front_radius_mm(0.5 * near),
+            radial_aperture=near,
+            radius=design.target_front_radius_mm(0.5 * near),
             conic=MAIN_CORNEA_SCAFFOLD.front_conic,
         )
     ]
@@ -328,15 +335,15 @@ def c0_binary4_zones(
         midpoint = 0.5 * (inner + aperture)
         zones.append(
             Binary4Zone(
-                aperture_radius_mm=aperture,
-                radius_mm=design.target_front_radius_mm(midpoint),
+                radial_aperture=aperture,
+                radius=design.target_front_radius_mm(midpoint),
                 conic=MAIN_CORNEA_SCAFFOLD.front_conic,
             )
         )
     zones.append(
         Binary4Zone(
-            aperture_radius_mm=prescription.optical_radius_mm,
-            radius_mm=distance_corrected_front_radius_mm(prescription.treatment_d),
+            radial_aperture=prescription.optical_radius_mm,
+            radius=distance_corrected_front_radius_mm(prescription.treatment_d),
             conic=MAIN_CORNEA_SCAFFOLD.front_conic,
         )
     )
@@ -358,10 +365,13 @@ def build_c_candidate(
     session.system.LoadFile(str(Path(distance_cornea_path).resolve()), False)
     editor = SequentialEditor(session.system, session.zosapi)
     editor.set_comment(1, f"CORNEA_ANT_C0_N{transition_slices}")
-    configure_binary4(session, 1, c0_binary4_zones(prescription, transition_slices))
+    zones = c0_binary4_zones(prescription, transition_slices)
+    editor.configure_binary4(1, zones)
+    editor.set_radius_conic(1, radius_mm=zones[0].radius, conic=zones[0].conic)
+    editor.surface(1).SemiDiameter = zones[-1].radial_aperture
     wavefront = measure_best_focus_cornea_wavefront(session)
     output = Path(destination)
-    SequentialEditor(session.system, session.zosapi).save_as(output)
+    editor.save_as(output)
     return CorneaCandidateMeasurement(
         candidate_id=f"C0_N{transition_slices}",
         surface_family=CorneaSurfaceFamily.BINARY4,
