@@ -7,26 +7,22 @@ import pytest
 from whole_eye_mvp.domain import NOMINAL_MAIN_FFT_MTF_555_V2
 
 
-ACTIVE_POLICY_FILES = (
+ACTIVE_SPEC_FILES = (
     Path("docs/URD.md"),
     Path("docs/ADD.md"),
     Path("docs/MDD.md"),
     Path("docs/TDD.md"),
     Path("docs/RMD.md"),
     Path("docs/RMD_EXECUTION_STATUS.md"),
-    Path("src/whole_eye_mvp/domain.py"),
-    Path("src/whole_eye_mvp/metrics.py"),
-    Path("src/whole_eye_mvp/analysis.py"),
 )
 
 FORBIDDEN_ACTIVE_TOKENS = (
-    "Huygens PSF",
-    "Huygens MTF",
-    "AS_Huygens",
+    "huygens",
+    "complex otf",
+    "complex_otf",
     "psf_to_complex_otf",
     "vsotf",
-    "VSOTF",
-    "VSMTF",
+    "vsmtf",
 )
 
 
@@ -49,11 +45,22 @@ def test_active_main_analysis_settings_are_fft_mtf_only() -> None:
 
 
 @pytest.mark.unit
-def test_active_source_and_specs_do_not_reintroduce_removed_main_paths() -> None:
+def test_production_source_does_not_reintroduce_removed_paths() -> None:
     findings: list[str] = []
-    for path in ACTIVE_POLICY_FILES:
-        text = path.read_text(encoding="utf-8")
+    for path in Path("src/whole_eye_mvp").rglob("*.py"):
+        text = path.read_text(encoding="utf-8").casefold()
         for token in FORBIDDEN_ACTIVE_TOKENS:
             if token in text:
                 findings.append(f"{path}:{token}")
-    assert not findings, "removed main-analysis path leaked into active files: " + ", ".join(findings)
+    assert not findings, "removed analysis path leaked into production source: " + ", ".join(findings)
+
+
+@pytest.mark.unit
+def test_active_specs_do_not_reintroduce_removed_paths() -> None:
+    findings: list[str] = []
+    for path in ACTIVE_SPEC_FILES:
+        text = path.read_text(encoding="utf-8").casefold()
+        for token in FORBIDDEN_ACTIVE_TOKENS:
+            if token in text:
+                findings.append(f"{path}:{token}")
+    assert not findings, "removed analysis path leaked into active specs: " + ", ".join(findings)
