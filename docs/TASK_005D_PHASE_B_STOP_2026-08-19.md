@@ -64,7 +64,7 @@ residual OpticStudio/Zemax process count = 0
 
 但本次存在明确 `FileLoadException / ZemaxEngine.dll`，因此必须判为 hard failure，而不是可忽略 exit warning。
 
-## 替代采集原则
+## 不变的科学约束
 
 不得反复重试 `AS_HuygensMtf` 路径，也不得因此改变：
 
@@ -75,32 +75,44 @@ residual OpticStudio/Zemax process count = 0
 - B0 distance-retention gates；
 - `rank_b0_candidates()` 排序规则。
 
-后续只允许替换 **Huygens MTF acquisition primitive**。
+后续只允许替换 **MTF acquisition primitive**。
 
-Ansys OpticStudio 官方说明 Huygens MTF 是对 Huygens PSF 做 FFT，且两者的 Image Sampling / Image Delta 定义一致。因此 Web 端已实现：
+## 后续方案更新
 
-```text
-Huygens PSF grid
-→ normalized 2D FFT magnitude
-→ tangential/sagittal image-space MTF
-→ average MTF
-→ unchanged Q_lock integral
-```
+STOP 后曾短暂实现 `Huygens PSF → Python FFT → MTF` 作为备选恢复路线。经后续设计复核，该中间方案已被正式废弃，相关 TASK-005D 专用代码已从 PR 中删除；不得将其视为当前下一步。
 
-并保持冻结：
+当前正式恢复方案为：
 
 ```text
-pupil sampling = 128 x 128
-image sampling = 256 x 256
-image delta = 0.5 µm
+CORNEA_LOCK_B0_555_v2
+MFE MTFA diffraction MTF
+Grid = 0
+Data Type = 0
+Wave = 1
+Field = 1
+frequency = 0..50 cycles/mm
+production step = 5 cycles/mm
 ```
 
-不采用 MFE `MTHA` 作为正式替代，因为该 operand 将 pupil/image sampling 绑定为同一尺寸，不能保持本任务冻结的 128/256 组合。
+该修订不改变眼模型 scientific baseline，也不改变 B0 的光学条件、Q_lock 或排序规则。
 
-在重新启动完整 Phase B 之前，只允许先运行一次：
+当前下一步是运行：
 
 ```text
-scripts/probe_task_005d_huygens_psf.py
+scripts/probe_task_005d_mtfa.py
 ```
 
-该 probe 只加载已保留的 `REF_MONO_A0.zmx`，使用 EPD3/0D 计算一次 Huygens PSF，再在 Python 中 FFT 得到 MTF/Q_lock。若当前 2026 R1 工作站对 `IAS_HuygensPsf` 也触发同类 Python.NET 硬错误，则 STOP 并改用不依赖 analysis settings type 的后备采集路径；不得直接开始完整五候选扫描。
+只在 A0 与 B0.20、少量代表 defocus plane 上验证：
+
+- MFE MTFA runtime/API；
+- 相邻 `Samp` 收敛；
+- 5 vs 2.5 cycles/mm frequency-step 敏感性。
+
+Probe PASS 后才允许重新运行完整五候选 Phase B。
+
+权威后续定义见：
+
+```text
+docs/TASK_005D_B0_MTF_ACQUISITION_REVISION_2026-08-19.md
+docs/TASK_005D_CORNEA_LOCK_ASSETS.md
+```
