@@ -6,7 +6,7 @@ import math
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
 
-from .domain import CORNEA_LOCK_B0_555_V1
+from .domain import CORNEA_LOCK_B0_555_V2
 from .metrics import DistancePeak, DofInterval, dof_interval, find_distance_peak
 from .science_assets import B_CANDIDATE_DELTA_C40_UM
 
@@ -85,7 +85,7 @@ def _canonical_scan_hash(
     candidates: Sequence[B0CandidateInput],
 ) -> str:
     payload = {
-        "settings": asdict(CORNEA_LOCK_B0_555_V1),
+        "settings": asdict(CORNEA_LOCK_B0_555_V2),
         "a0_epd3": asdict(a0_epd3),
         "a0_epd5": asdict(a0_epd5),
         "candidates": [asdict(c) for c in candidates],
@@ -95,7 +95,7 @@ def _canonical_scan_hash(
 
 
 def _validate_curve(curve: LockCurve, label: str) -> None:
-    expected_grid = CORNEA_LOCK_B0_555_V1.defocus_grid()
+    expected_grid = CORNEA_LOCK_B0_555_V2.defocus_grid()
     if curve.defocus_d != expected_grid:
         raise ValueError(f"{label} must use the frozen 17-plane B0 defocus grid")
     if len(curve.q_lock) != len(expected_grid):
