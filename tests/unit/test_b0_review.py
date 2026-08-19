@@ -45,12 +45,14 @@ def source_scan_payload() -> dict[str, object]:
     report = rank_b0_candidates(a0_3, a0_5, candidates)
     return {
         "formal_artifact": False,
+        "morphology_review_pending": True,
         "selection_locked": False,
         "analysis_settings": asdict(CORNEA_LOCK_B0_555_V2),
         "A0": {"epd3": asdict(a0_3), "epd5": asdict(a0_5)},
         "candidates": [
             {
                 "candidate_id": item.candidate_id,
+                "target_delta_c40_um": item.delta_c40_um,
                 "achieved_delta_c40_um": item.achieved_delta_c40_um,
                 "epd3": asdict(item.epd3),
                 "epd5": asdict(item.epd5),
@@ -99,6 +101,23 @@ def test_review_reproduces_disk_scan_then_reject_changes_recommendation_and_hash
 
 
 @pytest.mark.unit
+def test_review_rejects_tampered_source_scan_before_applying_morphology() -> None:
+    payload = disk_scan_payload()
+    candidates = payload["candidates"]
+    assert isinstance(candidates, list)
+    first = candidates[0]
+    assert isinstance(first, dict)
+    epd3 = first["epd3"]
+    assert isinstance(epd3, dict)
+    q_lock = epd3["q_lock"]
+    assert isinstance(q_lock, list)
+    q_lock[2] = float(q_lock[2]) - 0.01
+
+    with pytest.raises(B0ReviewError, match="stored scan hash"):
+        review_b0_scan_payload(payload, all_accept())
+
+
+@pytest.mark.unit
 def test_review_requires_complete_decisions_and_reject_reason() -> None:
     payload = disk_scan_payload()
     with pytest.raises(B0ReviewError, match="cover exactly"):
@@ -111,7 +130,7 @@ def test_review_requires_complete_decisions_and_reject_reason() -> None:
 
 
 @pytest.mark.unit
-def test_review_and_lock_records_reviewed_hash_and_override_rule() -> None:
+def test_review_and_lock_records_reviewed_hash_and_requires_selection_reason() -> None:
     payload = disk_scan_payload()
     report = review_b0_scan_payload(payload, all_accept())
     reviewed = review_and_lock_b0_scan_payload(
@@ -124,12 +143,20 @@ def test_review_and_lock_records_reviewed_hash_and_override_rule() -> None:
     assert not reviewed.lock.override
     assert reviewed.source_scan_hash == payload["scan_report"]["scan_hash"]
 
+    with pytest.raises(ValueError, match="selection reason"):
+        review_and_lock_b0_scan_payload(
+            payload,
+            all_accept(),
+            report.recommendation_id or "",
+            selection_reason="",
+        )
+
     other = next(
         item.candidate_id
         for item in report.candidates
         if item.eligible and item.candidate_id != report.recommendation_id
     )
-    with pytest.raises(ValueError, match="override"):
+    with pytest.raises(ValueError, match="selection reason"):
         review_and_lock_b0_scan_payload(
             payload,
             all_accept(),
