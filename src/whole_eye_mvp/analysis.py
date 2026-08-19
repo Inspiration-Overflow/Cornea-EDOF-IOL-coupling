@@ -14,6 +14,7 @@ from .metrics import (
     matched_numeric_delta,
     through_focus_mean,
 )
+from .quality import settings_hash
 
 
 class AnalysisError(RuntimeError):
@@ -76,12 +77,17 @@ class ConfigResult:
     tf_mtfa_mean: float
     peak_search_censored: bool
     aberrations: AberrationSummary
+    analysis_settings_hash: str
+    hoa_settings_id: str
+    hoa_settings_hash: str
     cornea_footprint_mm: float
     stop_footprint_mm: float
     iol_footprint_mm: float
     iol_optical_diameter_mm: float
     model_hash_before: str
     model_hash_after: str
+    entity_fingerprint_before: str
+    entity_fingerprint_after: str
     retina_position_before_mm: float
     retina_position_after_mm: float
     iol_position_before_mm: float
@@ -276,10 +282,20 @@ def validate_completed_result(
         if abs(row.defocus_shape_d - expected_shape) > 1e-12:
             raise AnalysisError("shape-recentered defocus axis is inconsistent with distance peak")
 
+    if result.analysis_settings_hash != settings_hash(NOMINAL_MAIN_FFT_MTF_555_V2):
+        raise AnalysisError("result analysis-settings hash differs from frozen FFT-MTF v2 settings")
+    for field_name in ("hoa_settings_id", "hoa_settings_hash"):
+        if not getattr(result, field_name).strip():
+            raise AnalysisError(f"{field_name} is required")
+
     if not result.model_hash_before.strip() or not result.model_hash_after.strip():
         raise AnalysisError("entity model hashes are required")
     if result.model_hash_before != result.model_hash_after:
-        raise AnalysisError("entity model changed during through-focus analysis")
+        raise AnalysisError("model snapshot changed during through-focus analysis")
+    if not result.entity_fingerprint_before.strip() or not result.entity_fingerprint_after.strip():
+        raise AnalysisError("in-memory entity fingerprints are required")
+    if result.entity_fingerprint_before != result.entity_fingerprint_after:
+        raise AnalysisError("carrier/retina entity fingerprint changed during through-focus analysis")
     if result.retina_position_before_mm != result.retina_position_after_mm:
         raise AnalysisError("retina position changed during through-focus analysis")
     if result.iol_position_before_mm != result.iol_position_after_mm:
@@ -330,6 +346,7 @@ def _validate_matched_config_invariants(mono: NominalConfig, edof: NominalConfig
             mono.residual_id,
             mono.residual_sha256,
             mono.residual_validation_policy_id,
+            mono.residual_validation_policy_hash,
         )
     ):
         raise AnalysisError("matched MONO config must not contain residual provenance")
@@ -339,6 +356,7 @@ def _validate_matched_config_invariants(mono: NominalConfig, edof: NominalConfig
             edof.residual_id,
             edof.residual_sha256,
             edof.residual_validation_policy_id,
+            edof.residual_validation_policy_hash,
         )
     ):
         raise AnalysisError("matched EDOF config is missing residual provenance")
