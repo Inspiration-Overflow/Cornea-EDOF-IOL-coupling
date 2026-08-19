@@ -10,6 +10,7 @@ from whole_eye_mvp.base_assets import (
     IMAGE_ROLE,
     IOL_ANT_ROLE,
     STOP_ROLE,
+    BaseAssetPrescription,
     base_asset_prescriptions,
 )
 from whole_eye_mvp.domain import BASELINE_BASE_SPECS, BaseId, ScientificBaseline
@@ -28,6 +29,8 @@ def test_task_005b_prescriptions_freeze_sources_and_axial_reference_stack() -> N
     assert lb.base_spec.source_refraction_d is None
     assert atc.base_spec.source_model_id == "Atchison_2006_Model_1"
     assert atc.base_spec.source_refraction_d == -3.0
+    assert lb.relative_path == "models/assets/BASE_LB_PSEUDOPHAKIC.zmx"
+    assert atc.relative_path == "models/assets/BASE_ATC_M3_PSEUDOPHAKIC.zmx"
 
     expected_roles = (
         CORNEA_ANT_ROLE,
@@ -68,6 +71,12 @@ def test_base_prescription_contract_fails_closed() -> None:
         replace(base, post_cornea_to_stop_mm=4.6).validate()
     with pytest.raises(ValueError, match="greater than one"):
         replace(base, vitreous_index=1.0).validate()
+    with pytest.raises(ValueError, match="\.zmx"):
+        BaseAssetPrescription(
+            "BASE_TEST",
+            "models/assets/BASE_TEST.zos",
+            base,
+        ).validate()
 
 
 @pytest.mark.unit
