@@ -49,13 +49,14 @@ def main() -> None:
     if args.install_dir is None:
         raise SystemExit(f"Pass --install-dir or set {INSTALL_ENV}.")
 
+    project_dir = args.project_dir.resolve()
     baseline = ScientificBaseline(args.baseline_id)
-    store = open_project_store(args.project_dir, baseline)
+    store = open_project_store(project_dir, baseline)
     standard_eye_path = store.resolve(STANDARD_EYE_RELATIVE_PATH)
     if not standard_eye_path.is_file():
         raise SystemExit(f"Required locked standard eye is missing: {standard_eye_path}")
 
-    cornea_dir = args.project_dir / "diagnostics" / "task005d" / "corneas"
+    cornea_dir = project_dir / "diagnostics" / "task005d" / "corneas"
     reference_path = cornea_dir / "TASK005D_LB_REFERENCE_CORNEA.zmx"
     prescriptions = cornea_lock_prescriptions(baseline)
     a_prescription = prescriptions[0]
@@ -73,7 +74,7 @@ def main() -> None:
             + ", ".join(str(path) for path in missing)
         )
 
-    output_dir = args.project_dir / "diagnostics" / "task005d" / "b0_scan"
+    output_dir = project_dir / "diagnostics" / "task005d" / "b0_scan"
     result_path = output_dir / RESULT_NAME
     if result_path.exists() and not args.overwrite:
         raise SystemExit(f"B0 scan result already exists; pass --overwrite: {result_path}")
