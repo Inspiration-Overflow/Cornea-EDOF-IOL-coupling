@@ -20,6 +20,7 @@ from whole_eye_mvp.standard_eye import (
     CORNEA_INDEX,
     CORNEA_THICKNESS_MM,
     CORNEAL_SA_PUPIL_MM,
+    RELATIVE_PATH,
     STANDARD_EYE_CALIBRATION_WAVELENGTH_NM,
     StandardEyeMeasurements,
     ZeroHoaReferenceRecord,
@@ -35,6 +36,7 @@ def test_standard_eye_uses_liou_cornea_and_6mm_calibration_aperture() -> None:
     baseline = ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID)
     spec = standard_eye_construction(baseline)
     assert CURRENT_SCIENTIFIC_BASELINE_ID == "MVP_2026_v2"
+    assert RELATIVE_PATH == "models/assets/STD_IOL_EYE_2024.zmx"
     assert spec.cornea_front_radius_mm == CORNEA_FRONT_RADIUS_MM == 7.77
     assert spec.cornea_front_conic == CORNEA_FRONT_CONIC == -0.18
     assert spec.cornea_back_radius_mm == CORNEA_BACK_RADIUS_MM == 6.40
