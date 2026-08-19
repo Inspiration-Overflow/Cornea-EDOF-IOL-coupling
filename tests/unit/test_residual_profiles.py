@@ -14,6 +14,8 @@ from whole_eye_mvp.residual_profiles import (
     fit_piston_and_global_defocus,
     hoa_raw_opd_um,
     hoa_window,
+    osa_primary_spherical,
+    osa_secondary_spherical,
     rad_raw_opd_um,
     rad_relative_power_d,
     remove_piston_and_global_defocus,
@@ -91,16 +93,18 @@ def test_rad_integrated_opd_derivative_recovers_relative_power() -> None:
         assert recovered_power == pytest.approx(rad_relative_power_d(radius), rel=1.0e-7, abs=1.0e-7)
 
 
-def test_hoa_seed_and_quintic_window_keep_function_local() -> None:
+def test_hoa_seed_is_direct_opposite_sign_osa_z4_z6_with_smooth_local_window() -> None:
     seed = HOA_BENCH_SEED
     assert seed.z4_um == pytest.approx(-0.49 * 0.546)
     assert seed.z6_um == pytest.approx(0.46 * 0.546)
+    assert seed.z4_um * seed.z6_um < 0.0
+    assert osa_primary_spherical(0.0) == pytest.approx(math.sqrt(5.0))
+    assert osa_secondary_spherical(0.0) == pytest.approx(-math.sqrt(7.0))
     assert hoa_window(seed.core_radius_mm) == pytest.approx(1.0)
     assert hoa_window(seed.transition_outer_radius_mm) == pytest.approx(0.0)
     assert 0.0 < hoa_window(1.0) < 1.0
-    assert hoa_raw_opd_um(1.2, a_um_per_mm6=1.0, b_um_per_mm4=-1.0) == pytest.approx(0.0)
-    with pytest.raises(ValueError, match="opposite signs"):
-        hoa_raw_opd_um(0.5, a_um_per_mm6=1.0, b_um_per_mm4=1.0)
+    assert math.isfinite(hoa_raw_opd_um(0.5))
+    assert hoa_raw_opd_um(1.2) == pytest.approx(0.0)
 
 
 def test_low_order_fit_exactly_recovers_piston_and_defocus() -> None:
