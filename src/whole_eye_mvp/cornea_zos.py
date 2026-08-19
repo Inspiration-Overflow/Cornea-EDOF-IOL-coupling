@@ -23,6 +23,7 @@ from .cornea_assets import (
 from .domain import ScientificBaseline
 from .zos import SequentialEditor, ZosSession
 
+REFERENCE_CORNEA_ANT_ROLE = "CORNEA_ANT_LIOU_REFERENCE"
 DISTANCE_CORNEA_ANT_ROLE = "CORNEA_ANT_DISTANCE_M3"
 FIXED_CORNEA_POST_ROLE = "CORNEA_POST_FIXED"
 CORNEA_DIAGNOSTIC_EPD_MM = 6.0
@@ -129,6 +130,34 @@ def build_distance_cornea_scaffold(
     editor.set_radius_conic(5, radius_mm=0.0, conic=0.0)
 
     output = Path(destination)
+    editor.save_as(output)
+    return output
+
+
+def build_reference_cornea_scaffold(
+    session: ZosSession,
+    baseline: ScientificBaseline,
+    base_asset_path: str | Path,
+    destination: str | Path,
+    *,
+    scaffold: CorneaScaffold = MAIN_CORNEA_SCAFFOLD,
+) -> Path:
+    """Build the physical pre-treatment Liou reference with the same locked LB landmarks."""
+
+    output = build_distance_cornea_scaffold(
+        session,
+        baseline,
+        base_asset_path,
+        destination,
+        scaffold=scaffold,
+    )
+    editor = SequentialEditor(session.system, session.zosapi)
+    editor.set_comment(1, REFERENCE_CORNEA_ANT_ROLE)
+    editor.set_radius_conic(
+        1,
+        radius_mm=scaffold.front_radius_mm,
+        conic=scaffold.front_conic,
+    )
     editor.save_as(output)
     return output
 
