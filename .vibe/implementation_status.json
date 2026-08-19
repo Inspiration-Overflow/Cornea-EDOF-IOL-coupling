@@ -1,23 +1,24 @@
 {
   "version": 2,
   "as_of": "2026-08-19",
-  "phase": "task007-phase-a2-pass_phase-a3-pq-recheck-ready-for-local-validation",
+  "phase": "task007-phase-a3-pass_consolidated-full18-residual-batch-ready",
   "project_schema_version": 2,
   "offline_unit_tests": {
-    "status": "PASS-at-phase-a2",
-    "passed": 182,
+    "status": "PASS-at-phase-a3",
+    "passed": 183,
     "failed": 0,
     "ruff": "PASS",
     "compileall": "PASS",
     "uv_lock_check": "PASS",
-    "validated_commit": "10f5d5b229df9d1ce8cfdb39744c9686572f1b61",
-    "phase_a3_changes_require_rerun": true
+    "validated_commit": "caf6282cb13021465370d54eba3e5df953b8ea7a",
+    "consolidated_batch_changes_require_rerun": true
   },
   "environment_pending": [
-    "rerun offline checks after TASK-007 Phase A.3 Web implementation",
-    "TASK-007 Phase A.3 representative LB+A0 WFS/RAD P-Q recheck, maximum two cycles",
-    "TASK-007 full 18-carrier P/Q solve after representative P-Q convergence",
-    "TASK-007 real physical residual readback and low/median/high calibration"
+    "rerun offline checks after consolidated TASK-007 Web implementation",
+    "TASK-007 consolidated six shared P0 plus exactly 18 P/Q carriers",
+    "TASK-007 physical Grid Sag residual import/readback",
+    "TASK-007 nine low/median/high actual-power residual calibrations",
+    "Web mechanism review of consolidated GitHub evidence"
   ],
   "tasks": {
     "RMD-TASK-001": "complete",
@@ -26,7 +27,7 @@
     "RMD-TASK-004": "offline-complete_representative-zemax-crosscheck-later",
     "RMD-TASK-005": "complete_A0-B0.20-C0-frozen",
     "RMD-TASK-006": "complete_B0.20-immutable-lock",
-    "RMD-TASK-007": "phase-a0-pass_phase-a1-pass_phase-a2-pass_phase-a3-pq-recheck-ready",
+    "RMD-TASK-007": "phase-a0-a1-a2-a3-pass_consolidated-full18-and-residual-calibration-ready",
     "RMD-TASK-008": "manifest-builder-provenance-hardened_formal-output-blocked-by-task007",
     "RMD-TASK-009": "analysis-contract-provenance-hardened_representative-huygens-psf-zernike-pending",
     "RMD-TASK-010": "thread-safe-thin-gui-composition-complete_local-full-flow-smoke-pending",
@@ -34,7 +35,8 @@
   },
   "science_gates_still_active": [
     "TDD-TEST-999: real physical residual payload/readback and low/median/high actual-power calibration",
-    "TASK-007: WFS/RAD representative P-Q recheck must converge within the allowed two cycles before full 18-carrier solve",
+    "TASK-007 consolidated batch must produce 18 valid carriers and 9 numerical calibration records",
+    "Web mechanism review must accept WFS/RAD/HOA low/median/high evidence before formal residual/carrier locks",
     "representative-3-config-sampling-and-mtf-crosscheck"
   ],
   "task005d": {
@@ -79,45 +81,57 @@
       "status": "PASS",
       "validated_code_commit": "10f5d5b229df9d1ce8cfdb39744c9686572f1b61",
       "evidence_commit": "19678920503b115d3c526daca54c8a0834d74d85",
-      "doc": "docs/TASK_007_PHASE_A2_Q0_POWP_REFERENCE_2026-08-19.md",
-      "review_doc": "docs/TASK_007_PHASE_A2_REVIEW_AND_A3_PQ_RECHECK_2026-08-19.md",
       "reference_model": "same_physical_carrier_q0_no_residual",
       "powp_role": "matched standard-eye diagnostic; no post-hoc delta threshold",
       "representative_wfs_q": -4.0,
       "representative_rad_q": -6.0,
       "representative_hoa_q": 0.0,
-      "wfs_powp_delta_d": -0.0003882240736032827,
-      "rad_powp_delta_d": -0.0005823122391817037,
       "wfs_actual_eye_vergence_shift_d": -0.23203015806000815,
       "rad_actual_eye_vergence_shift_d": -0.3420244121002417,
-      "p_q_recheck_platforms": ["WFS", "RAD"],
       "formal_artifact": false
     },
     "phase_a3": {
+      "status": "PASS",
+      "validated_code_commit": "caf6282cb13021465370d54eba3e5df953b8ea7a",
+      "evidence_commit": "dafb04cae2d6246e10143bcf256ed8bc234a75b8",
+      "unit_tests_passed": 183,
+      "wfs_final_power_d": 25.47664933274738,
+      "wfs_final_q": -4.0,
+      "wfs_final_vergence_shift_d": -0.004100809730684001,
+      "rad_final_power_d": 25.587058690007545,
+      "rad_final_q": -5.75,
+      "rad_final_vergence_shift_d": 0.011238621146069772,
+      "all_rechecks_converged": true,
+      "formal_artifact": false
+    },
+    "consolidated_batch": {
       "status": "Web implementation complete; local validation pending",
-      "probe_script": "scripts/probe_task_007_p_q_recheck.py",
-      "max_cycles": 2,
-      "recheck_threshold_d": 0.125,
-      "representative_platforms": ["WFS", "RAD"],
+      "plan_doc": "docs/TASK_007_CONSOLIDATED_BATCH_PLAN_2026-08-19.md",
+      "script": "scripts/run_task_007_consolidated_batch.py",
+      "shared_p0_expected": 6,
+      "carrier_count_expected": 18,
+      "residual_payload_count_expected": 3,
+      "calibration_count_expected": 9,
+      "c0_nominal_transition_slices": 8,
+      "grid_sag_size": 611,
+      "grid_sag_step_mm": 0.01,
+      "grid_sag_interpolation": "linear",
       "repo_evidence_supported": true,
+      "mechanism_review_pending_web": true,
       "formal_artifact": false
     },
     "science_freeze_doc": "docs/TASK_007_IOL_RESIDUAL_SCIENCE_FREEZE_2026-08-19.md",
     "carrier_scaffold": "CONTROLLED_IOL_CARRIER_546_v1",
+    "zero_hoa_reference": "same_physical_carrier_q0_no_residual",
     "residual_seed_version": "TASK007_RESIDUAL_SEEDS_546_v1",
     "residual_validation_policy": "RESIDUAL_VALIDATION_546_v1",
     "piston_tolerance_um": 0.01,
     "global_defocus_tolerance_d": 0.125,
-    "mechanism_seeds": {
-      "WFS": "public phase-shift residual seed",
-      "RAD": "public continuous cosine radial-power seed",
-      "HOA": "windowed opposite-sign OSA Z4/Z6 bench seed"
-    },
     "formal_carrier_locks_created": false,
     "tdd_999_cleared": false
   },
   "review_hardening": {
-    "status": "2026-08-19-task007-phase-a2-pass-a3-ready",
+    "status": "2026-08-19-task007-a3-pass-consolidated-ready",
     "task005d_normative_science_changed": false,
     "main_run72_pipeline_changed": false
   }
