@@ -4,7 +4,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from whole_eye_mvp.zos import MfeEfflRunner, MfeFullHoaRunner
+from whole_eye_mvp.zos import (
+    TASK009_MFE_FULL_HOA_555_V1,
+    MfeEfflRunner,
+    MfeFullHoaRunner,
+)
 
 
 class Cell:
@@ -91,6 +95,14 @@ def test_effl_runner_returns_positive_mm_and_restores_mfe() -> None:
 
 
 @pytest.mark.unit
+def test_full_hoa_settings_identity_is_frozen() -> None:
+    settings = TASK009_MFE_FULL_HOA_555_V1
+    settings.validate()
+    assert settings.settings_id == "TASK009_MFE_ZERN_HOA_555_v1"
+    assert settings.settings_hash == "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+
+
+@pytest.mark.unit
 def test_full_hoa_runner_reads_terms_7_through_28_and_computes_metrics() -> None:
     mfe = MFE()
     result = MfeFullHoaRunner(fake_system(mfe), fake_zosapi()).run()
@@ -98,4 +110,6 @@ def test_full_hoa_runner_reads_terms_7_through_28_and_computes_metrics() -> None
     assert result.c40_um == pytest.approx(0.011 * 0.555)
     assert result.c60_um == pytest.approx(0.022 * 0.555)
     assert result.hoa_rms_um > 0
+    assert result.settings_id == TASK009_MFE_FULL_HOA_555_V1.settings_id
+    assert result.settings_hash == TASK009_MFE_FULL_HOA_555_V1.settings_hash
     assert mfe.NumberOfOperands == 0
