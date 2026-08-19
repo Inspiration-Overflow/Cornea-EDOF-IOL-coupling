@@ -5,9 +5,9 @@ from dataclasses import replace
 import pytest
 
 from whole_eye_mvp.cornea_assets import (
+    C0RadialDesign,
     MAIN_CORNEA_SCAFFOLD,
     MAIN_CORNEA_SCAFFOLD_ID,
-    C0RadialDesign,
     CorneaSurfaceFamily,
     cornea_lock_prescriptions,
     distance_corrected_cornea_power_d,
@@ -96,7 +96,8 @@ def test_c0_quintic_weight_has_exact_endpoint_value_slope_and_curvature() -> Non
     assert quintic_smoothstep_second_derivative(0.0) == 0.0
     assert quintic_smoothstep_second_derivative(1.0) == 0.0
 
-    c = C0RadialDesign(cornea_lock_prescriptions(ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID))[-1])
+    baseline = ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID)
+    c = C0RadialDesign(cornea_lock_prescriptions(baseline)[-1])
     assert c.near_weight(0.0) == 1.0
     assert c.near_weight(1.5) == 1.0
     assert c.near_weight(1.875) == pytest.approx(0.5)
@@ -106,7 +107,8 @@ def test_c0_quintic_weight_has_exact_endpoint_value_slope_and_curvature() -> Non
 
 @pytest.mark.unit
 def test_c0_design_maps_clinical_add_to_radial_target_power_without_redefining_add() -> None:
-    c = C0RadialDesign(cornea_lock_prescriptions(ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID))[-1])
+    baseline = ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID)
+    c = C0RadialDesign(cornea_lock_prescriptions(baseline)[-1])
     distance = distance_corrected_cornea_power_d(-3.0)
     assert c.target_cornea_power_d(0.0) == pytest.approx(distance + 1.75)
     assert c.target_cornea_power_d(1.5) == pytest.approx(distance + 1.75)
@@ -118,7 +120,8 @@ def test_c0_design_maps_clinical_add_to_radial_target_power_without_redefining_a
 
 @pytest.mark.unit
 def test_prescription_contract_fails_closed_on_cross_archetype_semantics() -> None:
-    prescriptions = cornea_lock_prescriptions(ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID))
+    baseline = ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID)
+    prescriptions = cornea_lock_prescriptions(baseline)
     a, b, c = prescriptions[0], prescriptions[1], prescriptions[-1]
     with pytest.raises(ValueError, match="Binary4"):
         replace(a, surface_family=CorneaSurfaceFamily.EVEN_ASPHERE).validate()
