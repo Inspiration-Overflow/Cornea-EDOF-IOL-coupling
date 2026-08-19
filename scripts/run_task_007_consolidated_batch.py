@@ -41,9 +41,9 @@ from whole_eye_mvp.carrier_q_zos import (
 from whole_eye_mvp.carrier_scaffold import CONTROLLED_IOL_CARRIER_546_V1
 from whole_eye_mvp.carrier_zos import ActualEyeCarrierPowerResult, solve_actual_eye_carrier_power
 from whole_eye_mvp.carriers import (
+    SA_TARGETS_UM,
     CarrierKey,
     ProvisionalCarrier,
-    SA_TARGETS_UM,
     expected_calibration_carriers,
     sha256_path,
     validate_18_provisional_carriers,

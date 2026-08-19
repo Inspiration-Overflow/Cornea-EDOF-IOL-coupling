@@ -177,9 +177,12 @@ def apply_grid_sag_residual(
     session.system.LoadFile(str(output.resolve()), False)
     replay = session.system.LDE.GetSurfaceAt(surface_number)
     replay_type = str(getattr(replay, "TypeName", "") or "")
-    if "grid" not in replay_type.lower() and "grid" not in str(replay.GetType()).lower():
-        if not hasattr(replay, "ImportData"):
-            raise GridSagResidualError("saved residual surface did not replay as Grid Sag")
+    if (
+        "grid" not in replay_type.lower()
+        and "grid" not in str(replay.GetType()).lower()
+        and not hasattr(replay, "ImportData")
+    ):
+        raise GridSagResidualError("saved residual surface did not replay as Grid Sag")
 
     return GridSagImportResult(
         platform_id=candidate.platform_id,
