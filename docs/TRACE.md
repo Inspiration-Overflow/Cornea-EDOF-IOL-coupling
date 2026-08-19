@@ -1,6 +1,6 @@
 # TRACE — Project Map / Traceability
 
-> Current authority map for `URD-0001 v1.5` / `ADD-0001 v1.5` / `MDD-0001 v1.4` / `TDD-0001 v1.5`.  
+> Current authority map for `URD-0001 v1.6` / `ADD-0001 v1.6` / `MDD-0001 v1.5` / `TDD-0001 v1.6`.  
 > Historical IDs from older document versions are intentionally not carried forward here; Git history remains their provenance.
 
 ## 1. URD requirements → ADD functional requirements
@@ -16,15 +16,15 @@
 | URD-REQ-007 | refines_to | FR-005 | 18 independent physical carriers |
 | URD-REQ-008 | refines_to | FR-005, FR-008 | matched MONO/EDOF identity; residual-only difference |
 | URD-REQ-009 | refines_to | FR-005 | residual payload / low-order / calibration gate |
-| URD-REQ-010 | refines_to | FR-006 | exact 18/72 immutable manifests |
-| URD-REQ-011 | refines_to | FR-007 | `NOMINAL_MAIN_FFT_MTF_555_v2` main analysis |
+| URD-REQ-010 | refines_to | FR-006 | exact 18/72 immutable manifests and strict reload |
+| URD-REQ-011 | refines_to | FR-007 | frozen FFT-MTF main settings and acquisition |
 | URD-REQ-012 | refines_to | FR-007 | retina/carrier/IOL/ELP/entity invariants |
-| URD-REQ-013 | refines_to | FR-007 | per-config MTFa/MTF/aberration/footprint/provenance |
+| URD-REQ-013 | refines_to | FR-007 | per-config MTFa/MTF/aberration/footprint/settings/provenance |
 | URD-REQ-014 | refines_to | FR-008 | 36 EDOF−MONO matched deltas |
 | URD-REQ-015 | refines_to | FR-009 | failed-target isolation and rerun |
 | URD-REQ-016 | refines_to | FR-007, FR-009 | repeatability under identical frozen inputs |
 | URD-REQ-017 | refines_to | FR-010 | minimal desktop workflow shell |
-| URD-REQ-018 | refines_to | FR-002, FR-007, FR-009 | structured scientific results and auditable artifacts |
+| URD-REQ-018 | refines_to | FR-002, FR-007, FR-009 | structured results and auditable artifacts |
 
 ## 2. ADD FR → DP
 
@@ -75,19 +75,29 @@
 
 | Requirement / test | Implemented or exercised by |
 | --- | --- |
+| URD-REQ-010 / TDD-TEST-110 | `src/whole_eye_mvp/manifest_io.py` |
 | URD-REQ-011 / TDD-TEST-201 | `src/whole_eye_mvp/zos/fft_mtf.py` |
 | TDD-TEST-202 | `src/whole_eye_mvp/zos/mfe_effl.py` |
 | URD-REQ-013 aberrations | `src/whole_eye_mvp/zos/mfe_hoa_full.py` |
 | URD-REQ-011 metrics | `src/whole_eye_mvp/metrics.py` |
-| URD-REQ-012/013 result contract | `src/whole_eye_mvp/analysis.py` |
-| URD-REQ-014 | `matched_pair_delta` |
+| URD-REQ-012 / TDD-TEST-302 | `capture_entity_snapshot` in `src/whole_eye_mvp/analysis_zos.py` |
+| URD-REQ-013 / TDD-TEST-301 | `ConfigResult` + `ZosFftMtfAnalysisBackend` |
+| URD-REQ-014 / TDD-TEST-303 | `matched_pair_delta` |
 | URD-REQ-015 | `run_analysis_batch` / `rerun_failed` |
 | TDD-TEST-204/205 | TASK-009 representative batch |
-| TDD-TEST-206 | frozen-manifest representative selection + real `AnalysisBackend` through `run_analysis_batch` |
+| TDD-TEST-206 | frozen-manifest selection + `ZosFftMtfAnalysisBackend` + `run_analysis_batch` |
 | TDD-TEST-207 | limited FFT-family extraction diagnostic |
 | URD-AC-009 | Run72 acceptance in `src/whole_eye_mvp/acceptance.py` |
 
-## 6. Frozen provenance
+## 6. Versioned settings trace
+
+| Identity | SHA-256 | Scope |
+| --- | --- | --- |
+| `NOMINAL_MAIN_FFT_MTF_555_v2` | `0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc` | main FFT-MTF/MTFa Run72 analysis |
+| `TASK009_MFE_ZERN_HOA_555_v1` | `7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2` | whole-eye C4/C6/HOA RMS readback |
+| `CORNEA_LOCK_B0_555_v2` | `aee210e884aa59f74e2963efddca9fc789f2b4e85de521606348d1e586790b8e` | historical frozen B0 selection acquisition |
+
+## 7. Frozen provenance
 
 - TASK-007 reviewed evidence: `docs/evidence/task007/consolidated_review/TASK_007_CONSOLIDATED_REVIEW.json`.
 - TASK-008 formal evidence: `docs/evidence/task008/TASK_008_LOCK_MANIFEST_EVIDENCE.json`.
