@@ -5,9 +5,9 @@ import math
 import pytest
 
 from whole_eye_mvp.b0 import B0CandidateInput, LockCurve, lock_b0, rank_b0_candidates
-from whole_eye_mvp.domain import CORNEA_LOCK_B0_555_V1
+from whole_eye_mvp.domain import CORNEA_LOCK_B0_555_V2
 
-D = CORNEA_LOCK_B0_555_V1.defocus_grid()
+D = CORNEA_LOCK_B0_555_V2.defocus_grid()
 
 
 def curve(peak: float, width_samples: int) -> LockCurve:
