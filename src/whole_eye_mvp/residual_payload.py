@@ -7,11 +7,12 @@ from dataclasses import dataclass
 from .carrier_scaffold import CONTROLLED_IOL_CARRIER_546_V1
 from .residual_profiles import (
     LowOrderFit,
+    RAD_OPTIC_RADIUS_MM,
     RESIDUAL_NORMALIZATION_RADIUS_MM,
     RESIDUAL_SAMPLE_STEP_MM,
+    fit_piston_and_global_defocus,
     hoa_raw_opd_um,
     rad_raw_opd_um,
-    remove_piston_and_global_defocus,
     sample_radial_profile,
     wfs_raw_opd_um,
 )
@@ -27,6 +28,7 @@ class RadialResidualCandidate:
     surface_sag_um: tuple[float, ...]
     removed_low_order: LowOrderFit
     normalization_radius_mm: float
+    optic_radius_mm: float
     sample_step_mm: float
 
     def validate(self) -> None:
@@ -43,9 +45,11 @@ class RadialResidualCandidate:
         if self.radii_mm[0] != 0.0:
             raise ValueError("residual radial samples must start on axis")
         if not math.isclose(
-            self.radii_mm[-1], self.normalization_radius_mm, rel_tol=0.0, abs_tol=1.0e-12
+            self.radii_mm[-1], self.optic_radius_mm, rel_tol=0.0, abs_tol=1.0e-12
         ):
-            raise ValueError("residual radial samples must end at the normalization radius")
+            raise ValueError("residual radial samples must cover the full optic radius")
+        if not 0.0 < self.normalization_radius_mm <= self.optic_radius_mm:
+            raise ValueError("residual normalization radius must lie inside the optic")
         if self.surface_role not in {"anterior", "posterior"}:
             raise ValueError("residual surface role must be anterior or posterior")
         for values in (self.raw_opd_um, self.normalized_opd_um, self.surface_sag_um):
@@ -73,14 +77,44 @@ def opd_to_surface_sag_um(opd_um: float, *, surface_role: str) -> float:
     return float(opd_um) / index_step
 
 
+def normalization_prefix(candidate: RadialResidualCandidate) -> tuple[tuple[float, ...], ...]:
+    """Return radii/raw/normalized samples inside the frozen low-order fit footprint."""
+
+    end_index = round(candidate.normalization_radius_mm / candidate.sample_step_mm)
+    if not math.isclose(
+        end_index * candidate.sample_step_mm,
+        candidate.normalization_radius_mm,
+        rel_tol=0.0,
+        abs_tol=1.0e-12,
+    ):
+        raise ValueError("normalization radius must align with the radial sample grid")
+    stop = end_index + 1
+    return (
+        candidate.radii_mm[:stop],
+        candidate.raw_opd_um[:stop],
+        candidate.normalized_opd_um[:stop],
+    )
+
+
 def _candidate_from_opd_profile(
     *,
     platform_id: str,
     surface_role: str,
     raw_profile: Callable[[float], float],
 ) -> RadialResidualCandidate:
-    radii, raw_opd = sample_radial_profile(raw_profile)
-    normalized_opd, removed = remove_piston_and_global_defocus(radii, raw_opd)
+    radii, raw_opd = sample_radial_profile(
+        raw_profile,
+        radius_max_mm=RAD_OPTIC_RADIUS_MM,
+        step_mm=RESIDUAL_SAMPLE_STEP_MM,
+    )
+    normalization_stop = round(RESIDUAL_NORMALIZATION_RADIUS_MM / RESIDUAL_SAMPLE_STEP_MM) + 1
+    norm_radii = radii[:normalization_stop]
+    norm_raw = raw_opd[:normalization_stop]
+    removed = fit_piston_and_global_defocus(norm_radii, norm_raw)
+    normalized_opd = tuple(
+        value - removed.piston_um - 0.5 * removed.global_defocus_d * radius**2
+        for radius, value in zip(radii, raw_opd, strict=True)
+    )
     surface_sag = tuple(
         opd_to_surface_sag_um(value, surface_role=surface_role) for value in normalized_opd
     )
@@ -93,6 +127,7 @@ def _candidate_from_opd_profile(
         surface_sag_um=surface_sag,
         removed_low_order=removed,
         normalization_radius_mm=RESIDUAL_NORMALIZATION_RADIUS_MM,
+        optic_radius_mm=RAD_OPTIC_RADIUS_MM,
         sample_step_mm=RESIDUAL_SAMPLE_STEP_MM,
     )
     candidate.validate()
