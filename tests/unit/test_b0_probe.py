@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import asdict
 
 import pytest
@@ -23,12 +24,25 @@ def payload(*, legacy: bool = False) -> dict[str, object]:
     return result
 
 
+def json_roundtrip(value: dict[str, object]) -> dict[str, object]:
+    result = json.loads(json.dumps(value))
+    assert isinstance(result, dict)
+    return result
+
+
 @pytest.mark.unit
 def test_probe_evidence_accepts_current_and_legacy_runtime_success_semantics() -> None:
     current = validate_b0_probe_payload(payload())
-    legacy = validate_b0_probe_payload(payload(legacy=True))
+    legacy = validate_b0_probe_payload(json_roundtrip(payload(legacy=True)))
     assert current.runtime_passed and legacy.runtime_passed
     assert current.max_abs_q_difference_sampling_3_to_4 == pytest.approx(0.00068)
+
+
+@pytest.mark.unit
+def test_probe_evidence_accepts_disk_json_tuple_to_list_roundtrip() -> None:
+    evidence = validate_b0_probe_payload(json_roundtrip(payload()))
+    assert evidence.runtime_passed
+    assert evidence.max_abs_q_difference_frequency_5_to_2_5 == pytest.approx(0.0049)
 
 
 @pytest.mark.unit
