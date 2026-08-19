@@ -160,24 +160,24 @@ def _repo_evidence_payload(
     inputs = payload["inputs"]
     zero_hoa = payload["zero_hoa"]
     if not isinstance(platform_solutions, dict):
-        raise ValueError("platform solutions missing from A.2 payload")
+        raise TypeError("platform solutions missing from A.2 payload")
     if not isinstance(inputs, dict) or not isinstance(zero_hoa, dict):
-        raise ValueError("A.2 evidence inputs/zero-HOA block is invalid")
+        raise TypeError("A.2 evidence inputs/zero-HOA block is invalid")
     zero_measurement = zero_hoa["measurement"]
     if not isinstance(zero_measurement, dict):
-        raise ValueError("A.2 zero-HOA measurement is invalid")
+        raise TypeError("A.2 zero-HOA measurement is invalid")
     zero_wavefront = zero_measurement["wavefront"]
     if not isinstance(zero_wavefront, dict):
-        raise ValueError("A.2 zero-HOA wavefront is invalid")
+        raise TypeError("A.2 zero-HOA wavefront is invalid")
 
     compact_solutions: dict[str, object] = {}
     for platform, item in platform_solutions.items():
         if not isinstance(item, dict):
-            raise ValueError("invalid platform solution block")
+            raise TypeError("invalid platform solution block")
         solution = item["solution"]
         focus = item["actual_eye_q_focus"]
         if not isinstance(solution, dict) or not isinstance(focus, dict):
-            raise ValueError("invalid platform solution/focus evidence")
+            raise TypeError("invalid platform solution/focus evidence")
         compact_solutions[platform] = {
             "q": solution["q"],
             "target_sa_um": solution["target_sa_um"],
