@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 2026-08-19 — TASK-005D / TASK-006 B0.20 正式锁定
+
+- Phase B.2 在 `CORNEA_LOCK_B0_555_v2` 冻结设置下完成五候选真实 OpticStudio 扫描；source scan hash=`11d8eac7a79696d4f5219b60bd79cadad7bdc114994b77e8afe1b6325ae7af84`。
+- B0.10/B0.15/B0.20 通过 EPD3≥80%、EPD5≥70% distance-retention gates；B0.25/B0.30 因 EPD5 gate 未通过而不 eligible；deterministic recommendation=`B0.20`。
+- Phase B.3 morphology review 核对 6 模型×EPD3/EPD5×17-plane 全曲线；五个 B 候选均无“明显稳定双峰 + 有意义深谷”，五项 `morphology_reject=false`，未新增阈值。
+- Phase B.4 使用现有 review/lock 路径写入不可变 `B0_LOCK`：candidate/recommendation=`B0.20`、override=false、artifact SHA256=`24c25fea95db394998c0a4dd2ef7b0499e1e792c1275c117c23faeba0d2ea06c`。
+- 最终离线检查：157 unit tests PASS、Ruff PASS、compileall PASS、`uv lock --check` PASS；未重跑 Phase B.1/B.2，未修改 A/B/C、Q_lock、80/70 gates、rank 或 morphology 定义。
+- A0/B0.20/C0 从此作为冻结角膜输入；下一科学工作转入 TASK-007，`TDD-TEST-999` 继续阻断正式 carrier locks/Run72，直至三平台 residual payload 与 low/median/high actual-power calibration 完成。
+
 ## 2026-08-19 — TASK-005D 实验前一致性修订
 
 - 独立复核 TASK-005D 文档、B0/MTFA、REF_MONO、排序/锁定路径后，确认 A/B/C 光学处方、Q_lock 数学、17-plane defocus grid、80/70% distance gates 和既有排序算法无需重做；Phase A/A.1/B.1 不要求重跑。
@@ -98,20 +107,3 @@
 
 - 保留 8 个 FR/DP 的设计拆分和 `DECOUPLED` 分类，不改变 MVP 科学范围。
 - 将设计矩阵标题调整为 skill 检查器可识别的 `## FR / DP Design Matrix`。
-- 将已批准的独立自包含 URD 复制到规范路径 `docs/URD.md`，作为后续 MDD 的正式输入。
-- `.vibe/trace.json` 改为 `version + items + links` 结构；每条 link 只包含一个 source 和一个 target。
-- 修正 TRACE 的语义映射：GUI 路径配置、失败/重跑、surrogate 命名、A0/B0/C0 冻结等同时链接到实际受影响的 FR/DP。
-- `.vibe/coupling_history.json` 改用 `accepted_couplings` 复数标准字段。
-- 从 ADD 删除重复的 requirement coverage 表和历史修订说明；追踪关系由 TRACE 保存，历史由本 CHANGELOG 保存。
-
-## 2026-08-17 — ADD v1.1
-
-- 将 DP-007 修订为前置的 `Project Store & Run State Boundary`。
-- 显式公开 Assets / B0 / Carrier / Manifest / Analysis 对持久化边界的依赖。
-- 删除 URD 未要求的 GUI “安全停止/Cancel”行为。
-- 增加第三次 coupling retry，确认真实依赖公开后仍为 decoupled design。
-
-## 2026-08-17 — ADD v1.0
-
-- 初次完成 Design Split。
-- 建立 8 个 FR/DP、FR/DP 矩阵和两次 coupling retry。
