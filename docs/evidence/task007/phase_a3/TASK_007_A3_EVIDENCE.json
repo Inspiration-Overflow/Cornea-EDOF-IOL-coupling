@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "evidence_only": true,
+  "formal_artifact": false,
+  "tdd_999_cleared": false,
+  "phase": "TASK-007-A.3-P-Q-REPRESENTATIVE-RECHECK",
+  "baseline_id": "MVP_2026_v2",
+  "code_commit": "caf6282cb13021465370d54eba3e5df953b8ea7a",
+  "source_a2_evidence_sha256": "54aab16274e84d2ba8215d898dd2e307836df29800cd99372be30025b1c00cd7",
+  "standard_eye_sha256": "4dfc8d84d37f2ef6bf28c08a5b46436311ad0036e267cf5463cc4dc0d58fa414",
+  "actual_eye_source_sha256": "ff72a468fa7bc96a0e8de5d6b2e25ba851c98f59d3275d0fa0d8449e06263107",
+  "max_recheck_cycles": 2,
+  "p_q_recheck_threshold_d": 0.125,
+  "platform_results": {
+    "WFS": {
+      "initial_power_d": 25.25866463479957,
+      "initial_radius_mm": 9.77576192316701,
+      "initial_q": -4.0,
+      "cycles": [
+        {
+          "cycle": 1,
+          "radius_solve": {
+            "q": -4.0,
+            "initial_radius_mm": 9.77576192316701,
+            "solved_radius_mm": 9.691751469139794,
+            "power_d": 25.47664933274738,
+            "focus_shift_mm": 0.0009891627731342112,
+            "iterations": 10
+          },
+          "q_solution": {
+            "platform_id": "WFS",
+            "source_power_d": 25.47664933274738,
+            "radius_ant_mm": 9.691751469139794,
+            "radius_post_mm": -9.691751469139794,
+            "q": -4.0,
+            "target_sa_um": -0.2,
+            "achieved_sa_um": -0.20039416678336214,
+            "zero_hoa_c40_um": 0.5152787628455917,
+            "candidate_c40_um": 0.31488459606222957,
+            "zero_hoa_powp_d": 47.716188747525166,
+            "candidate_powp_d": 47.71579034052263,
+            "powp_delta_d": -0.00039840700253535033,
+            "candidate_wavefront": {
+              "c40_um": 0.31488459606222957,
+              "z11_waves": 0.5767117143996878,
+              "z37_waves": 0.0005690455364124394,
+              "best_focus_shift_mm": -1.5717047803030688
+            },
+            "q_evaluations": 8
+          },
+          "replay_sa_um": -0.20039416678336214,
+          "replay_error_um": -0.0003941667833621265,
+          "replay_powp_delta_d": -0.00039840700253535033,
+          "actual_eye_focus": {
+            "q": -4.0,
+            "fixed_iol_post_to_image_mm": 17.95,
+            "best_iol_post_to_image_mm": 17.950989162773134,
+            "focus_shift_mm": 0.0009891627731342112,
+            "equivalent_vergence_shift_d": -0.0041012985449153105,
+            "recheck_required": false
+          },
+          "refocused_actual_eye_sha256": "2c4b2387f94a8844ca72a2f5f7ed0984c25903caf1c551299e33ff29ad199bbd",
+          "final_actual_eye_sha256": "d8e96aa9b4000e40e3a3c1665f859fe296699be6af5535b9f063620929199bd1",
+          "std_q0_sha256": "085cb457bd0b4a6014149a4c2e0bf514e4543338163a357124b9670d941ac8b9",
+          "std_q_sha256": "840303b574d8bfb1a68f7b212aa8a1ae18aec5db1ac8237d5617a6fe6c5754b0"
+        }
+      ],
+      "final_power_d": 25.47664933274738,
+      "final_radius_mm": 9.691751469139794,
+      "final_q": -4.0,
+      "final_focus": {
+        "q": -4.0,
+        "fixed_iol_post_to_image_mm": 17.95,
+        "best_iol_post_to_image_mm": 17.950989162773134,
+        "focus_shift_mm": 0.0009891627731342112,
+        "equivalent_vergence_shift_d": -0.0041012985449153105,
+        "recheck_required": false
+      },
+      "converged_within_two_cycles": true
+    },
+    "RAD": {
+      "initial_power_d": 25.25866463479957,
+      "initial_radius_mm": 9.77576192316701,
+      "initial_q": -6.0,
+      "cycles": [
+        {
+          "cycle": 1,
+          "radius_solve": {
+            "q": -6.0,
+            "initial_radius_mm": 9.77576192316701,
+            "solved_radius_mm": 9.649746242126184,
+            "power_d": 25.587058690007545,
+            "focus_shift_mm": 0.0006871101320449213,
+            "iterations": 11
+          },
+          "q_solution": {
+            "platform_id": "RAD",
+            "source_power_d": 25.587058690007545,
+            "radius_ant_mm": 9.649746242126184,
+            "radius_post_mm": -9.649746242126184,
+            "q": -5.75,
+            "target_sa_um": -0.27,
+            "achieved_sa_um": -0.2693770615875419,
+            "zero_hoa_c40_um": 0.5180035641499028,
+            "candidate_c40_um": 0.2486265025623609,
+            "zero_hoa_powp_d": 47.78591750877975,
+            "candidate_powp_d": 47.78533730883507,
+            "powp_delta_d": -0.0005801999446788386,
+            "candidate_wavefront": {
+              "c40_um": 0.2486265025623609,
+              "z11_waves": 0.45535989480285877,
+              "z37_waves": 3.0414190854300527e-05,
+              "best_focus_shift_mm": -1.522414478332692
+            },
+            "q_evaluations": 15
+          },
+          "replay_sa_um": -0.2693770615875419,
+          "replay_error_um": 0.0006229384124581405,
+          "replay_powp_delta_d": -0.0005801999446788386,
+          "actual_eye_focus": {
+            "q": -5.75,
+            "fixed_iol_post_to_image_mm": 17.95,
+            "best_iol_post_to_image_mm": 17.947289948536074,
+            "focus_shift_mm": -0.0027100514639251116,
+            "equivalent_vergence_shift_d": 0.0112388186711751,
+            "recheck_required": false
+          },
+          "refocused_actual_eye_sha256": "2da5e8d0538a6765fca21d90e287c4727c0277de55461c6413a72ba0e94b7008",
+          "final_actual_eye_sha256": "39f7b6d1a5a616edc0681c52daaf4d27b68b33e072a7ea2cf453a5b733d20d33",
+          "std_q0_sha256": "c0b545e25290a03bda84b50f2366543ac47444ec86c58267cfb0a5e9f880a8b7",
+          "std_q_sha256": "db02bb22313380068266a3eeba8fdbf920cbbfcb9d15ad7de9deaf83938e3349"
+        }
+      ],
+      "final_power_d": 25.587058690007545,
+      "final_radius_mm": 9.649746242126184,
+      "final_q": -5.75,
+      "final_focus": {
+        "q": -5.75,
+        "fixed_iol_post_to_image_mm": 17.95,
+        "best_iol_post_to_image_mm": 17.947289948536074,
+        "focus_shift_mm": -0.0027100514639251116,
+        "equivalent_vergence_shift_d": 0.0112388186711751,
+        "recheck_required": false
+      },
+      "converged_within_two_cycles": true
+    }
+  },
+  "all_rechecks_converged": true,
+  "next_gate": "Web review before extending the P-Q algorithm to all 18 carriers"
+}
