@@ -29,6 +29,7 @@ project/results/
 project/logs/
 project/environments/
 project/project.json
+project_mvp_*/
 *.zos
 *.zmx
 
