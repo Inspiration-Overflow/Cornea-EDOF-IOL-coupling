@@ -4,13 +4,10 @@ import math
 from dataclasses import dataclass
 
 from .b0 import LockCurve
-from .domain import CORNEA_LOCK_B0_555_V1
-from .zos import HuygensMtfCurve, HuygensMtfRunner, HuygensMtfSettings, ZosSession
+from .domain import CORNEA_LOCK_B0_555_V2
+from .zos import MfeMtfaRunner, MfeMtfaSettings, ZosSession
 
-B0_Q_LOCK_MAX_FREQUENCY_CYC_PER_MM = 50.0
-B0_MTF_ANALYSIS_MAX_FREQUENCY_CYC_PER_MM = 60.0
 B0_OBJECT_INFINITY_MM = 1.0e10
-B0_PUPILS_MM = (3.0, 5.0)
 
 
 class B0ZosError(RuntimeError):
@@ -55,51 +52,41 @@ def _require_cycles_per_mm(session: ZosSession) -> None:
     raise B0ZosError(f"B0 lock requires MTF units cycles/mm; installed value is {value!r}")
 
 
-def _linear_value(curve: HuygensMtfCurve, frequency: float) -> float:
-    x = curve.frequency_cyc_per_mm
-    y = curve.average
-    if frequency < x[0] - 1.0e-12 or frequency > x[-1] + 1.0e-12:
-        raise B0ZosError(
-            f"requested Q_lock frequency {frequency:g} lies outside returned MTF range "
-            f"[{x[0]:g}, {x[-1]:g}]"
-        )
-    for index, value in enumerate(x):
-        if abs(value - frequency) <= 1.0e-12:
-            return y[index]
-        if value > frequency:
-            left_x, right_x = x[index - 1], value
-            left_y, right_y = y[index - 1], y[index]
-            fraction = (frequency - left_x) / (right_x - left_x)
-            return left_y + fraction * (right_y - left_y)
-    return y[-1]
-
-
-def q_lock_from_huygens_mtf(
-    curve: HuygensMtfCurve,
+def q_lock_from_mtfa_samples(
+    frequencies_cyc_per_mm: tuple[float, ...],
+    mtf_average: tuple[float, ...],
     *,
-    maximum_frequency: float = B0_Q_LOCK_MAX_FREQUENCY_CYC_PER_MM,
+    maximum_frequency: float,
 ) -> float:
-    """Compute Q_lock=(1/Fmax) integral_0^Fmax average Huygens MTF df."""
+    """Compute Q_lock=(1/Fmax) integral_0^Fmax MTFA df by trapezoidal integration."""
 
     if not math.isfinite(maximum_frequency) or maximum_frequency <= 0:
         raise ValueError("Q_lock maximum frequency must be finite and positive")
-    if curve.frequency_cyc_per_mm[0] > 0 or curve.frequency_cyc_per_mm[-1] < maximum_frequency:
-        raise B0ZosError("Huygens MTF curve does not cover the frozen 0..50 cycles/mm range")
+    if len(frequencies_cyc_per_mm) != len(mtf_average) or len(mtf_average) < 2:
+        raise B0ZosError("MTFA frequency/value grids must have equal length >= 2")
+    if not all(
+        math.isfinite(float(value)) for value in (*frequencies_cyc_per_mm, *mtf_average)
+    ):
+        raise B0ZosError("MTFA Q_lock inputs must be finite")
+    if abs(frequencies_cyc_per_mm[0]) > 1.0e-12:
+        raise B0ZosError("MTFA Q_lock frequency grid must start at 0 cycles/mm")
+    if abs(frequencies_cyc_per_mm[-1] - maximum_frequency) > 1.0e-12:
+        raise B0ZosError("MTFA Q_lock frequency grid must end at the frozen maximum")
+    if any(
+        right <= left
+        for left, right in zip(frequencies_cyc_per_mm, frequencies_cyc_per_mm[1:])
+    ):
+        raise B0ZosError("MTFA Q_lock frequencies must be strictly increasing")
+    if any(value < -1.0e-9 or value > 1.01 for value in mtf_average):
+        raise B0ZosError("MTFA modulation lies outside expected [0, 1] range")
 
-    points: list[tuple[float, float]] = [(0.0, _linear_value(curve, 0.0))]
-    points.extend(
-        (frequency, value)
-        for frequency, value in zip(
-            curve.frequency_cyc_per_mm,
-            curve.average,
-            strict=True,
-        )
-        if 0.0 < frequency < maximum_frequency
-    )
-    points.append((maximum_frequency, _linear_value(curve, maximum_frequency)))
     area = math.fsum(
         0.5 * (left_y + right_y) * (right_x - left_x)
-        for (left_x, left_y), (right_x, right_y) in zip(points, points[1:])
+        for (left_x, left_y), (right_x, right_y) in zip(
+            zip(frequencies_cyc_per_mm, mtf_average, strict=True),
+            zip(frequencies_cyc_per_mm[1:], mtf_average[1:], strict=True),
+            strict=True,
+        )
     )
     result = area / maximum_frequency
     if not math.isfinite(result) or result < 0 or result > 1.01:
@@ -108,17 +95,24 @@ def q_lock_from_huygens_mtf(
 
 
 def _set_epd(session: ZosSession, pupil_mm: float) -> None:
-    if pupil_mm not in B0_PUPILS_MM:
-        raise ValueError(f"B0 lock pupil must be one of {B0_PUPILS_MM}")
+    settings = CORNEA_LOCK_B0_555_V2
+    if pupil_mm not in settings.pupils_mm:
+        raise ValueError(f"B0 lock pupil must be one of {settings.pupils_mm}")
     aperture = session.system.SystemData.Aperture
     aperture.ApertureType = session.zosapi.SystemData.ZemaxApertureType.EntrancePupilDiameter
     aperture.ApertureValue = pupil_mm
 
 
-def acquire_b0_lock_curve(session: ZosSession, pupil_mm: float) -> B0LockAcquisition:
-    """Acquire the frozen 17-point B0 Q_lock curve without moving retina/IOL surfaces."""
+def acquire_b0_lock_curve(
+    session: ZosSession,
+    pupil_mm: float,
+    *,
+    sampling: int | None = None,
+    frequency_step_cyc_per_mm: float | None = None,
+) -> B0LockAcquisition:
+    """Acquire the frozen 17-point B0 Q_lock curve through temporary MFE MTFA operands."""
 
-    settings = CORNEA_LOCK_B0_555_V1
+    settings = CORNEA_LOCK_B0_555_V2
     settings.validate()
     if pupil_mm not in settings.pupils_mm:
         raise ValueError(f"pupil {pupil_mm:g} mm is not frozen for B0 lock")
@@ -139,16 +133,17 @@ def acquire_b0_lock_curve(session: ZosSession, pupil_mm: float) -> B0LockAcquisi
         )
     object_surface = lde.GetSurfaceAt(0)
     saved_object_thickness = float(object_surface.Thickness)
-    runner = HuygensMtfRunner(session.system, session.zosapi)
-    mtf_settings = HuygensMtfSettings(
-        pupil_sampling=settings.huygens_pupil_sampling,
-        image_sampling=settings.huygens_image_sampling,
-        image_delta_um=settings.huygens_image_delta_um,
-        maximum_frequency_cyc_per_mm=B0_MTF_ANALYSIS_MAX_FREQUENCY_CYC_PER_MM,
-        normalize=settings.huygens_normalize,
-        use_centroid=settings.huygens_use_centroid,
-        use_polarization=settings.huygens_use_polarization,
+    selected_sampling = settings.mtfa_sampling if sampling is None else int(sampling)
+    frequencies = settings.frequency_grid(step_cyc_per_mm=frequency_step_cyc_per_mm)
+    mtfa_settings = MfeMtfaSettings(
+        frequencies_cyc_per_mm=frequencies,
+        sampling=selected_sampling,
+        wavelength_number=settings.wavelength_number,
+        field_number=settings.field_number,
+        grid=settings.mtfa_grid,
+        data_type=settings.mtfa_data_type,
     )
+    runner = MfeMtfaRunner(session.system, session.zosapi)
     grid = settings.defocus_grid()
     values: list[float] = []
     try:
@@ -157,11 +152,12 @@ def acquire_b0_lock_curve(session: ZosSession, pupil_mm: float) -> B0LockAcquisi
                 defocus_d,
                 infinity_thickness_mm=saved_object_thickness,
             )
-            curve = runner.run(mtf_settings)
+            mtfa = runner.run(mtfa_settings)
             values.append(
-                q_lock_from_huygens_mtf(
-                    curve,
-                    maximum_frequency=settings.b0_q_lock_max_cycles_per_mm,
+                q_lock_from_mtfa_samples(
+                    mtfa.frequencies_cyc_per_mm,
+                    mtfa.mtf_average,
+                    maximum_frequency=settings.q_lock_max_cycles_per_mm,
                 )
             )
     finally:
