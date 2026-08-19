@@ -1,18 +1,18 @@
 # MDD — 角膜屈光术后 × 非衍射 EDOF IOL Zemax 自动化研究软件
 
-> **Building Blocks / Module Design Document。** 将 `ADD-0001 v1.4` 的 DP 落实为模块、接口、契约和数据结构；科学定义由 `URD-0001 v1.3` 通过稳定 ID 提供，本文件不重复其长篇科学叙述。
+> **Building Blocks / Module Design Document。** 将 `ADD-0001 v1.4` 的 DP 落实为模块、接口、契约和数据结构；科学定义由 `URD-0001 v1.4` 通过稳定 ID 提供，本文件不重复其长篇科学叙述。URD v1.4 的 standard-eye 6 mm 修订不改变本 MDD 的模块拆分。
 
 ## Metadata
 
 - document_id: MDD-0001
 - version: 1.3
-- status: ready-for-TDD
+- status: active
 - source_add: ADD-0001 v1.4
-- source_urd: URD-0001 v1.3
-- last_updated: 2026-08-17
+- source_urd: URD-0001 v1.4
+- last_updated: 2026-08-19
 - stack: Python + ZOS-API + CustomTkinter
 - optical_oracle: Zemax OpticStudio
-- persistence: local filesystem; CSV + `.zos` + images + text log
+- persistence: local filesystem; CSV + canonical `.zmx` + images + text log；历史 `.zos` 仅保留 provenance
 
 ## Architecture Summary
 
@@ -45,7 +45,7 @@ Assets -> B0 -> Carrier -> Manifest -> Analysis
 | MDD-MOD-005 | `CarrierWorkflow` | ADD-DP-004 | 求 18 个 `P→Q(P)` carrier，验证 residual，生成 matched MONO/EDOF locks。 | 不修改 A0/B0/C0；不为 EDOF 单独调 carrier。 |
 | MDD-MOD-006 | `ManifestBuilder` | ADD-DP-005 | 纯数据生成/验证 18 carrier manifest 与 72 nominal manifest。 | 不调用 Zemax。 |
 | MDD-MOD-007 | `AnalysisWorkflow` | ADD-DP-006 | 按 manifest 运行 Zemax 分析、导出结果并生成 `EDOF−MONO` paired delta。 | 不改 carrier/manifest。 |
-| MDD-MOD-008 | `DesktopAppShell` | ADD-DP-008 | 极简 CustomTkinter UI、动作调度、进度/日志/失败/rerun 显示。 | 不实现光学算法、不直接编辑 `.zos`。 |
+| MDD-MOD-008 | `DesktopAppShell` | ADD-DP-008 | 极简 CustomTkinter UI、动作调度、进度/日志/失败/rerun 显示。 | 不实现光学算法、不直接编辑 `.zmx`。 |
 
 ## Module Dependency Notes
 
@@ -67,13 +67,13 @@ Assets -> B0 -> Carrier -> Manifest -> Analysis
 | MDD-API-001 | MOD-001 | `open_zos_session` | `install_dir` | `ZosSession` context | 加载 .NET；启动/关闭 OpticStudio |
 | MDD-API-002 | MOD-002 | `open_project_store` | `project_dir, baseline` | `ProjectStore` | 创建/验证项目目录与 metadata |
 | MDD-API-003 | MOD-002 | `record_artifact` | `store, ArtifactRecord, lock` | `ArtifactRef` | 写文件/CSV/hash；lock 可原子登记 |
-| MDD-API-004 | MOD-003 | `build_scientific_assets` | `session, store, baseline` | `AssetBuildReport` | Zemax 建模；写 `.zos`/validation/locks |
+| MDD-API-004 | MOD-003 | `build_scientific_assets` | `session, store, baseline` | `AssetBuildReport` | Zemax 建模；写 `.zmx`/validation/locks |
 | MDD-API-005 | MOD-003 | `validate_scientific_assets` | `session, store, baseline` | `ValidationReport` | 只写 validation/log；不改科学 lock |
 | MDD-API-006 | MOD-004 | `run_b0_scan` | `session, store, B0 settings` | `B0ScanReport` | Zemax 分析；写 A0 thresholds、candidate gates/ranking、CSV/图像/log |
 | MDD-API-007 | MOD-004 | `lock_b0` | `store, candidate_id, morphology_decisions, selection_reason` | `B0Lock` | 一次性写不可变 B0 lock |
 | MDD-API-008 | MOD-005 | `build_carrier_locks` | `session, store, baseline` | `CarrierBuildReport` | Zemax solve；写 carrier/pair locks |
 | MDD-API-009 | MOD-006 | `build_manifests` | `store` | `ManifestBundle` | 写 18/72 CSV + hash |
-| MDD-API-010 | MOD-007 | `run_analysis` | `session, store, manifest, settings, selection` | `RunSummary` | Zemax 分析；写 CSV/`.zos`/images/log |
+| MDD-API-010 | MOD-007 | `run_analysis` | `session, store, manifest, settings, selection` | `RunSummary` | Zemax 分析；写 CSV/`.zmx`/images/log |
 | MDD-API-011 | MOD-008 | `launch_desktop_app` | none | none | 创建 GUI main loop |
 | MDD-API-012 | MOD-008 | `submit_action` | `ActionRequest, event_sink` | none | 串行调度一个 workflow；发 `ProgressEvent` |
 
@@ -126,8 +126,8 @@ project/
   logs/{run_history.csv,app.log}
 ```
 
-- CSV 为主结构化交付；`.zos` 为可追溯模型；图像来自 Zemax 输出或 Zemax 数值的确定性绘图。
-- lock `.zos` / residual payload 记录 SHA-256；用途是检测静默修改，不是安全加密。
+- CSV 为主结构化交付；`.zmx` 为当前规范可追溯模型；历史 `.zos` 只保留原始 provenance；图像来自 Zemax 输出或 Zemax 数值的确定性绘图。
+- lock `.zmx` / residual payload 记录 SHA-256；用途是检测静默修改，不是安全加密。
 - `run_history.csv` append-only；最新状态由 target + 时间派生。
 - `RunEnvironment` 每次正式 action 都记录；对应的 baseline/manifest/lock hashes 使结果可复跑。
 - 标准眼、A0、B0、C0、3 residual、18 carrier、72 manifest 均禁止下游原地改写。
@@ -139,7 +139,7 @@ project/
 3. **B0 Scan**：固定五点；任一点失败则 action=`failed`，但已成功候选保留；不存在 `partial` run status。
 4. **Build Carriers**：3 个 residual 必须存在且 hash 正确；实际 payload 的 piston/global-defocus 与各平台 low/median/high actual-power gate 都通过后才能成为正式 residual lock；metadata flag 不能替代数值验证。
 5. **Manifest**：只有 18 carrier 完整时才能生成 72 nominal manifest。
-6. **Run/Rerun**：每个 target 新建 `RunRecord + RunEnvironment`；只有 CSV/`.zos`/必需图像都成功才 completed。
+6. **Run/Rerun**：每个 target 新建 `RunRecord + RunEnvironment`；只有 CSV/`.zmx`/必需图像都成功才 completed。
 7. **Matched pair**：同一 base/cornea/platform/pupil 的 MONO 与 EDOF 均完成后才生成 `EDOF−MONO`；`ΔF_residual` 使用 retina-anchored frame，shape-recentered frame 只比较曲线形态。
 8. **GUI worker assumption**：默认用单一后台 worker 避免 Tk 主循环阻塞；**这不是已证明的 ZOS-API thread-safety 事实**，TDD 必须先做 connect→operate→close smoke test。若 oracle 失败，只调整 orchestration placement，不改变上述科学模块接口。
 
@@ -176,4 +176,4 @@ project/
 - [x] 未引入 URD 范围外的数据库、并行、Cancel、复杂 GUI 或患者级框架。
 - [x] MDD 只保留 Building Blocks 阶段需要的信息；测试 oracle 留给 TDD。
 
-**Result:** `MDD-0001 v1.1` 可进入 TDD。
+**Result:** `MDD-0001 v1.3` 继续作为当前有效模块设计基线；URD v1.4 的 6 mm standard-eye 数值修订和 `.zmx` 规范迁移不改变 8 模块 / 12 API 架构拆分。
