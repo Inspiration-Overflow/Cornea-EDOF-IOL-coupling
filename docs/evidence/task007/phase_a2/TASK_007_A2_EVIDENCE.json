@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "evidence_only": true,
+  "formal_artifact": false,
+  "tdd_999_cleared": false,
+  "phase": "TASK-007-A.2-Q0-POWP-REPRESENTATIVE-Q-SOLVE",
+  "baseline_id": "MVP_2026_v2",
+  "code_commit": "10f5d5b229df9d1ce8cfdb39744c9686572f1b61",
+  "reference_definition": "same_physical_carrier_q0_no_residual",
+  "powp_definition": {
+    "surface": "IOL posterior surface",
+    "wave": 1,
+    "hx": 0.0,
+    "hy": 0.0,
+    "px": 0.0,
+    "py": 0.0,
+    "data": 0,
+    "meaning": "on-axis pupil-center spherical power in diopters after IOL refraction"
+  },
+  "source_carrier": {
+    "base_id": "LB_AL2395",
+    "cornea_id": "A0",
+    "power_d": 25.25866463479957,
+    "radius_ant_mm": 9.77576192316701,
+    "radius_post_mm": -9.77576192316701
+  },
+  "standard_eye_sha256": "4dfc8d84d37f2ef6bf28c08a5b46436311ad0036e267cf5463cc4dc0d58fa414",
+  "phase_a1_lb_candidate_sha256": "ff72a468fa7bc96a0e8de5d6b2e25ba851c98f59d3275d0fa0d8449e06263107",
+  "powp_parameter_headers": [
+    [
+      2,
+      "Surf"
+    ],
+    [
+      3,
+      "Wave"
+    ],
+    [
+      4,
+      "Hx"
+    ],
+    [
+      5,
+      "Hy"
+    ],
+    [
+      6,
+      "Px"
+    ],
+    [
+      7,
+      "Py"
+    ],
+    [
+      8,
+      "Data"
+    ],
+    [
+      10,
+      "Target"
+    ],
+    [
+      11,
+      "Weight"
+    ],
+    [
+      12,
+      "Value"
+    ],
+    [
+      13,
+      "% Contrib"
+    ]
+  ],
+  "zero_hoa_powp_d": 47.57852095160946,
+  "zero_hoa_c40_um": 0.5099655621632307,
+  "platform_solutions": {
+    "WFS": {
+      "q": -4.0,
+      "target_sa_um": -0.2,
+      "solve_achieved_sa_um": -0.19567416238858049,
+      "zero_hoa_powp_d": 47.57852095160946,
+      "candidate_powp_d": 47.57813272753586,
+      "powp_delta_d": -0.0003882240736032827,
+      "replay_achieved_sa_um": -0.19567416238858049,
+      "replay_error_um": 0.004325837611419525,
+      "replay_powp_delta_d": -0.0003882240736032827,
+      "q_evaluations": 8,
+      "actual_eye_focus_shift_mm": 0.05613360041549598,
+      "actual_eye_equivalent_vergence_shift_d": -0.23203015806000815,
+      "p_q_recheck_required": true,
+      "saved_candidate_sha256": "032cfa516e4e958f1830cca7e19b74cef101409e08d93a6aa418b02c992be0c2"
+    },
+    "RAD": {
+      "q": -6.0,
+      "target_sa_um": -0.27,
+      "solve_achieved_sa_um": -0.26878593150022767,
+      "zero_hoa_powp_d": 47.57852095160946,
+      "candidate_powp_d": 47.57793863937028,
+      "powp_delta_d": -0.0005823122391817037,
+      "replay_achieved_sa_um": -0.26878593150022767,
+      "replay_error_um": 0.0012140684997723472,
+      "replay_powp_delta_d": -0.0005823122391817037,
+      "q_evaluations": 12,
+      "actual_eye_focus_shift_mm": 0.08286666701632939,
+      "actual_eye_equivalent_vergence_shift_d": -0.3420244121002417,
+      "p_q_recheck_required": true,
+      "saved_candidate_sha256": "70fb68fec351c0aa81d97034fe3dcfedfaf122d067bb3fd8fb5d23c5127d9c0f"
+    },
+    "HOA": {
+      "q": 0.0,
+      "target_sa_um": 0.0,
+      "solve_achieved_sa_um": 0.0,
+      "zero_hoa_powp_d": 47.57852095160946,
+      "candidate_powp_d": 47.57852095160946,
+      "powp_delta_d": 0.0,
+      "replay_achieved_sa_um": 0.0,
+      "replay_error_um": 0.0,
+      "replay_powp_delta_d": 0.0,
+      "q_evaluations": 1,
+      "actual_eye_focus_shift_mm": 0.0004579828103636885,
+      "actual_eye_equivalent_vergence_shift_d": -0.0018989592684732215,
+      "p_q_recheck_required": false,
+      "saved_candidate_sha256": "00022cca8ba8012f8368ed04165faaa516bff6ecd4455a8fe72d275bdadce514"
+    }
+  },
+  "p_q_recheck_threshold_d": 0.125,
+  "p_q_recheck_platforms": [
+    "WFS",
+    "RAD"
+  ],
+  "local_report_sha256": "55bd3f6ecfa0c8fb95469502e5248b4d751177c73176641c03b5a3cdc2c5e036",
+  "summary_csv_sha256": "b0cafaf0b63ffb51a857999525b16a200e08c1355288e59c14266f27bdaa451f"
+}
