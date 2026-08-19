@@ -18,7 +18,13 @@ from .carriers import (
     residuals_ready,
     validate_18_provisional_carriers,
 )
-from .domain import NOMINAL_MAIN_555_V1, ArtifactRecord, RunEnvironment, RunRecord, RunStatus
+from .domain import (
+    NOMINAL_MAIN_FFT_MTF_555_V2,
+    ArtifactRecord,
+    RunEnvironment,
+    RunRecord,
+    RunStatus,
+)
 from .manifest import (
     CarrierLock,
     ManifestBundle,
@@ -210,8 +216,8 @@ def _validate_analysis_environment(
     environment.validate()
     if environment.baseline_id != store.baseline.baseline_id:
         raise ProjectStoreError("analysis environment baseline does not match project baseline")
-    if environment.analysis_settings_id != NOMINAL_MAIN_555_V1.settings_id:
-        raise ProjectStoreError("analysis environment does not reference frozen nominal settings")
+    if environment.analysis_settings_id != NOMINAL_MAIN_FFT_MTF_555_V2.settings_id:
+        raise ProjectStoreError("analysis environment does not reference frozen FFT-MTF settings")
     if environment.manifest_hash != bundle.manifest_hash:
         raise ProjectStoreError("analysis environment manifest hash does not match manifest bundle")
     expected_lock_set_hash = compute_lock_set_hash(bundle.physical_carriers)
