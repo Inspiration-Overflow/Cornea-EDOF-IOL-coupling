@@ -1,10 +1,9 @@
 """Temporary MFE ``MTFA`` diffraction-MTF acquisition primitive.
 
 TASK-005D B0 production uses OpticStudio's Merit Function Editor ``MTFA``
-operand with ``Grid=0`` instead of creating FFT/Huygens analysis settings
-objects. A set of adjacent temporary operands is inserted, evaluated by one
-``CalculateMeritFunction()`` call, read, and removed again without saving the
-lens.
+operand with ``Grid=0`` as its independent corneal-lock acquisition. A set of
+adjacent temporary operands is inserted, evaluated by one
+``CalculateMeritFunction()`` call, read, and removed again without saving the lens.
 """
 
 from __future__ import annotations
@@ -107,9 +106,6 @@ class MfeMtfaRunner:
             calculate()
             values = tuple(self._read_operand_value(operand) for operand in operands)
         finally:
-            # Use the requested batch size rather than only the number of Python-side
-            # operand handles. A native InsertNewOperandAt may add a row before an
-            # exception prevents the wrapper from returning its handle.
             self._remove_temporary_operands(mfe, baseline_count, maximum_added)
 
         if not all(math.isfinite(value) for value in values):
