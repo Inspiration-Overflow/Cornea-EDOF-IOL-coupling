@@ -71,7 +71,7 @@ def test_base_prescription_contract_fails_closed() -> None:
         replace(base, post_cornea_to_stop_mm=4.6).validate()
     with pytest.raises(ValueError, match="greater than one"):
         replace(base, vitreous_index=1.0).validate()
-    with pytest.raises(ValueError, match="\.zmx"):
+    with pytest.raises(ValueError, match="zmx"):
         BaseAssetPrescription(
             "BASE_TEST",
             "models/assets/BASE_TEST.zos",
