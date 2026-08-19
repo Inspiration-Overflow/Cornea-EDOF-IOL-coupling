@@ -9,7 +9,7 @@ import pytest
 from whole_eye_mvp.domain import (
     CORNEA_LOCK_B0_555_V2,
     CURRENT_SCIENTIFIC_BASELINE_ID,
-    NOMINAL_MAIN_555_V1,
+    NOMINAL_MAIN_FFT_MTF_555_V2,
     ArtifactRecord,
     RunEnvironment,
     RunRecord,
@@ -39,14 +39,18 @@ def test_settings_grids_and_optical_sampling_are_frozen_and_exact() -> None:
     assert b0.wavelength_number == 1
     assert b0.field_number == 1
 
-    assert len(NOMINAL_MAIN_555_V1.defocus_grid()) == 15
-    assert NOMINAL_MAIN_555_V1.defocus_grid()[-1] == -3.0
-    assert NOMINAL_MAIN_555_V1.huygens_pupil_sampling == 128
-    assert NOMINAL_MAIN_555_V1.huygens_image_sampling == 256
-    assert NOMINAL_MAIN_555_V1.huygens_image_delta_um == 0.5
-    assert NOMINAL_MAIN_555_V1.mtf_sample_frequencies_cpd == (10, 20, 30, 40, 50, 60)
+    main = NOMINAL_MAIN_FFT_MTF_555_V2
+    assert len(main.defocus_grid()) == 15
+    assert main.defocus_grid()[-1] == -3.0
+    assert main.fft_mtf_sampling == 128
+    assert main.fft_mtf_convergence_samplings == (64, 128, 256)
+    assert main.fft_mtf_use_polarization is False
+    assert main.mtf_frequency_step_cpd == 1.0
+    assert main.mtfa_max_cpd == 60.0
+    assert main.mtf_frequency_grid_cpd() == tuple(float(value) for value in range(61))
+    assert main.mtf_sample_frequencies_cpd == (10, 20, 30, 40, 50, 60)
     with pytest.raises(dataclasses.FrozenInstanceError):
-        NOMINAL_MAIN_555_V1.wavelength_nm = 546.0  # type: ignore[misc]
+        main.wavelength_nm = 546.0  # type: ignore[misc]
 
 
 @pytest.mark.unit
