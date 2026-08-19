@@ -37,11 +37,11 @@ def test_locked_artifact_tamper_is_detected(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
-def test_settings_hashes_are_stable_and_include_fft_mtf_analysis_settings() -> None:
+def test_settings_hashes_are_stable_and_main_fft_mtf_hash_is_frozen() -> None:
     b0_hash = settings_hash(CORNEA_LOCK_B0_555_V2)
     main_hash = settings_hash(NOMINAL_MAIN_FFT_MTF_555_V2)
-    assert len(b0_hash) == 64 and len(main_hash) == 64
-    assert b0_hash == settings_hash(CORNEA_LOCK_B0_555_V2)
+    assert b0_hash == "aee210e884aa59f74e2963efddca9fc789f2b4e85de521606348d1e586790b8e"
+    assert main_hash == "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc"
     assert main_hash == settings_hash(NOMINAL_MAIN_FFT_MTF_555_V2)
     changed = replace(NOMINAL_MAIN_FFT_MTF_555_V2, fft_mtf_sampling=256)
     assert settings_hash(changed) != main_hash
@@ -54,7 +54,7 @@ def test_settings_hashes_are_stable_and_include_fft_mtf_analysis_settings() -> N
         replace(NOMINAL_MAIN_FFT_MTF_555_V2, wavelength_nm=math.nan),
         replace(NOMINAL_MAIN_FFT_MTF_555_V2, defocus_step_d=math.inf),
         replace(NOMINAL_MAIN_FFT_MTF_555_V2, pupils_mm=(3.0, math.nan)),
-        replace(NOMINAL_MAIN_FFT_MTF_555_V2, zernike_normalized_radius=math.nan),
+        replace(NOMINAL_MAIN_FFT_MTF_555_V2, mtfa_max_cpd=math.nan),
         replace(NOMINAL_MAIN_FFT_MTF_555_V2, mtf_sample_frequencies_cpd=(10.0, math.inf)),
     ),
 )
