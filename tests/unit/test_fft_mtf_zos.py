@@ -122,6 +122,15 @@ def test_fft_mtf_runner_sets_explicit_modulation_settings_and_copies_series() ->
     assert result.frequency_cycles_per_mm == (0.0, 50.0, 100.0)
     assert result.tangential_mtf == (1.0, 0.8, 0.5)
     assert result.sagittal_mtf == (1.0, 0.7, 0.4)
+    assert result.analysis_api_name == "New_FftMtf"
+    assert result.settings_implementation_type == "Settings"
+    assert result.sample_size_enum == "S_128x128"
+    assert result.modulation_enum == "Modulation"
+    assert result.data_series_count == 1
+    assert result.data_series_runtime_type == "tuple"
+    assert result.selected_series_runtime_type == "Series"
+    assert result.series_labels == ("Tangential", "Sagittal")
+    assert "cycles per mm" in result.x_label
     assert analysis.closed
 
 
