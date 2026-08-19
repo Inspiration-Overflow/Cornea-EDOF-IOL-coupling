@@ -40,27 +40,37 @@ def test_active_main_analysis_settings_are_fft_mtf_only() -> None:
     assert settings.fft_mtf_convergence_samplings == (64, 128, 256)
     assert settings.mtfa_max_cpd == 60.0
     assert settings.mtf_frequency_step_cpd == 1.0
-    assert settings.dof_relative_fraction == 0.5
     assert settings.mtf_sample_frequencies_cpd == (10.0, 20.0, 30.0, 40.0, 50.0, 60.0)
+    # DOF50 is a named fixed metric definition, not a mutable settings field.
+    assert not hasattr(settings, "dof_relative_fraction")
+    # B0 selection has its own independent settings identity.
+    assert not hasattr(settings, "b0_q_lock_max_cycles_per_mm")
+
+
+def _scan(paths) -> list[str]:
+    findings: list[str] = []
+    for path in paths:
+        text = path.read_text(encoding="utf-8").casefold()
+        for token in FORBIDDEN_ACTIVE_TOKENS:
+            if token in text:
+                findings.append(f"{path}:{token}")
+    return findings
 
 
 @pytest.mark.unit
 def test_production_source_does_not_reintroduce_removed_paths() -> None:
-    findings: list[str] = []
-    for path in Path("src/whole_eye_mvp").rglob("*.py"):
-        text = path.read_text(encoding="utf-8").casefold()
-        for token in FORBIDDEN_ACTIVE_TOKENS:
-            if token in text:
-                findings.append(f"{path}:{token}")
+    findings = _scan(Path("src/whole_eye_mvp").rglob("*.py"))
     assert not findings, "removed analysis path leaked into production source: " + ", ".join(findings)
 
 
 @pytest.mark.unit
+def test_active_scripts_do_not_reintroduce_removed_paths() -> None:
+    findings = _scan(Path("scripts").glob("*task_009*.py"))
+    findings += _scan(Path("scripts").glob("*run72*.py"))
+    assert not findings, "removed analysis path leaked into active scripts: " + ", ".join(findings)
+
+
+@pytest.mark.unit
 def test_active_specs_do_not_reintroduce_removed_paths() -> None:
-    findings: list[str] = []
-    for path in ACTIVE_SPEC_FILES:
-        text = path.read_text(encoding="utf-8").casefold()
-        for token in FORBIDDEN_ACTIVE_TOKENS:
-            if token in text:
-                findings.append(f"{path}:{token}")
+    findings = _scan(ACTIVE_SPEC_FILES)
     assert not findings, "removed analysis path leaked into active specs: " + ", ".join(findings)
