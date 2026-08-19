@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from whole_eye_mvp.domain import (
-    CORNEA_LOCK_B0_555_V1,
+    CORNEA_LOCK_B0_555_V2,
     CURRENT_SCIENTIFIC_BASELINE_ID,
     NOMINAL_MAIN_555_V1,
     ArtifactRecord,
@@ -26,9 +26,19 @@ from whole_eye_mvp.store import (
 
 @pytest.mark.unit
 def test_settings_grids_and_optical_sampling_are_frozen_and_exact() -> None:
-    assert len(CORNEA_LOCK_B0_555_V1.defocus_grid()) == 17
-    assert CORNEA_LOCK_B0_555_V1.defocus_grid()[0] == 0.5
-    assert CORNEA_LOCK_B0_555_V1.defocus_grid()[-1] == -3.5
+    b0 = CORNEA_LOCK_B0_555_V2
+    assert b0.settings_id == "CORNEA_LOCK_B0_555_v2"
+    assert b0.defocus_grid() == tuple(0.5 - 0.25 * index for index in range(17))
+    assert b0.pupils_mm == (3.0, 5.0)
+    assert b0.mtfa_sampling == 3
+    assert b0.mtfa_frequency_step_cyc_per_mm == 5.0
+    assert b0.q_lock_max_cycles_per_mm == 50.0
+    assert b0.frequency_grid() == tuple(float(value) for value in range(0, 51, 5))
+    assert b0.mtfa_grid == 0
+    assert b0.mtfa_data_type == 0
+    assert b0.wavelength_number == 1
+    assert b0.field_number == 1
+
     assert len(NOMINAL_MAIN_555_V1.defocus_grid()) == 15
     assert NOMINAL_MAIN_555_V1.defocus_grid()[-1] == -3.0
     assert NOMINAL_MAIN_555_V1.huygens_pupil_sampling == 128
