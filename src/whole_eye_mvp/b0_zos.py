@@ -23,13 +23,19 @@ class B0LockAcquisition:
     curve: LockCurve
 
 
-def object_thickness_for_defocus_d(defocus_d: float) -> float:
+def object_thickness_for_defocus_d(
+    defocus_d: float,
+    *,
+    infinity_thickness_mm: float = B0_OBJECT_INFINITY_MM,
+) -> float:
     """Map frozen through-focus vergence to temporary OBJECT thickness in air."""
 
     if not math.isfinite(defocus_d):
         raise ValueError("B0 defocus must be finite")
     if abs(defocus_d) <= 1.0e-12:
-        return B0_OBJECT_INFINITY_MM
+        if math.isnan(infinity_thickness_mm) or infinity_thickness_mm <= 0:
+            raise ValueError("nominal infinity thickness must be positive")
+        return float(infinity_thickness_mm)
     return -1000.0 / defocus_d
 
 
@@ -147,7 +153,10 @@ def acquire_b0_lock_curve(session: ZosSession, pupil_mm: float) -> B0LockAcquisi
     values: list[float] = []
     try:
         for defocus_d in grid:
-            object_surface.Thickness = object_thickness_for_defocus_d(defocus_d)
+            object_surface.Thickness = object_thickness_for_defocus_d(
+                defocus_d,
+                infinity_thickness_mm=saved_object_thickness,
+            )
             curve = runner.run(mtf_settings)
             values.append(
                 q_lock_from_huygens_mtf(
