@@ -53,8 +53,8 @@ class BaseAssetPrescription:
         self.base_spec.validate()
         if not self.artifact_id.strip() or not self.relative_path.strip():
             raise ValueError("base artifact ID and path are required")
-        if not self.relative_path.lower().endswith(".zos"):
-            raise ValueError("base artifact path must end in .zos")
+        if not self.relative_path.lower().endswith(".zmx"):
+            raise ValueError("base artifact path must end in .zmx")
         if not math.isfinite(self.wavelength_nm) or self.wavelength_nm <= 0:
             raise ValueError("base wavelength must be finite and positive")
         if not math.isfinite(self.field_deg) or self.field_deg != 0:
@@ -141,11 +141,11 @@ class BaseAssetBuildReport:
 _BASE_ARTIFACTS = {
     BaseId.LB_AL2395: (
         "BASE_LB_PSEUDOPHAKIC",
-        "models/assets/BASE_LB_PSEUDOPHAKIC.zos",
+        "models/assets/BASE_LB_PSEUDOPHAKIC.zmx",
     ),
     BaseId.ATC_M3_AL24477: (
         "BASE_ATC_M3_PSEUDOPHAKIC",
-        "models/assets/BASE_ATC_M3_PSEUDOPHAKIC.zos",
+        "models/assets/BASE_ATC_M3_PSEUDOPHAKIC.zmx",
     ),
 }
 
