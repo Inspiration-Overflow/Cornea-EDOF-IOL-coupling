@@ -4,7 +4,6 @@ import math
 
 import pytest
 
-from whole_eye_mvp.domain import NOMINAL_MAIN_FFT_MTF_555_V2
 from whole_eye_mvp.zos import (
     ZernikeStandardError,
     ZernikeStandardSettings,
@@ -13,13 +12,14 @@ from whole_eye_mvp.zos import (
 
 
 @pytest.mark.unit
-def test_zernike_settings_are_derived_from_fft_mtf_main_settings() -> None:
-    zernike = ZernikeStandardSettings.from_analysis_settings(NOMINAL_MAIN_FFT_MTF_555_V2)
-
+def test_generic_zernike_settings_are_explicit_not_derived_from_main_settings() -> None:
+    zernike = ZernikeStandardSettings(32, maximum_terms=37)
+    zernike.validate()
     assert zernike.sample_size == 32
     assert zernike.maximum_terms == 37
     assert zernike.reference_opd_to_vertex is False
     assert zernike.normalized_radius == 1.0
+    assert not hasattr(ZernikeStandardSettings, "from_analysis_settings")
 
 
 @pytest.mark.unit
