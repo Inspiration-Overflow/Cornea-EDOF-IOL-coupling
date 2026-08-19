@@ -150,20 +150,9 @@ def build_rad_residual_candidate() -> RadialResidualCandidate:
     )
 
 
-def build_hoa_residual_candidate(
-    *,
-    a_um_per_mm6: float,
-    b_um_per_mm4: float,
-) -> RadialResidualCandidate:
-    def raw(radius_mm: float) -> float:
-        return hoa_raw_opd_um(
-            radius_mm,
-            a_um_per_mm6=a_um_per_mm6,
-            b_um_per_mm4=b_um_per_mm4,
-        )
-
+def build_hoa_residual_candidate() -> RadialResidualCandidate:
     return _candidate_from_opd_profile(
         platform_id="HOA",
         surface_role="anterior",
-        raw_profile=raw,
+        raw_profile=hoa_raw_opd_um,
     )
