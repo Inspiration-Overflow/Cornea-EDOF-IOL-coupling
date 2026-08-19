@@ -330,7 +330,24 @@ MFE spike 的成功和失败尝试在 Python 进程退出阶段都可能输出�
    - 无残留进程；
 8. production 实现通过前，PR #22 继续 Draft。
 
-不得在这一步顺手重构主分析框架、carrier framework 或科学 baseline。
+### 7.1 正式 005C 的实施顺序
+
+production 实现后，正式验证必须按以下顺序执行：
+
+```text
+candidate build in fresh process
+→ fresh-process reload
+→ geometry/index/footprint readback
+→ Quick Focus(Wavefront Error, UseCentroid=False)
+→ MFE ZERN Term11+Term37 acquisition
+→ C40 scientific gate
+→ restore fixed saved IMAGE state / do not persist acquisition state
+→ register formal standard-eye artifact only on PASS
+→ write validation CSV only on PASS
+→ validate-only reload and verify optical-file hash unchanged
+```
+
+如果任一 gate 失败，仍不得产生正式 005C lock。
 
 ---
 
