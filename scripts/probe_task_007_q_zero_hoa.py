@@ -1,9 +1,9 @@
-"""Probe ZERO_HOA paired-Paraxial reference and representative Q(P) solves.
+"""Probe physical Q=0 ZERO_HOA reference and representative Q(P) solves.
 
-This diagnostic uses the successful Phase A.1 LB+A0 power solve, validates the
-ZERO_HOA reference at EPD6/~546 nm, solves WFS/RAD/HOA Q values for that one physical
-carrier, and checks the Q-induced actual-eye far-focus shift. It does not create formal
-carrier or residual locks.
+Phase A.2 uses the successful LB+A0 P solve from A.1.  ZERO_HOA is the same
+controlled thick carrier (same R/CT/n/position) with Q=0 and no residual.  MFE POWP
+at the IOL posterior surface records first-order power identity between this reference
+and each Q candidate.  No formal carrier/residual lock is created.
 """
 
 from __future__ import annotations
@@ -12,19 +12,17 @@ import argparse
 import csv
 import json
 import os
+import shutil
 import subprocess
 from dataclasses import asdict
 from pathlib import Path
 
-from whole_eye_mvp.carrier_focus_zos import (
-    P_Q_RECHECK_THRESHOLD_D,
-    measure_actual_eye_q_focus,
-)
+from whole_eye_mvp.carrier_focus_zos import P_Q_RECHECK_THRESHOLD_D, measure_actual_eye_q_focus
 from whole_eye_mvp.carrier_q_zos import (
     Q_REPLAY_SA_TOLERANCE_UM,
     build_physical_carrier_in_standard_eye,
-    build_zero_hoa_reference_in_standard_eye,
     measure_standard_eye_c40,
+    measure_standard_eye_powp,
     measure_zero_hoa_reference,
     solve_q_for_platform,
     validate_zero_hoa_measurement,
@@ -50,8 +48,11 @@ A1_REPORT_RELATIVE_PATH = Path(
 OUTPUT_RELATIVE_DIR = Path("diagnostics/task007/q_zero_hoa_probe")
 REPORT_NAME = "TASK_007_Q_ZERO_HOA_PROBE.json"
 SUMMARY_NAME = "TASK_007_Q_ZERO_HOA_SUMMARY.csv"
-ZERO_HOA_NAME = "TASK007_ZERO_HOA_LB_A0.zmx"
+ZERO_HOA_NAME = "TASK007_ZERO_HOA_Q0_LB_A0.zmx"
 C40_REPEATABILITY_TOLERANCE_UM = 0.001
+DEFAULT_REPO_EVIDENCE_DIR = REPOSITORY_ROOT / "docs/evidence/task007/phase_a2"
+REPO_EVIDENCE_JSON = "TASK_007_A2_EVIDENCE.json"
+REPO_EVIDENCE_CSV = "TASK_007_A2_SUMMARY.csv"
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -66,6 +67,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--baseline-id", default=CURRENT_SCIENTIFIC_BASELINE_ID)
     parser.add_argument("--a1-report", type=Path, default=None)
     parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument(
+        "--write-repo-evidence",
+        action="store_true",
+        help="also emit sanitized JSON/CSV under docs/evidence for GitHub handoff",
+    )
+    parser.add_argument("--repo-evidence-dir", type=Path, default=DEFAULT_REPO_EVIDENCE_DIR)
     return parser
 
 
@@ -107,12 +114,7 @@ def _load_a1_report(path: Path, standard_eye_path: Path) -> dict[str, object]:
         raise SystemExit("Phase A.1 report has invalid formal/TDD-999 state")
     capability = payload.get("paraxial_surface_capability")
     if not isinstance(capability, dict) or not capability.get("changed_type"):
-        raise SystemExit("Phase A.1 report does not contain a successful Paraxial capability probe")
-    if capability.get("selected_surface_type") != "Paraxial" or capability.get("error") is not None:
-        raise SystemExit("Phase A.1 Paraxial capability is not the frozen successful state")
-    headers = {int(number): header for number, header in capability.get("parameter_headers", [])}
-    if headers.get(1) != "Focal Length" or headers.get(2) != "OPD Mode":
-        raise SystemExit("Phase A.1 Paraxial parameter headers differ from the verified API mapping")
+        raise SystemExit("Phase A.1 report lacks the completed API capability evidence")
     inputs = payload.get("inputs")
     if not isinstance(inputs, dict):
         raise SystemExit("Phase A.1 report inputs are missing")
@@ -146,6 +148,62 @@ def _write_summary_csv(path: Path, rows: list[dict[str, object]]) -> None:
         writer = csv.DictWriter(handle, fieldnames=tuple(rows[0]))
         writer.writeheader()
         writer.writerows(rows)
+
+
+def _repo_evidence_payload(
+    payload: dict[str, object],
+    *,
+    report_sha256: str,
+    summary_sha256: str,
+) -> dict[str, object]:
+    platform_solutions = payload["platform_solutions"]
+    if not isinstance(platform_solutions, dict):
+        raise ValueError("platform solutions missing from A.2 payload")
+    compact_solutions: dict[str, object] = {}
+    for platform, item in platform_solutions.items():
+        if not isinstance(item, dict):
+            raise ValueError("invalid platform solution block")
+        solution = item["solution"]
+        focus = item["actual_eye_q_focus"]
+        if not isinstance(solution, dict) or not isinstance(focus, dict):
+            raise ValueError("invalid platform solution/focus evidence")
+        compact_solutions[platform] = {
+            "q": solution["q"],
+            "target_sa_um": solution["target_sa_um"],
+            "solve_achieved_sa_um": solution["achieved_sa_um"],
+            "zero_hoa_powp_d": solution["zero_hoa_powp_d"],
+            "candidate_powp_d": solution["candidate_powp_d"],
+            "powp_delta_d": solution["powp_delta_d"],
+            "replay_achieved_sa_um": item["replay_achieved_sa_um"],
+            "replay_error_um": item["replay_error_um"],
+            "q_evaluations": solution["q_evaluations"],
+            "actual_eye_focus_shift_mm": focus["focus_shift_mm"],
+            "actual_eye_equivalent_vergence_shift_d": focus["equivalent_vergence_shift_d"],
+            "p_q_recheck_required": focus["recheck_required"],
+            "saved_candidate_sha256": item["saved_candidate_sha256"],
+        }
+    return {
+        "schema_version": 1,
+        "evidence_only": True,
+        "formal_artifact": False,
+        "tdd_999_cleared": False,
+        "phase": payload["phase"],
+        "baseline_id": payload["baseline_id"],
+        "code_commit": payload["code_commit"],
+        "reference_definition": payload["zero_hoa_reference_model"],
+        "powp_definition": payload["powp_definition"],
+        "source_carrier": payload["source_carrier"],
+        "standard_eye_sha256": payload["inputs"]["standard_eye_sha256"],
+        "phase_a1_lb_candidate_sha256": payload["inputs"]["phase_a1_lb_candidate_sha256"],
+        "powp_parameter_headers": payload["zero_hoa"]["measurement"]["powp_parameter_headers"],
+        "zero_hoa_powp_d": payload["zero_hoa"]["measurement"]["powp_d"],
+        "zero_hoa_c40_um": payload["zero_hoa"]["measurement"]["wavefront"]["c40_um"],
+        "platform_solutions": compact_solutions,
+        "p_q_recheck_threshold_d": payload["p_q_recheck_threshold_d"],
+        "p_q_recheck_platforms": payload["p_q_recheck_platforms"],
+        "local_report_sha256": report_sha256,
+        "summary_csv_sha256": summary_sha256,
+    }
 
 
 def main() -> None:
@@ -189,10 +247,7 @@ def main() -> None:
         platform: output_dir / f"TASK007_Q_LB_A0_{platform}.zmx"
         for platform in (PlatformId.WFS, PlatformId.RAD, PlatformId.HOA)
     }
-    _guard_outputs(
-        (report_path, summary_path, zero_path, *candidate_paths.values()),
-        overwrite=args.overwrite,
-    )
+    _guard_outputs((report_path, summary_path, zero_path, *candidate_paths.values()), overwrite=args.overwrite)
 
     solutions: dict[str, dict[str, object]] = {}
     summary_rows: list[dict[str, object]] = []
@@ -203,26 +258,23 @@ def main() -> None:
             radius_ant_mm=radius_ant_mm,
             radius_post_mm=radius_post_mm,
         )
-        zero_findings = validate_zero_hoa_measurement(
-            zero_reference,
-            expected_power_d=source_power_d,
-        )
+        zero_findings = validate_zero_hoa_measurement(zero_reference, expected_power_d=source_power_d)
         if zero_findings:
             raise SystemExit("ZERO_HOA validation failed: " + " | ".join(zero_findings))
 
-        build_zero_hoa_reference_in_standard_eye(
+        build_physical_carrier_in_standard_eye(
             session,
             standard_eye_path,
             radius_ant_mm=radius_ant_mm,
             radius_post_mm=radius_post_mm,
+            q=0.0,
+            zero_hoa_reference=True,
         )
         SequentialEditor(session.system, session.zosapi).save_as(zero_path)
         session.system.LoadFile(str(zero_path.resolve()), False)
         zero_replay = measure_standard_eye_c40(session)
-        if (
-            abs(zero_replay.c40_um - zero_reference.wavefront.c40_um)
-            > C40_REPEATABILITY_TOLERANCE_UM
-        ):
+        zero_powp_replay = measure_standard_eye_powp(session)
+        if abs(zero_replay.c40_um - zero_reference.wavefront.c40_um) > C40_REPEATABILITY_TOLERANCE_UM:
             raise SystemExit("ZERO_HOA saved-file C40 replay exceeded repeatability tolerance")
 
         for platform, destination in candidate_paths.items():
@@ -245,13 +297,9 @@ def main() -> None:
             SequentialEditor(session.system, session.zosapi).save_as(destination)
             session.system.LoadFile(str(destination.resolve()), False)
             candidate_replay = measure_standard_eye_c40(session)
-            if (
-                abs(candidate_replay.c40_um - solution.candidate_c40_um)
-                > C40_REPEATABILITY_TOLERANCE_UM
-            ):
-                raise SystemExit(
-                    f"{platform} saved-file candidate C40 replay exceeded repeatability tolerance"
-                )
+            candidate_powp_replay = measure_standard_eye_powp(session)
+            if abs(candidate_replay.c40_um - solution.candidate_c40_um) > C40_REPEATABILITY_TOLERANCE_UM:
+                raise SystemExit(f"{platform} saved-file candidate C40 replay exceeded repeatability tolerance")
             replay_sa = candidate_replay.c40_um - zero_replay.c40_um
             replay_error = replay_sa - float(SA_TARGETS_UM[platform])
             if abs(replay_error) > Q_REPLAY_SA_TOLERANCE_UM:
@@ -260,17 +308,17 @@ def main() -> None:
                     f"target={SA_TARGETS_UM[platform]:.6g}, achieved={replay_sa:.6g}"
                 )
 
-            actual_eye_focus = measure_actual_eye_q_focus(
-                session,
-                a1_candidate_path,
-                q=solution.q,
-            )
+            actual_eye_focus = measure_actual_eye_q_focus(session, a1_candidate_path, q=solution.q)
+            replay_powp_delta = candidate_powp_replay.power_d - zero_powp_replay.power_d
             solutions[str(platform)] = {
                 "solution": asdict(solution),
                 "saved_candidate_path": str(destination.resolve()),
                 "saved_candidate_sha256": sha256_path(destination),
                 "replay_candidate_wavefront": asdict(candidate_replay),
                 "replay_zero_wavefront": asdict(zero_replay),
+                "replay_zero_powp_d": zero_powp_replay.power_d,
+                "replay_candidate_powp_d": candidate_powp_replay.power_d,
+                "replay_powp_delta_d": replay_powp_delta,
                 "replay_achieved_sa_um": replay_sa,
                 "replay_error_um": replay_error,
                 "replay_passed": True,
@@ -280,42 +328,49 @@ def main() -> None:
                 {
                     "platform_id": str(platform),
                     "source_power_d": source_power_d,
-                    "radius_ant_mm": radius_ant_mm,
-                    "radius_post_mm": radius_post_mm,
                     "q": solution.q,
                     "target_sa_um": float(SA_TARGETS_UM[platform]),
                     "solve_achieved_sa_um": solution.achieved_sa_um,
                     "replay_achieved_sa_um": replay_sa,
                     "replay_error_um": replay_error,
+                    "zero_hoa_powp_d": zero_powp_replay.power_d,
+                    "candidate_powp_d": candidate_powp_replay.power_d,
+                    "powp_delta_d": replay_powp_delta,
                     "q_evaluations": solution.q_evaluations,
                     "actual_eye_focus_shift_mm": actual_eye_focus.focus_shift_mm,
-                    "actual_eye_equivalent_vergence_shift_d": (
-                        actual_eye_focus.equivalent_vergence_shift_d
-                    ),
+                    "actual_eye_equivalent_vergence_shift_d": actual_eye_focus.equivalent_vergence_shift_d,
                     "p_q_recheck_required": actual_eye_focus.recheck_required,
                     "candidate_sha256": sha256_path(destination),
                 }
             )
 
     _write_summary_csv(summary_path, summary_rows)
-    recheck_platforms = [
-        row["platform_id"] for row in summary_rows if bool(row["p_q_recheck_required"])
-    ]
-    payload = {
-        "schema_version": 1,
+    recheck_platforms = [row["platform_id"] for row in summary_rows if bool(row["p_q_recheck_required"])]
+    payload: dict[str, object] = {
+        "schema_version": 2,
         "formal_artifact": False,
-        "phase": "TASK-007-A.2-ZERO-HOA-REPRESENTATIVE-Q-SOLVE",
+        "phase": "TASK-007-A.2-Q0-POWP-REPRESENTATIVE-Q-SOLVE",
         "baseline_id": baseline.baseline_id,
         "code_commit": code_commit,
         "tdd_999_cleared": False,
         "representative_q_solve_completed": True,
         "all_18_q_solve_completed": False,
         "residual_calibration_completed": False,
-        "zero_hoa_reference_model": "paired_paraxial_surface_powers_with_material_slab",
-        "zero_hoa_opd_mode": 1,
+        "zero_hoa_reference_model": "same_physical_carrier_q0_no_residual",
+        "powp_definition": {
+            "surface": "IOL posterior surface",
+            "wave": 1,
+            "hx": 0.0,
+            "hy": 0.0,
+            "px": 0.0,
+            "py": 0.0,
+            "data": 0,
+            "meaning": "on-axis pupil-center spherical power in diopters after IOL refraction",
+        },
         "c40_repeatability_tolerance_um": C40_REPEATABILITY_TOLERANCE_UM,
         "p_q_recheck_threshold_d": P_Q_RECHECK_THRESHOLD_D,
         "p_q_recheck_platforms": recheck_platforms,
+        "powp_delta_acceptance_pending_web_review": True,
         "inputs": {
             "phase_a1_report_path": str(a1_report_path),
             "phase_a1_report_sha256": sha256_path(a1_report_path),
@@ -336,15 +391,32 @@ def main() -> None:
             "saved_path": str(zero_path.resolve()),
             "saved_sha256": sha256_path(zero_path),
             "replay_wavefront": asdict(zero_replay),
+            "replay_powp_d": zero_powp_replay.power_d,
         },
         "platform_solutions": solutions,
         "summary_csv_path": str(summary_path.resolve()),
         "summary_csv_sha256": sha256_path(summary_path),
-        "next_gate": (
-            "Web review of representative P-Q coupling before full 18-carrier solve"
-        ),
+        "next_gate": "Web review of POWP identity and representative P-Q coupling before full 18-carrier solve",
     }
     report_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    if args.write_repo_evidence:
+        evidence_dir = args.repo_evidence_dir.resolve()
+        evidence_json = evidence_dir / REPO_EVIDENCE_JSON
+        evidence_csv = evidence_dir / REPO_EVIDENCE_CSV
+        _guard_outputs((evidence_json, evidence_csv), overwrite=args.overwrite)
+        report_sha = sha256_path(report_path)
+        summary_sha = sha256_path(summary_path)
+        evidence = _repo_evidence_payload(payload, report_sha256=report_sha, summary_sha256=summary_sha)
+        evidence_json.write_text(json.dumps(evidence, ensure_ascii=False, indent=2), encoding="utf-8")
+        shutil.copyfile(summary_path, evidence_csv)
+        payload["repo_evidence"] = {
+            "json_path": str(evidence_json),
+            "json_sha256": sha256_path(evidence_json),
+            "csv_path": str(evidence_csv),
+            "csv_sha256": sha256_path(evidence_csv),
+        }
+
     print(json.dumps({"report_path": str(report_path.resolve()), **payload}, ensure_ascii=False, indent=2))
 
 
