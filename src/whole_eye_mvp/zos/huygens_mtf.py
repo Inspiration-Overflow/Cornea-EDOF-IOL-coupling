@@ -68,7 +68,11 @@ def _copy_vector(data: Any) -> tuple[float, ...]:
             raise HuygensMtfError("unable to copy Huygens MTF x-data vector") from exc
 
 
-def _copy_series_matrix(data: Any, x_count: int, series_count: int) -> tuple[tuple[float, ...], ...]:
+def _copy_series_matrix(
+    data: Any,
+    x_count: int,
+    series_count: int,
+) -> tuple[tuple[float, ...], ...]:
     if x_count < 1 or series_count < 1:
         raise HuygensMtfError("Huygens MTF series dimensions must be positive")
     try:
@@ -91,9 +95,12 @@ def _parse_curve(results: Any) -> HuygensMtfCurve:
     implementation = getattr(results, "__implementation__", results)
     if not bool(implementation.IsValid):
         raise HuygensMtfError("Huygens MTF returned an invalid result")
-    if int(implementation.NumberOfDataSeries) < 1:
+    data_series_count = int(implementation.NumberOfDataSeries)
+    if data_series_count < 1:
         raise HuygensMtfError("Huygens MTF returned no data series")
-    series = implementation.GetDataSeries(0)
+    # When a diffraction-limit series is exposed it precedes the actual system MTF.
+    # B0 requires the actual system response, so use the final series deterministically.
+    series = implementation.GetDataSeries(data_series_count - 1)
     if series is None or series.XData is None or series.YData is None:
         raise HuygensMtfError("Huygens MTF returned an incomplete DataSeries")
     frequencies = _copy_vector(series.XData.Data)
@@ -142,6 +149,8 @@ class HuygensMtfRunner:
             target.MaximumFrequency = float(settings.maximum_frequency_cyc_per_mm)
             target.Wavelength.SetWavelengthNumber(settings.wavelength_number)
             target.Field.SetFieldNumber(settings.field_number)
+            if hasattr(target, "ShowDiffractionLimit"):
+                target.ShowDiffractionLimit = False
             if hasattr(target, "UsePolarization"):
                 target.UsePolarization = bool(settings.use_polarization)
             return lifecycle.run_and_parse(analysis, _parse_curve)
