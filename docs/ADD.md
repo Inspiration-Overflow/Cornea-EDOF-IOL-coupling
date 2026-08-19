@@ -1,8 +1,8 @@
 # ADD — 角膜屈光术后 × 非衍射 EDOF IOL Zemax 自动化研究软件
 
 > **文档角色：** Axiomatic Design Document / Design Split。  
-> **目标：** 把已批准的 `URD-0001 v1.3` 拆成尽量独立、可按顺序实现的功能需求（FR）和设计参数（DP），在进入模块设计与编码前检查耦合。  
-> **边界：** 本文不重新定义科学模型，不替代 URD；科学数值、冻结规则、18 个 physical carriers、72 个 nominal configurations、matched MONO/EDOF 原则均以 URD 为需求基线。
+> **目标：** 把已批准的 `URD-0001 v1.4` 拆成尽量独立、可按顺序实现的功能需求（FR）和设计参数（DP），在进入模块设计与编码前检查耦合。  
+> **边界：** 本文不重新定义科学模型，不替代 URD；科学数值、冻结规则、18 个 physical carriers、72 个 nominal configurations、matched MONO/EDOF 原则均以 URD 为需求基线。URD v1.4 的 6 mm standard-eye 数值修订不改变本文 FR/DP 拆分。
 
 ## Metadata
 
@@ -10,8 +10,8 @@
 - document_id: ADD-0001
 - version: 1.4
 - status: approved
-- source_urd: URD-0001 v1.3
-- last_updated: 2026-08-17
+- source_urd: URD-0001 v1.4
+- last_updated: 2026-08-19
 - document_strength: standard
 - target_stack_constraint: Python + ZOS-API + CustomTkinter
 - design_goal: MVP、低耦合、可追溯、可单阶段重跑
@@ -38,12 +38,12 @@
 | ID | Source | Functional Requirement | 完成条件摘要 |
 | --- | --- | --- | --- |
 | ADD-FR-001 | URD-REQ-001~004; URD-AC-001 | 建立可靠的 OpticStudio 运行环境边界，使软件能连接、检查、使用并关闭 ZOS-API 会话。 | 有效路径/license 成功；无效条件明确失败；Sequential Mode 可用。 |
-| ADD-FR-002 | URD-REQ-005~008,010; URD-AC-002~005 | 生成并验证 MVP 基础科学资产：两个基座、`STD_IOL_EYE_2024`、`REF_MONO_CORNEA_LOCK`、A0、五个 B 候选、C0。 | 关键几何与标准眼锚点通过；模型保存为可追溯 `.zos`。 |
+| ADD-FR-002 | URD-REQ-005~008,010; URD-AC-002~005 | 生成并验证 MVP 基础科学资产：两个基座、`STD_IOL_EYE_2024`、`REF_MONO_CORNEA_LOCK`、A0、五个 B 候选、C0。 | 关键几何与标准眼锚点通过；新模型保存为可追溯 `.zmx`。 |
 | ADD-FR-003 | URD-REQ-009,011; URD-ASM-003; URD-DEC-004 | 完成 B0 第一轮五点扫描，由用户确认一个代表性 B0 并冻结。 | 只在 `LB_AL2395 + REF_MONO_CORNEA_LOCK` 运行；B0 lock 生成后不可由主实验回调。 |
 | ADD-FR-004 | URD-REQ-012~016; URD-AC-006~007 | 为 18 个 `Base × Cornea × Platform` 条件生成平台特异 physical carrier，并建立严格匹配的 MONO/EDOF pair。 | 每个 `P_ijk` 有对应 `Q_k(P_ijk)`；pair carrier 完全相同；仅 residual 不同；保存 `ΔF_residual`。 |
 | ADD-FR-005 | URD-REQ-017~019; URD-AC-008~009 | 生成唯一、完整、可验证的实验清单：18 个 physical carrier 条件和 72 个 nominal analysis configurations。 | 组合计数、唯一性、555 nm、EPD3/EPD5、centered 条件全部通过。 |
 | ADD-FR-006 | URD-REQ-020~022; URD-AC-010 | 使用 Zemax 运行统一分析并形成主科学结果，包括 matched-pair `EDOF − MONO` 比较。 | 每个成功配置产出规定的 MTF/PSF/像差/贯焦数据与配对差值。 |
-| ADD-FR-007 | URD-REQ-023~027; URD-AC-011~014 | 保存 CSV、`.zos`、图像和日志，维护配置级追溯、失败状态和单阶段/单配置重跑能力。 | 任一结果可追溯；失败不计 completed；可选择性 rerun；surrogate 命名正确。 |
+| ADD-FR-007 | URD-REQ-023~027; URD-AC-011~014 | 保存 CSV、`.zmx`、图像和日志，维护配置级追溯、失败状态和单阶段/单配置重跑能力。 | 任一结果可追溯；失败不计 completed；可选择性 rerun；surrogate 命名正确。 |
 | ADD-FR-008 | URD-REQ-028; URD-AC-015; URD-DEC-001 | 提供极简 CustomTkinter GUI，让用户无需编辑代码即可执行 Build / Validate / B0 Scan / Build Carriers / Run 72 / Rerun。 | GUI 可选择路径和动作，显示进度、失败、日志和输出目录访问。 |
 
 ---
@@ -53,12 +53,12 @@
 | ID | Satisfies FR | Design Parameter | Rationale |
 | --- | --- | --- | --- |
 | ADD-DP-001 | ADD-FR-001 | **OpticStudio Session Boundary**：统一承担安装路径检查、NetHelper/ZOSAPI 初始化、Application 创建、license 检查、Primary System 获取、Sequential Mode 确认和关闭。 | 把 ZOS-API 生命周期集中在一个边界，避免每个研究流程各自连接/关闭 OpticStudio。 |
-| ADD-DP-002 | ADD-FR-002 | **Scientific Asset Build & Validation Pipeline**：依据 URD 固定科学参数生成基础 `.zos`，并立即运行对应最小验证。 | 把“生成”和“验证”视为一个完整研究动作，避免生成未验证模型被后续误用。 |
+| ADD-DP-002 | ADD-FR-002 | **Scientific Asset Build & Validation Pipeline**：依据 URD 固定科学参数生成基础 `.zmx`，并立即运行对应最小验证。 | 把“生成”和“验证”视为一个完整研究动作，避免生成未验证模型被后续误用。 |
 | ADD-DP-003 | ADD-FR-003 | **B0 Scan & Human Lock Workflow**：只生成五个候选的统一扫描结果，等待用户选择后写入不可变 B0 lock。 | B0 是研究决策，不应由主 3×3 结果或复杂自动优化器反向决定。 |
 | ADD-DP-004 | ADD-FR-004 | **Carrier Solve & Pair Lock Pipeline**：按 `Base × Cornea × Platform` 求 `P_ijk → Q_k(P_ijk)`，进行有限工程回查，随后一次性生成 MONO/EDOF pair lock。 | 把 power–conic 和 matched-pair 约束放在同一设计边界，防止 EDOF 状态被单独重新优化。 |
 | ADD-DP-005 | ADD-FR-005 | **Deterministic Experiment Manifest Builder**：用稳定枚举和 ID 生成 18/72 清单，并在运行前验证组合计数与 nominal 条件。 | 实验矩阵是纯数据问题，应与 Zemax 计算分开，可在无 OpticStudio 时测试。 |
 | ADD-DP-006 | ADD-FR-006 | **Zemax Analysis Workflow**：对 manifest 中单个配置运行统一 Zemax 分析、提取结果，并在配置完成后生成平台内 matched-pair 派生数据。 | 统一分析流程，避免不同组合手工使用不同分析设置。 |
-| ADD-DP-007 | ADD-FR-007 | **Project Store & Run State Boundary**：统一规定项目目录、稳定配置 ID、CSV schema、`.zos`/图像命名、科学 lock metadata、run status、failed/completed 状态和 rerun 输入；所有产生正式研究产物的工作流均通过这一边界写入。 | 追溯和重跑是从第一份科学资产开始就存在的基础能力，应作为共享持久化边界，而不是分析结束后的附加层；MVP 不需要数据库或复杂任务系统。 |
+| ADD-DP-007 | ADD-FR-007 | **Project Store & Run State Boundary**：统一规定项目目录、稳定配置 ID、CSV schema、`.zmx`/图像命名、科学 lock metadata、run status、failed/completed 状态和 rerun 输入；所有产生正式研究产物的工作流均通过这一边界写入。 | 追溯和重跑是从第一份科学资产开始就存在的基础能力，应作为共享持久化边界，而不是分析结束后的附加层；MVP 不需要数据库或复杂任务系统。 |
 | ADD-DP-008 | ADD-FR-008 | **Thin CustomTkinter Workflow Shell**：GUI 只调用应用工作流接口、显示状态和收集用户选择，不直接实现科学求解。 | 保持 GUI 极简，防止 UI 与光学逻辑耦合。 |
 
 ---
@@ -139,7 +139,7 @@ Project Store 只负责持久化、索引和状态，不拥有改变科学对象
 | --- | --- | --- | --- |
 | 1 | 初始直觉方案使用一个“Zemax Automation Controller”同时负责连接、建模、B0、carrier、分析、CSV 和 GUI；任何修改都会波及多数功能。 | 按研究阶段拆成 Session / Assets / B0 / Carrier / Manifest / Analysis / Persistence / GUI 八个设计责任，并用冻结产物传递状态。 | 从 dense coupling 降为顺序型依赖。 |
 | 2 | GUI 若直接访问 ZOS-API 和模型对象，会使界面状态与科学计算强耦合；manifest 若由 analysis runner 临时生成，也会使实验矩阵无法独立验证。 | 将 GUI 定义为薄 workflow shell；将 18/72 manifest 作为独立确定性 DP，在任何分析开始前生成和校验。 | 得到接近 triangular 的 decoupled 设计。 |
-| 3 | 前一版矩阵把 persistence 放在工作流末端，隐藏了 Assets/B0/Carrier/Manifest/Analysis 都需要保存 `.zos`、CSV、图像、lock 和状态的真实依赖。 | 将 DP-007 明确定义为 `Project Store & Run State Boundary`，前移到科学资产生成之前，并在矩阵中显式标记所有工作流对它的单向依赖。 | 真实依赖被公开后，矩阵仍保持有序的 lower-triangular / decoupled 结构，无需增加新模块。 |
+| 3 | 前一版矩阵把 persistence 放在工作流末端，隐藏了 Assets/B0/Carrier/Manifest/Analysis 都需要保存 `.zmx`、CSV、图像、lock 和状态的真实依赖。 | 将 DP-007 明确定义为 `Project Store & Run State Boundary`，前移到科学资产生成之前，并在矩阵中显式标记所有工作流对它的单向依赖。 | 真实依赖被公开后，矩阵仍保持有序的 lower-triangular / decoupled 结构，无需增加新模块。 |
 
 ---
 
@@ -195,7 +195,7 @@ Project Store 只负责持久化、索引和状态，不拥有改变科学对象
 
 # 9. MDD 入口边界
 
-若本 ADD 通过 checkpoint，MDD 应围绕上述 DP 设计实际 Building Blocks。MDD 至少需要定义：
+本 ADD 已通过 checkpoint，MDD 按上述 DP 建立 Building Blocks。MDD 至少定义：
 
 - ZOS-API session adapter；
 - 科学配置/锁定数据结构；
@@ -255,4 +255,4 @@ Analysis
 
 Project Store / Run State 从第一份正式资产开始贯穿记录；CustomTkinter GUI 作为薄外壳调用这些工作流。
 
-**状态：本轮审核问题已修订，ADD 已达到 Design Split checkpoint-ready；等待用户确认后进入 MDD。**
+**状态：`ADD-0001 v1.4` 继续作为已批准的 Design Split 基线。项目已进入实现阶段；本次只同步 URD v1.4 source metadata 与 `.zmx` 规范，不改变 8 FR / 8 DP 或 DECOUPLED 分类。**
