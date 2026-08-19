@@ -190,18 +190,25 @@ def test_settings_defaults_freeze_acquisition_contract() -> None:
     assert settings.epsilon == 0.0
     assert settings.vertex == 0
 
-    with pytest.raises(ValueError, match="term_primary"):
-        MfeZernikeStandardSettings(term_primary=5).validate()
-    with pytest.raises(ValueError, match="term_maximum"):
-        MfeZernikeStandardSettings(term_maximum=9).validate()
-    with pytest.raises(ValueError, match="Standard Zernike type"):
-        MfeZernikeStandardSettings(zernike_type=2).validate()
-    with pytest.raises(ValueError, match="epsilon"):
-        MfeZernikeStandardSettings(epsilon=1.0).validate()
-    with pytest.raises(ValueError, match="vertex"):
-        MfeZernikeStandardSettings(vertex=2).validate()
-    with pytest.raises(ValueError, match="sampling"):
-        MfeZernikeStandardSettings(sampling=0).validate()
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("term_primary", 12),
+        ("term_maximum", 36),
+        ("wavelength_number", 2),
+        ("field_number", 2),
+        ("sampling", 2),
+        ("zernike_type", 2),
+        ("epsilon", 0.1),
+        ("vertex", 1),
+    ],
+)
+def test_settings_reject_any_drift_from_verified_contract(field: str, value: object) -> None:
+    kwargs = {field: value}
+    with pytest.raises(ValueError, match=field):
+        MfeZernikeStandardSettings(**kwargs).validate()
 
 
 @pytest.mark.unit
