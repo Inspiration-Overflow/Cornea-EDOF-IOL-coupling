@@ -87,9 +87,7 @@ def test_duplicate_missing_pair_and_wrong_config_ids_are_rejected() -> None:
     ]
     pairs = sorted({config.pair_key for config in data.nominal_configs})
     with pytest.raises(AcceptanceError, match="duplicate"):
-        validate_nominal_acceptance(
-            rows[:-1] + [rows[0]], pairs, manifest=data
-        )
+        validate_nominal_acceptance(rows[:-1] + [rows[0]], pairs, manifest=data)
     with pytest.raises(AcceptanceError, match="paired deltas"):
         validate_nominal_acceptance(rows, pairs[:-1], manifest=data)
 
@@ -106,11 +104,11 @@ def test_repeatability_tolerances_and_finite_values() -> None:
     first = {"x": RepeatabilityPoint(0.5, 0.4, 0.1, 0.02, 0.0)}
     second = {"x": RepeatabilityPoint(0.5004, 0.4003, 0.1005, 0.0205, 0.0)}
     validate_repeatability(first, second)
-    with pytest.raises(AcceptanceError, match="mtfa"):
+    with pytest.raises(AcceptanceError, match="distance_peak_mtfa"):
         validate_repeatability(
             first, {"x": RepeatabilityPoint(0.51, 0.4, 0.1, 0.02, 0.0)}
         )
-    with pytest.raises(AcceptanceError, match="distance"):
+    with pytest.raises(AcceptanceError, match="distance-peak"):
         validate_repeatability(
             first, {"x": RepeatabilityPoint(0.5, 0.4, 0.1, 0.02, 0.25)}
         )
