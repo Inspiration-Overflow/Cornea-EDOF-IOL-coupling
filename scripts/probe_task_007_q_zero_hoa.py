@@ -1,8 +1,9 @@
 """Probe ZERO_HOA paired-Paraxial reference and representative Q(P) solves.
 
 This diagnostic uses the successful Phase A.1 LB+A0 power solve, validates the
-ZERO_HOA reference at EPD6/~546 nm, and solves WFS/RAD/HOA Q values for that one
-physical carrier. It does not create formal carrier or residual locks.
+ZERO_HOA reference at EPD6/~546 nm, solves WFS/RAD/HOA Q values for that one physical
+carrier, and checks the Q-induced actual-eye far-focus shift. It does not create formal
+carrier or residual locks.
 """
 
 from __future__ import annotations
@@ -15,6 +16,10 @@ import subprocess
 from dataclasses import asdict
 from pathlib import Path
 
+from whole_eye_mvp.carrier_focus_zos import (
+    P_Q_RECHECK_THRESHOLD_D,
+    measure_actual_eye_q_focus,
+)
 from whole_eye_mvp.carrier_q_zos import (
     Q_REPLAY_SA_TOLERANCE_UM,
     build_physical_carrier_in_standard_eye,
@@ -254,6 +259,12 @@ def main() -> None:
                     f"{platform} saved-candidate SA replay failed: "
                     f"target={SA_TARGETS_UM[platform]:.6g}, achieved={replay_sa:.6g}"
                 )
+
+            actual_eye_focus = measure_actual_eye_q_focus(
+                session,
+                a1_candidate_path,
+                q=solution.q,
+            )
             solutions[str(platform)] = {
                 "solution": asdict(solution),
                 "saved_candidate_path": str(destination.resolve()),
@@ -263,6 +274,7 @@ def main() -> None:
                 "replay_achieved_sa_um": replay_sa,
                 "replay_error_um": replay_error,
                 "replay_passed": True,
+                "actual_eye_q_focus": asdict(actual_eye_focus),
             }
             summary_rows.append(
                 {
@@ -276,11 +288,19 @@ def main() -> None:
                     "replay_achieved_sa_um": replay_sa,
                     "replay_error_um": replay_error,
                     "q_evaluations": solution.q_evaluations,
+                    "actual_eye_focus_shift_mm": actual_eye_focus.focus_shift_mm,
+                    "actual_eye_equivalent_vergence_shift_d": (
+                        actual_eye_focus.equivalent_vergence_shift_d
+                    ),
+                    "p_q_recheck_required": actual_eye_focus.recheck_required,
                     "candidate_sha256": sha256_path(destination),
                 }
             )
 
     _write_summary_csv(summary_path, summary_rows)
+    recheck_platforms = [
+        row["platform_id"] for row in summary_rows if bool(row["p_q_recheck_required"])
+    ]
     payload = {
         "schema_version": 1,
         "formal_artifact": False,
@@ -294,6 +314,8 @@ def main() -> None:
         "zero_hoa_reference_model": "paired_paraxial_surface_powers_with_material_slab",
         "zero_hoa_opd_mode": 1,
         "c40_repeatability_tolerance_um": C40_REPEATABILITY_TOLERANCE_UM,
+        "p_q_recheck_threshold_d": P_Q_RECHECK_THRESHOLD_D,
+        "p_q_recheck_platforms": recheck_platforms,
         "inputs": {
             "phase_a1_report_path": str(a1_report_path),
             "phase_a1_report_sha256": sha256_path(a1_report_path),
@@ -318,7 +340,9 @@ def main() -> None:
         "platform_solutions": solutions,
         "summary_csv_path": str(summary_path.resolve()),
         "summary_csv_sha256": sha256_path(summary_path),
-        "next_gate": "Web review before extending P/Q solve to all 18 carriers",
+        "next_gate": (
+            "Web review of representative P-Q coupling before full 18-carrier solve"
+        ),
     }
     report_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({"report_path": str(report_path.resolve()), **payload}, ensure_ascii=False, indent=2))
