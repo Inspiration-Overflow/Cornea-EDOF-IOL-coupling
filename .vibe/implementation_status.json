@@ -1,23 +1,23 @@
 {
   "version": 2,
   "as_of": "2026-08-19",
-  "phase": "task007-phase-a1-p-solve-paraxial-probe_ready-for-local-validation",
+  "phase": "task007-phase-a2-q0-powp-ready-for-local-validation",
   "project_schema_version": 2,
   "offline_unit_tests": {
-    "status": "PASS-at-phase-a0",
-    "passed": 171,
+    "status": "PASS-at-phase-a1",
+    "passed": 175,
     "failed": 0,
     "ruff": "PASS",
     "compileall": "PASS",
     "uv_lock_check": "PASS",
-    "validated_commit": "3337be56ca7f70b61763f4b03643867fa01acbf7",
-    "phase_a1_changes_require_rerun": true
+    "validated_commit": "2d97b8fedc11010fd66416f804d83262bf7578e2",
+    "phase_a2_changes_require_rerun": true
   },
   "environment_pending": [
-    "rerun offline checks after TASK-007 Phase A.1 Web implementation",
-    "TASK-007 Phase A.1 A0×LB/ATC actual-eye P-solve",
-    "TASK-007 Phase A.1 STD-eye Paraxial surface capability/header probe",
-    "TASK-007 real Q(P) solve after Web review of Paraxial headers",
+    "rerun offline checks after TASK-007 Phase A.2 Web implementation",
+    "TASK-007 Phase A.2 representative LB+A0 Q=0 reference + POWP readback",
+    "TASK-007 Phase A.2 representative WFS/RAD/HOA Q(P) solve and saved-file replay",
+    "TASK-007 Phase A.2 actual-eye P-Q focus round-trip",
     "TASK-007 real physical residual readback and low/median/high calibration"
   ],
   "tasks": {
@@ -27,7 +27,7 @@
     "RMD-TASK-004": "offline-complete_representative-zemax-crosscheck-later",
     "RMD-TASK-005": "complete_A0-B0.20-C0-frozen",
     "RMD-TASK-006": "complete_B0.20-immutable-lock",
-    "RMD-TASK-007": "phase-a0-pass_phase-a1-p-solve-paraxial-capability-ready_real-q-and-residual-calibration-pending",
+    "RMD-TASK-007": "phase-a0-pass_phase-a1-pass_phase-a2-q0-powp-ready_real-residual-calibration-pending",
     "RMD-TASK-008": "manifest-builder-provenance-hardened_formal-output-blocked-by-task007",
     "RMD-TASK-009": "analysis-contract-provenance-hardened_representative-huygens-psf-zernike-pending",
     "RMD-TASK-010": "thread-safe-thin-gui-composition-complete_local-full-flow-smoke-pending",
@@ -35,7 +35,7 @@
   },
   "science_gates_still_active": [
     "TDD-TEST-999: real physical residual payload/readback and low/median/high actual-power calibration",
-    "TASK-007: ZERO_HOA Paraxial ZOS-API parameter mapping and real Q(P) solve",
+    "TASK-007: representative Q(P)/POWP identity/P-Q round-trip before full 18-carrier solve",
     "representative-3-config-sampling-and-mtf-crosscheck"
   ],
   "task005d": {
@@ -66,14 +66,23 @@
       "tdd_999_cleared": false
     },
     "phase_a1": {
-      "status": "Web implementation complete; local validation pending",
-      "doc": "docs/TASK_007_PHASE_A1_P_SOLVE_PARAXIAL_PROBE_2026-08-19.md",
-      "probe_script": "scripts/probe_task_007_carrier_p_paraxial.py",
+      "status": "PASS",
+      "validated_commit": "2d97b8fedc11010fd66416f804d83262bf7578e2",
+      "unit_tests_passed": 175,
       "representative_cornea": "A0",
-      "representative_bases": [
-        "LB_AL2395",
-        "ATC_M3_AL24477"
-      ],
+      "lb_power_d": 25.25866463479957,
+      "atc_power_d": 23.276317052966775,
+      "paraxial_api_capability": "PASS-historical-evidence-only",
+      "production_uses_paraxial_surface": false,
+      "formal_artifact": false
+    },
+    "phase_a2": {
+      "status": "Web implementation complete; local validation pending",
+      "doc": "docs/TASK_007_PHASE_A2_Q0_POWP_REFERENCE_2026-08-19.md",
+      "probe_script": "scripts/probe_task_007_q_zero_hoa.py",
+      "reference_model": "same_physical_carrier_q0_no_residual",
+      "powp_role": "matched standard-eye first-order power identity oracle",
+      "repo_evidence_supported": true,
       "q_solve_completed": false,
       "formal_artifact": false
     },
@@ -92,7 +101,7 @@
     "tdd_999_cleared": false
   },
   "review_hardening": {
-    "status": "2026-08-19-task007-phase-a1-ready",
+    "status": "2026-08-19-task007-phase-a2-q0-powp-ready",
     "task005d_normative_science_changed": false,
     "main_run72_pipeline_changed": false
   }
