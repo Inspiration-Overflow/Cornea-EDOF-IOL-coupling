@@ -1,4 +1,4 @@
-"""Run the real LB + REF_MONO five-candidate B0 scan and emit a provisional recommendation."""
+"""Run the real LB + REF_MONO five-candidate B0 MTFA-v2 scan."""
 
 from __future__ import annotations
 
@@ -12,7 +12,12 @@ from whole_eye_mvp.b0 import B0CandidateInput, rank_b0_candidates
 from whole_eye_mvp.b0_zos import acquire_b0_lock_curve
 from whole_eye_mvp.cornea_assets import cornea_lock_prescriptions
 from whole_eye_mvp.cornea_candidates_zos import measure_cornea_file_wavefront
-from whole_eye_mvp.domain import CURRENT_SCIENTIFIC_BASELINE_ID, CorneaId, ScientificBaseline
+from whole_eye_mvp.domain import (
+    CORNEA_LOCK_B0_555_V2,
+    CURRENT_SCIENTIFIC_BASELINE_ID,
+    CorneaId,
+    ScientificBaseline,
+)
 from whole_eye_mvp.ref_mono_coupled import calibrate_ref_mono_for_cornea
 from whole_eye_mvp.standard_eye import RELATIVE_PATH as STANDARD_EYE_RELATIVE_PATH
 from whole_eye_mvp.store import open_project_store
@@ -74,18 +79,28 @@ def main() -> None:
             + ", ".join(str(path) for path in missing)
         )
 
-    output_dir = project_dir / "diagnostics" / "task005d" / "b0_scan"
-    result_path = output_dir / RESULT_NAME
-    if result_path.exists() and not args.overwrite:
-        raise SystemExit(f"B0 scan result already exists; pass --overwrite: {result_path}")
+    output_dir = project_dir / "diagnostics" / "task005d" / "b0_scan_mtfa_v2"
     output_dir.mkdir(parents=True, exist_ok=True)
+    result_path = output_dir / RESULT_NAME
+    a_ref_path = output_dir / "REF_MONO_A0.zmx"
+    b_ref_paths = {
+        item.candidate_id: output_dir / f"REF_MONO_{item.candidate_id.replace('.', '_')}.zmx"
+        for item in b_prescriptions
+    }
+    existing = tuple(
+        path for path in (a_ref_path, *b_ref_paths.values(), result_path) if path.exists()
+    )
+    if existing and not args.overwrite:
+        raise SystemExit(
+            "B0 MTFA-v2 scan outputs already exist; pass --overwrite to replace them: "
+            + ", ".join(str(path) for path in existing)
+        )
 
     with open_zos_session(args.install_dir) as session:
         reference_wavefront = measure_cornea_file_wavefront(session, reference_path)
         reference_c40 = reference_wavefront.c40_um
 
         a_cornea_path = _cornea_path(cornea_dir, a_prescription.candidate_id)
-        a_ref_path = output_dir / "REF_MONO_A0.zmx"
         a_calibration = calibrate_ref_mono_for_cornea(
             session,
             baseline,
@@ -103,7 +118,7 @@ def main() -> None:
             cornea_path = _cornea_path(cornea_dir, prescription.candidate_id)
             wavefront = measure_cornea_file_wavefront(session, cornea_path)
             achieved_delta = wavefront.c40_um - reference_c40
-            ref_path = output_dir / f"REF_MONO_{prescription.candidate_id.replace('.', '_')}.zmx"
+            ref_path = b_ref_paths[prescription.candidate_id]
             calibration = calibrate_ref_mono_for_cornea(
                 session,
                 baseline,
@@ -142,6 +157,8 @@ def main() -> None:
         "passed": report.complete and report.recommendation_id is not None,
         "morphology_review_pending": True,
         "selection_locked": False,
+        "acquisition": "MFE_MTFA_GRID0",
+        "analysis_settings": asdict(CORNEA_LOCK_B0_555_V2),
         "reference_cornea_c40_um": reference_c40,
         "A0": {
             "cornea_path": str(a_cornea_path.resolve()),
