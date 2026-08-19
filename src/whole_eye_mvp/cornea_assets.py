@@ -64,6 +64,62 @@ class CorneaScaffold:
 MAIN_CORNEA_SCAFFOLD = CorneaScaffold()
 
 
+@dataclass(frozen=True, slots=True)
+class CorneaLockEyeGeometry:
+    base_id: str
+    axial_length_mm: float
+    cornea_thickness_mm: float
+    post_cornea_to_stop_mm: float
+    post_cornea_to_iol_ant_mm: float
+
+    def validate(self) -> None:
+        values = (
+            self.axial_length_mm,
+            self.cornea_thickness_mm,
+            self.post_cornea_to_stop_mm,
+            self.post_cornea_to_iol_ant_mm,
+        )
+        if not all(math.isfinite(float(value)) and value > 0 for value in values):
+            raise ValueError("cornea-lock axial geometry must be finite and positive")
+        if self.post_cornea_to_iol_ant_mm <= self.post_cornea_to_stop_mm:
+            raise ValueError("IOL anterior reference must lie behind the STOP")
+        if self.iol_ant_to_image_mm <= 0:
+            raise ValueError("IOL anterior reference must precede the fixed IMAGE")
+
+    @property
+    def stop_to_iol_ant_mm(self) -> float:
+        return self.post_cornea_to_iol_ant_mm - self.post_cornea_to_stop_mm
+
+    @property
+    def iol_ant_to_image_mm(self) -> float:
+        return (
+            self.axial_length_mm
+            - self.cornea_thickness_mm
+            - self.post_cornea_to_iol_ant_mm
+        )
+
+
+def cornea_lock_eye_geometry(
+    baseline: ScientificBaseline,
+    *,
+    scaffold: CorneaScaffold = MAIN_CORNEA_SCAFFOLD,
+) -> CorneaLockEyeGeometry:
+    scaffold.validate()
+    matches = tuple(spec for spec in baseline.base_specs if spec.base_id == CORNEA_LOCK_BASE_ID)
+    if len(matches) != 1:
+        raise ValueError("scientific baseline must contain exactly one LB cornea-lock base")
+    base = matches[0]
+    geometry = CorneaLockEyeGeometry(
+        base_id=base.base_id,
+        axial_length_mm=base.axial_length_mm,
+        cornea_thickness_mm=scaffold.thickness_mm,
+        post_cornea_to_stop_mm=base.post_cornea_to_stop_mm,
+        post_cornea_to_iol_ant_mm=base.post_cornea_to_iol_ant_mm,
+    )
+    geometry.validate()
+    return geometry
+
+
 def paraxial_cornea_power_d(
     front_radius_mm: float,
     *,
