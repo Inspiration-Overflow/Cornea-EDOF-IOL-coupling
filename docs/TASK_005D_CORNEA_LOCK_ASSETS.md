@@ -1,93 +1,74 @@
 # TASK-005D — 角膜冻结资产实现契约
 
-> 状态：**实现中**。本任务补齐 TASK-005 剩余的角膜冻结链；不提前进入正式 EDOF carrier/pair lock，也不运行 Run72。
+> 状态：**Web 端实现完成第一阶段，等待最小 OpticStudio 实机诊断**。本任务补齐 TASK-005 剩余角膜冻结链；不提前进入正式 EDOF carrier/pair lock，也不运行 Run72。
 
 ## 1. 目标
 
 在任何 WFS/RAD/HOA 主实验结果参与之前，建立用于角膜冻结的最小确定性链条：
 
-1. 一个明确的主实验共同物理角膜底座；
+1. 明确的主实验共同物理角膜底座；
 2. A0、五个 B 候选和 C0 的冻结处方；
-3. 后续可由 OpticStudio 实机实现的 A/B/C 表面构造输入；
-4. 平台独立 `REF_MONO_CORNEA_LOCK` 的接口位置。
+3. 可由 OpticStudio 直接构造/求解的 A/B/C diagnostic 模型；
+4. 平台独立 `REF_MONO_CORNEA_LOCK`；
+5. 真实五候选 B0 scan，并复用既有 `b0.py` 排序规则。
 
-B0 的排序/锁定算法已经存在于 `src/whole_eye_mvp/b0.py`，本任务不再设计第二套 B0 算法。
+所有 005D 输出在用户确认前都保持 `formal_artifact=false`，不得写正式角膜 lock。
 
 ## 2. 设计来源
 
-A/B/C 的科学语义以项目已经定稿的以下文档为准：
+科学语义以项目已定稿文档为准：
 
 - `zemax_corneal_archetypes_ABC_design_v1_5.md`
 - `cornea_lock_analysis_protocol_v1_1.md`
 - 当前仓库 `URD-0001 v1.4` / `TDD-0001 v1.3`
 
-其中冻结规则为：
+冻结规则：
 
 - 只在 `LB_AL2395` 中选择/冻结 A0/B0/C0；
-- 使用平台独立的 `REF_MONO_CORNEA_LOCK`；
+- 使用平台独立 `REF_MONO_CORNEA_LOCK`；
 - ATC-M3 只在角膜冻结后进入主实验；
 - A0 是像差改变型准单焦；
 - B 是连续 Even Asphere / 受控球差延焦；
-- C0 是临床 ADD 驱动的中央近用径向多焦。
+- C0 是临床 ADD 驱动的中央近用径向多焦；
+- B0 不根据 WFS/RAD/HOA 主实验结果回调。
 
 ## 3. 主实验共同角膜底座
 
-此前 005B 只冻结了两个**重合的角膜参考面**，故 A/B/C 的物理中心厚度和后表面不能从 005B 自动推断。
-
-005D 显式新增一个独立于标准眼命名空间的工程底座：
+005B 的两个角膜面只是重合参考面，因此 005D 显式定义：
 
 ```text
 MAIN_CORNEA_LIOU_555_v1
-```
-
-参数：
-
-```text
 λ = 555 nm
-anterior reference R = +7.77 mm
-anterior reference Q = -0.18
+anterior reference R/Q = +7.77 mm / -0.18
 central thickness = 0.50 mm
-posterior R = +6.40 mm
-posterior Q = -0.60
+posterior R/Q = +6.40 mm / -0.60
 cornea n = 1.376
 post-cornea aqueous n = 1.336
 ```
 
-这些数值采用 Liou–Brennan 1997 模型角膜作为共同 scaffold。Liou–Brennan 原模型本身明确面向包括屈光手术在内的光学建模；其结构参数表给出 0.50 mm 角膜厚度及上述折射率。前后表面 asphericity 采用项目已长期使用、并在后续 Liou-Brennan 实现中一致报道的 `-0.18/-0.60`。
-
-**该 scaffold 与 `STD_IOL_EYE_2024` 是两个不同用途的工程对象。** 两者数值相近不意味着主实验角膜“继承标准眼”；005D 将其单独命名、单独版本化并在后续 A/B/C 资产 hash 中形成 provenance。
-
-第一阶段固定后角膜，只修改前表面。长期 LASIK 后表面研究显示在规范手术范围内后表面总体稳定，因此把后表面固定作为本机制研究 MVP 的工程近似是合理的；这不是对所有真实患者的普遍生物力学结论。
+该 scaffold 与 `STD_IOL_EYE_2024` 用途不同，单独命名和版本化。第一阶段固定后角膜，只改变前表面。
 
 ### 3.1 −3 D 共同远用基线
 
-先用厚角膜一阶等效屈光力建立 A/B/C 的共同 distance baseline：
+厚角膜一阶等效屈光力：
 
 \[
 F=F_1+F_2-\frac{t}{n_c}F_1F_2.
 \]
 
-Liou 参考角膜在上述参数下：
+得到：
 
 ```text
 F_reference = 42.251148573823 D
-```
-
-标准化近视治疗 `T=-3.00 D` 后：
-
-```text
-F_distance = 39.251148573823 D
-```
-
-在固定后表面、厚度和折射率条件下反解得到前表面基线：
-
-```text
+F_distance  = 39.251148573823 D
 R_ant,distance = 8.282294760256 mm
 ```
 
-这只是**一阶远用基线**，不是 A0/B0/C0 的最终完整表面，也不替代后续 Zemax 光线追迹、C40 标定或 IOL power 求解。
+该值只作为 A/B/C 的共同 distance 起点；最终表面仍由 OpticStudio 光线追迹评价。
 
-## 4. A0 冻结处方
+## 4. A0
+
+冻结处方：
 
 ```text
 candidate_id = A0
@@ -97,19 +78,19 @@ EOZ ≈ 5.0 mm
 target ΔC40(6 mm) = +0.13 µm
 ```
 
-实现原则：
+当前实现：
 
-- 以后表面固定的总角膜模块为评价对象；
-- 前表面从共同 −3 D distance baseline 出发；
-- Binary 4 只使用折射 sag，自身不引入衍射相位；
-- 实机调节使总角膜 `ΔC40(6 mm)` 达到 `+0.13±0.02 µm`；
-- EOZ、中央变平和基本 zone/sampling convergence 同时检查。
+- `r ≤ 2.50 mm`：−3 D distance 主治疗区；
+- `2.50 < r < 3.25 mm`：0.75 mm 径向 quintic 平滑过渡的 Binary4 数值逼近；
+- nominal transition slices = 8；
+- `3.25 < r ≤ 4.00 mm`：Liou reference 未治疗周边；
+- 所有 Binary4 zone 为纯折射，`diffraction order=0`；
+- 唯一主动标定自由度仍是内区 conic；
+- OpticStudio 自动求到 `ΔC40≈+0.13 µm`。
 
-当前 Web 端不预先编造 Binary 4 的最终 zone 参数；它们由一次最小实机求解后写回正式构造记录。
+0.75 mm 和 8 slices 是 **A0 的数值实现参数**，不是新增 scientific-baseline 变量。若首次实机表型/收敛不合理，再在 Web 端修订；本地不人工调 zone。
 
-## 5. B 候选冻结处方
-
-五个第一阶段候选：
+## 5. B 五候选
 
 ```text
 B0.10  ΔC40 = +0.10 µm
@@ -117,23 +98,19 @@ B0.15  ΔC40 = +0.15 µm
 B0.20  ΔC40 = +0.20 µm
 B0.25  ΔC40 = +0.25 µm
 B0.30  ΔC40 = +0.30 µm
-```
 
-共同条件：
-
-```text
 T = -3.00 D
 OZ = 6.00 mm
 surface family = Even Asphere
 ```
 
-`ΔC40` 指**固定后角膜时前后表面联合光线追迹得到的总角膜模块变化量**。第一阶段不主动把 C60 作为优化自由度；C60 只记录为派生结果。
+当前实现只使用第一个不改变 paraxial power 的 `r^4` Even-Asphere 自由度调节 C40；C60 不主动控制，只作为后续派生结果记录。
 
-五个候选建立后，由既有 `b0.py` 在 `LB_AL2395 + REF_MONO_CORNEA_LOCK` 中使用真实 EPD3/EPD5 曲线完成排序；不得根据 WFS/RAD/HOA 主实验结果选择 B0。
+`ΔC40` 指固定后角膜后，前后表面联合 ray trace 的总角膜模块变化量。
 
-## 6. C0 冻结处方
+## 6. C0
 
-C0 直接固定，不做 nominal 性能优化：
+固定处方：
 
 ```text
 candidate_id = C0
@@ -153,13 +130,11 @@ rT = 2.25 mm
 rOZ = 3.25 mm
 ```
 
-临床 ADD 保持为处方层面的输入变量。设计目标功率写为：
+设计分布：
 
 \[
 P_{C,design}(r)=P_{distance}+ADD_{Rx}G(r),
 \]
-
-其中：
 
 \[
 G(r)=
@@ -171,26 +146,14 @@ G(r)=
 \]
 
 \[
-S(t)=10t^3-15t^4+6t^5,
-\qquad
-t=\frac{r-r_N}{r_T-r_N}.
+S(t)=10t^3-15t^4+6t^5.
 \]
 
-该 quintic 在两端 value、1st derivative、2nd derivative 连续。`r=2.25→3.25 mm` 保留明确的远用主导环带。
+这里 `ADD_Rx=+1.75D` 是**目标处方层设计输入**。最终实际局部/环带会聚、C40/C60、MTF/PSF 都由物理表面 ray trace 输出；不要求 `ADD_Rx = ΔV_ray-traced`。
 
-按共同厚角膜 scaffold 的一阶换算：
-
-```text
-central target power ≈ 41.001148573823 D
-central target front radius ≈ 7.975550558942 mm
-far target front radius ≈ 8.282294760256 mm
-```
-
-这些是构造目标，不把 `+1.75 D` 重新解释为某一径向位置的临床可测局部角膜屈光力。
+Binary4 nominal 使用 8 个 transition slices，并同时生成 4/8/16 三个版本作为第一阶段离散检查。`2.25→3.25 mm` 保留明确远用主导环带。
 
 ## 7. REF_MONO_CORNEA_LOCK
-
-角膜冻结参考 IOL 仍按既定协议：
 
 ```text
 platform-independent monofocal
@@ -199,53 +162,151 @@ surrounding n ≈ 1.336
 IOL n ≈ 1.46
 CT ≈ 1.0 mm
 optic diameter = 6.0 mm
-simple biconvex bending
+simple symmetric biconvex bending
 IOL anterior vertex = 4.50 mm behind posterior cornea
 coaxial, no decentration/tilt
 ```
 
-对每个角膜候选，基础 power 调整到固定视网膜的远焦；再在 `STD_IOL_EYE_2024` 中把参考 IOL 调到近球差中性。若 conic 引起明显焦移，只允许一次简单 power–conic 回查。
+对 A0 和每个 B 候选分别：
 
-**本任务不会把 REF_MONO 当作第四个研究平台，也不会让它进入 72 配置。**
+1. 在该候选 LB 冻结眼中，用 Wavefront Quick Focus 自动求 symmetric radius，使固定视网膜 focus shift 接近 0；
+2. 将同一 radius 放入 `STD_IOL_EYE_2024`，自动求 shared conic，使 IOL-induced C40 接近 0；
+3. 回到候选 LB 眼再解一次 radius；
+4. 最多两轮，不能自动无限迭代。
 
-## 8. 当前代码边界
+LB diagnostic 中两面明确设 `SemiDiameter=3.0 mm`。`REF_MONO` 只服务角膜冻结，不进入 72 配置。
 
-`src/whole_eye_mvp/cornea_assets.py` 目前只冻结：
+## 8. B0 真实 scan
 
-- `MAIN_CORNEA_LIOU_555_v1`；
-- 厚角膜一阶 power/radius 换算；
-- A0 + 五个 B 候选 + C0 的精确处方集合；
-- C0 quintic radial design。
+冻结设置继续使用 `CORNEA_LOCK_B0_555_v1`：
 
-尚未宣称完成：
+```text
+λ = 555 nm
+EPD = 3 mm + 5 mm
+defocus = +0.50 → -3.50 D
+step = 0.25 D
+17 planes
+```
 
-- A0 Binary 4 最终 zone 参数；
-- 五个 B 的 Even Asphere 实机系数；
-- C0 Binary 4 最终离散 zone 数/参数；
-- `REF_MONO_CORNEA_LOCK` 的真实 power/conic；
-- A/B/C 的实机 C40/C60、MTF/PSF、convergence；
-- B0 正式选择/锁定。
+每个 defocus 点只临时改变 OBJECT vergence，角膜、IOL、ELP、IMAGE 均不动。0 D 直接复用模型保存的 nominal infinity OBJECT 状态。
 
-这些必须来自 OpticStudio 实机，不在 Web 端伪造。
+B0 专用指标：
 
-## 9. 下一步最小执行顺序
+\[
+Q_{lock,p}(F)=\frac{1}{50}\int_0^{50}MTF(f,F)df,
+\]
 
-Web 端继续完成实际 `.zmx` 构造器和实机输入脚本；本地只执行不可替代的 OpticStudio 求解/读回：
+`f` 使用 cycles/mm。Huygens MTF 计算到 60 cycles/mm，再插值/积分到冻结的 50 cycles/mm。
 
-1. 生成共同 −3 D distance cornea scaffold；
-2. 建 `REF_MONO_CORNEA_LOCK`；
-3. A0 调到目标 ΔC40；
-4. 五个 B 调到各自 ΔC40；
-5. C0 建立并做基本离散 convergence；
-6. 获取 A0 + 五个 B 的 EPD3/EPD5 lock curves；
-7. 既有 `b0.py` 给出 B0 recommendation，再由用户确认。
+采样：
 
-在此之前不进入正式 EDOF carrier/pair lock，也不运行 Run72。
+```text
+pupil sampling = 128×128
+image sampling = 256×256
+image delta = 0.5 µm
+```
 
-## 10. 参考依据
+五个候选的真实曲线直接喂给既有 `rank_b0_candidates()`；软件不自动替代人工 morphology 判断。第一次 scan 输出 recommendation，但保持：
 
-- Liou H-L, Brennan NA. *Anatomically accurate, finite model eye for optical modeling*. JOSA A. 1997;14:1684–1695. DOI: 10.1364/JOSAA.14.001684.
-- Ciolino JB, et al. *Long-term stability of the posterior cornea after laser in situ keratomileusis*. J Cataract Refract Surg. 2007;33:1366–1370. DOI: 10.1016/j.jcrs.2007.04.016.
-- Ansys OpticStudio User Guide, Binary Optic 4 surface definition: multiple concentric refractive/aspheric zones and automatic sag offset for boundary continuity.
+```text
+morphology_review_pending = true
+selection_locked = false
+```
+
+用户看完曲线/形态后才允许正式 B0 lock。
+
+## 9. 当前代码与输出
+
+主要模块：
+
+```text
+src/whole_eye_mvp/cornea_assets.py
+src/whole_eye_mvp/cornea_zos.py
+src/whole_eye_mvp/cornea_candidates_zos.py
+src/whole_eye_mvp/ref_mono.py
+src/whole_eye_mvp/ref_mono_zos.py
+src/whole_eye_mvp/ref_mono_calibration.py
+src/whole_eye_mvp/ref_mono_coupled.py
+src/whole_eye_mvp/zos/huygens_mtf.py
+src/whole_eye_mvp/b0_zos.py
+```
+
+本地只保留两条主要执行脚本：
+
+```text
+scripts/build_task_005d_cornea_candidates.py
+scripts/run_task_005d_b0_scan.py
+```
+
+第一条自动写：
+
+```text
+project_mvp_2026_v2_zmx/diagnostics/task005d/corneas/
+  TASK_005D_CORNEA_CANDIDATES.json
+```
+
+第二条自动写：
+
+```text
+project_mvp_2026_v2_zmx/diagnostics/task005d/b0_scan/
+  TASK_006_B0_REAL_SCAN.json
+```
+
+两者都只是 diagnostics，不写正式 lock。
+
+## 10. 分阶段实机策略
+
+为了降低本地思维负担，不一次跑完整长流程。
+
+### Phase A — 先只构建角膜候选
+
+本地仅运行：
+
+```powershell
+uv run python scripts/build_task_005d_cornea_candidates.py `
+  --project-dir project_mvp_2026_v2_zmx `
+  --baseline-id MVP_2026_v2
+```
+
+然后只回传：
+
+```text
+HEAD
+PASS/FAIL
+TASK_005D_CORNEA_CANDIDATES.json path
+native hard error if any
+residual OpticStudio/Zemax process count
+```
+
+Web 端读取 JSON、审核 A/B achieved ΔC40 与 C0 4/8/16 结果，再决定是否进入 Phase B。
+
+### Phase B — 只有 Phase A 通过才跑 B0 scan
+
+本地只运行：
+
+```powershell
+uv run python scripts/run_task_005d_b0_scan.py `
+  --project-dir project_mvp_2026_v2_zmx `
+  --baseline-id MVP_2026_v2
+```
+
+然后只回传结果 JSON 路径。Web 端负责分析曲线、排序和 morphology review。
+
+## 11. 尚未完成
+
+在实机结果回来前仍不得宣称：
+
+- A0/B0/C0 已正式冻结；
+- `REF_MONO_CORNEA_LOCK` 已形成正式 lock；
+- B0 已最终确认；
+- 角膜 assets 已可进入 carrier/Run72。
+
+也不在本任务中处理正式 EDOF carrier/pair locks。
+
+## 12. 参考依据
+
+- Liou H-L, Brennan NA. *Anatomically accurate, finite model eye for optical modeling*. JOSA A. 1997;14:1684–1695.
+- Ciolino JB, et al. *Long-term stability of the posterior cornea after laser in situ keratomileusis*. J Cataract Refract Surg. 2007;33:1366–1370.
+- Ansys OpticStudio User Guide, Binary Optic 4 / Huygens MTF.
 - 项目文档 `zemax_corneal_archetypes_ABC_design_v1_5.md`。
 - 项目文档 `cornea_lock_analysis_protocol_v1_1.md`。
