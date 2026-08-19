@@ -1,7 +1,7 @@
 # TASK-005D — B0 MTF 采集方法修订
 
 日期：2026-08-19  
-状态：**文档与 Web 端代码已按本文实现；等待 Phase B.1 最小 MTFA 实机 probe。**
+状态：**Phase B.1 实机 PASS；生产 `Samp=3`、5 cycles/mm 已冻结；等待完整五候选 B0 scan。**
 
 ## 1. 决定
 
@@ -13,12 +13,13 @@ B0 生产采集改为：
 OpticStudio Merit Function Editor
 → MTFA diffraction MTF operand
 → Grid = 0 fast sparse single-frequency algorithm
+→ Samp = 3
 → 0, 5, 10, ..., 50 cycles/mm
 → trapezoidal integration
 → Q_lock
 ```
 
-本修订只替换 **MTF acquisition primitive**。A/B/C 光学处方、REF_MONO、B0 defocus grid、EPD、Q_lock 定义、distance-retention gates 和 `rank_b0_candidates()` 均不改变。
+本修订只替换 **B0 MTF acquisition primitive**。A/B/C 光学处方、REF_MONO、B0 defocus grid、EPD、Q_lock 定义、distance-retention gates 和 `rank_b0_candidates()` 均不改变。
 
 ## 2. 修订原因
 
@@ -45,7 +46,7 @@ A0 or continuous Even-Asphere B cornea
 simple symmetric REF_MONO
 ```
 
-本任务只需要候选间稳定的相对 `Q_lock`、distance retention 和 DOF 排序，不需要把高成本 Huygens Analysis 作为每个 defocus plane 的默认生产方法。
+本任务只需要候选间稳定的相对 `Q_lock`、distance retention 和 DOF 排序，不需要把 Huygens MTF Analysis 作为每个 defocus plane 的默认生产方法。
 
 ## 3. 官方算法依据
 
@@ -58,7 +59,7 @@ Ansys OpticStudio User Guide 对 `MTFA` 的定义：
 - 当 MTF 合理（官方举例 >5%）时，`Grid=0` 通常比 grid algorithm 更快；
 - 对 MTFA/MTFS/MTFT，`Data Type=0` 返回 modulation amplitude。
 
-OpticStudio 对 FFT Through Focus MTF 也明确说明，其快速算法与 `MTFA, Grid=0` 使用同一路径。
+OpticStudio 对 FFT Through Focus MTF 也说明其快速算法与 `MTFA, Grid=0` 使用相同算法族。
 
 因此本修订不是自定义 MTF 算法，也不是用几何 MTF 替代 diffraction MTF；而是使用 OpticStudio 自带的快速 diffraction MTF operand。
 
@@ -97,14 +98,13 @@ Q_{lock,p}(F)=\frac{1}{50}\int_0^{50}MTF(f,F)\,df.
 
 ```text
 operand = MTFA
+Samp = 3
 Wave = 1
 Field = 1
 Grid = 0
 Data Type = 0  # modulation amplitude
 Freq = 0..50 cycles/mm, step 5
 ```
-
-`Samp` 使用固定生产采样级别，但在第一次正式长扫描前只做一次最小 sampling convergence probe 后冻结。遵循 OpticStudio 官方建议：从较低 sampling 增加，直到结果变化小于项目需要的精度；不追求对 B0 排序没有意义的极端精度。
 
 所有临时 MTFA operands 必须：
 
@@ -116,7 +116,7 @@ Freq = 0..50 cycles/mm, step 5
 6. 验证 MFE row count 恢复；
 7. 不保存 lens，仅恢复 OBJECT thickness。
 
-不得增加 GETMTF / FFT-MTF Analysis / Huygens Analysis fallback。失败时 fail closed。
+不得增加 GETMTF / FFT-MTF Analysis / Huygens MTF Analysis fallback。失败时 fail closed。
 
 ## 6. 频率离散与积分
 
@@ -128,13 +128,15 @@ Q_{lock}=\frac{1}{50}\sum_i \frac{MTF_i+MTF_{i+1}}{2}(f_{i+1}-f_i).
 
 这一层为纯 Python 数学，不调用 OpticStudio。
 
-### 6.1 最小频率步长 sanity check
+### 6.1 Phase B.1 频率步长 sanity check
 
-只在两个代表状态检查一次：
+代表状态：
 
 ```text
 A0
 B0.20
+EPD3 + EPD5
+0 D / -1.5 D
 ```
 
 比较：
@@ -145,24 +147,46 @@ vs
 2.5 cycles/mm step
 ```
 
-目的仅确认 `Q_lock` 和 B0 选择结论对频率离散不敏感。若差异对候选排序无实质影响，则生产固定 5 cycles/mm，不继续加密。
+实测最大绝对 `Q_lock` 差异：
 
-该检查不增加新的科学 gate，不用于回调角膜处方。
+```text
+0.00492149
+```
 
-## 7. Sampling 最小收敛检查
+据此生产固定 5 cycles/mm，不继续加密。该检查不增加新的科学 gate，不用于回调角膜处方。
 
-同样只在少数代表 plane 做一次 MTFA `Samp` 收敛检查，不对 204 个状态重复做 sampling study。
+## 7. Sampling 实机检查与冻结
 
-原则：
+Phase B.1 在同一组代表状态比较：
 
-- 使用 OpticStudio MTFA 的离散 sampling index；
-- 比较相邻 sampling level 的 `Q_lock`；
-- 达到足够稳定后冻结最小可接受 sampling；
-- 如果 MTFA 返回 0 或明显非物理值，视为 sampling 不足或 runtime failure，不自动改科学参数。
+```text
+Samp = 2 / 3 / 4
+```
 
-最终实际冻结的 `Samp` 数值必须由一次真实工作站 probe 记录进 Phase B 证据文档，再运行全量 scan。
+实测最大绝对 `Q_lock` 差异：
 
-## 8. B0 排序规则完全不变
+```text
+Samp 2 → 3 = 0.00221683
+Samp 3 → 4 = 0.00067564
+```
+
+项目据此冻结：
+
+```text
+production Samp = 3
+```
+
+该决定的角色是工程参数冻结，不把上述实测差异定义成新的自动 convergence threshold，也不要求对 204 个完整状态重复 sampling study。
+
+权威 Phase B.1 记录：
+
+```text
+docs/TASK_005D_PHASE_B1_MTFA_PROBE_REVIEW_2026-08-19.md
+```
+
+既有 Phase B.1 无需重跑。本次一致性修订没有改变实机已验证的 MFE MTFA primitive、Q_lock 数学或光学条件。
+
+## 8. B0 排序与人工 morphology 审核
 
 继续复用既有 `rank_b0_candidates()`：
 
@@ -174,43 +198,61 @@ B distance retention gate:
   EPD5 >= 70%
 ```
 
-符合 gate 的候选继续按既有顺序比较：
+符合 gate 的候选按既有顺序比较：
 
 1. EPD3 absolute-threshold DOF；
 2. EPD5 absolute-threshold DOF；
 3. EPD3 distance retention；
 4. |ΔC40|。
 
-Morphology 仍由人工审核：
+完整实机 scan 首先固定：
 
 ```text
 morphology_review_pending = true
 selection_locked = false
 ```
 
-脚本不得自动创建正式 B0 lock。
+此时的 recommendation 只是**未经过人工形态审核的初步 deterministic recommendation**。
 
-## 9. Huygens 的新角色
+五条真实曲线生成后，用户必须对五候选分别给出 morphology decision。明显稳定的“双峰 + 深谷”候选标记 `morphology_reject=true` 并写理由；随后软件使用原始实机曲线重新调用同一 `rank_b0_candidates()`，形成新的 reviewed scan hash 和 recommendation。该 review/re-rank/lock 步骤为纯 Python，不重新调用 OpticStudio。
 
-Huygens 不再作为 B0 或未来 Run72 的默认生产采集器。
+最终 B0 lock 必须与以下内容一起保存：
 
-保留用途：在后续 3 个代表性正式配置上做独立 cross-check，用来验证主生产 FFT/diffraction-MTF 路径没有对本项目产生有意义的偏差。
+- 五候选 morphology decisions；
+- reviewed rank；
+- source scan hash；
+- reviewed scan hash；
+- recommendation；
+- 最终 candidate；
+- selection reason；
+- override 标记。
 
-也就是说：
+## 9. Huygens 的范围
+
+本修订只处理 TASK-005D/B0 的 `AS_HuygensMtf` production failure。
+
+因此：
 
 ```text
-B0 selection        → MTFA Grid=0
-main production MTF → FFT/diffraction-MTF path
-representative QA   → Huygens cross-check only
+B0 selection → MFE MTFA Grid=0
 ```
 
-这与 RMD 原本要求的“代表配置独立 MTF cross-check”一致，同时显著减少 ZOS-API settings-type 暴露和运行时间。
+**不由本文件重新定义 TASK-009/Run72 的主实验 acquisition。** 主实验继续服从当前 TDD 的：
 
-## 10. 旧 Huygens / PSF→Python FFT 路线
+```text
+Huygens PSF
+→ deterministic FFT
+→ complex OTF
+→ radial MTF / MTFa / VSOTF
+```
 
-Phase B STOP 后曾实现 `Huygens PSF → Python FFT → MTF` 作为临时备用路线。经本次设计复核，该路线不再作为 TASK-005D 的目标生产实现：OpticStudio 已提供更简单的 MFE `MTFA` diffraction-MTF operand，没有必要在本任务中自行重建 MTF pipeline。
+后续三代表配置的 sampling 与独立 MTF cross-check 仍在 TASK-009 处理。一次 `AS_HuygensMtf` settings-type failure 不能外推为 `HuygensPsfRunner` 不可用。
 
-本 PR 中仅服务 TASK-005D 的以下旧路线代码现已删除：
+## 10. 旧 Huygens / PSF→Python FFT 备用路线
+
+Phase B STOP 后曾实现 `Huygens PSF → Python FFT → MTF` 作为 TASK-005D 的临时备用恢复路线。经设计复核，该路线不作为 B0 production fallback：OpticStudio 已提供更简单的 MFE `MTFA` diffraction-MTF operand，没有必要在 B0 锁定任务中自行重建 MTF pipeline。
+
+本 PR 中仅服务 TASK-005D fallback 的以下旧路线代码已删除：
 
 ```text
 scripts/probe_task_005d_huygens_psf.py
@@ -220,50 +262,53 @@ tests/unit/test_zos_huygens_mtf.py
 tests/unit/test_zos_huygens_psf_mtf.py
 ```
 
-通用 `HuygensPsfRunner` 基础设施保留，供后续真正需要代表配置 Huygens cross-check 时独立使用；它不属于 B0 production path。
+通用 `HuygensPsfRunner` 基础设施保留给 TASK-009 主实验/代表配置验证；它不属于 B0 production path。
 
 ## 11. 版本与 provenance
 
 原 `CORNEA_LOCK_B0_555_v1` 对应首次 Huygens-MTF 设计，并已有明确 Phase B STOP 证据。
 
-新的 MTFA production acquisition 记录为：
+当前 production acquisition：
 
 ```text
 CORNEA_LOCK_B0_555_v2
+Samp = 3
+frequency step = 5 cycles/mm
 ```
 
 该变更是角膜冻结分析协议版本更新，不改变 `MVP_2026_v2` 的眼模型 scientific baseline。正式 B0 尚未锁定，因此无需迁移既有 B0 lock。
 
-Web 端已完成：
+完整五候选 scan 现在还必须保存最小 provenance：
+
+- clean Git commit；
+- baseline ID；
+- OpticStudio installation path/label；
+- Phase B.1 evidence summary；
+- standard eye、reference cornea、A0/B candidate 与生成 REF_MONO 的 SHA-256。
+
+## 12. 当前下一步
+
+允许执行：
 
 ```text
-MFE MTFA primitive
-Q_lock trapezoidal integration
-v2 settings/provenance
-B0 acquisition switch
-ranking provenance switch
-unit tests
-Phase B.1 probe script
-full Phase B v2 output isolation
-obsolete TASK-005D Huygens fallback cleanup
+scripts/run_task_005d_b0_scan.py
 ```
 
-## 12. 下一步
+full scan 会先验证 Phase B.1 evidence 与当前 v2 settings 完全一致；缺失或漂移则 fail closed。
 
-当前只剩实机 Phase B.1：
+完成五候选 scan 后：
 
-1. 同步当前 branch；
-2. 运行 `scripts/probe_task_005d_mtfa.py`；
-3. A0/B0.20、EPD3/EPD5、0D/-1.5D；
-4. 比较 `Samp=2/3/4`；
-5. 比较 frequency step `5 vs 2.5 cycles/mm`；
-6. Web 端根据结果冻结实际 `Samp`；
-7. 冻结后才重新运行完整 Phase B；
-8. 用户审核最终 B0 后才允许形成正式角膜 lock。
+1. 审核五条 EPD3/EPD5 `Q_lock` 曲线；
+2. 为每个候选给出 morphology decision；
+3. 使用 `scripts/review_task_005d_b0.py` 重新排序；
+4. 用户确认 recommendation，或明确写 override reason；
+5. 生成不可变 `B0_LOCK`；
+6. B0 lock 之后才允许进入正式 carrier 科学阶段。
 
 ## 参考
 
 - Ansys OpticStudio User Guide, **MTF Data** — MTFA/MTFS/MTFT operands and `Grid=0` fast sparse algorithm.
-- Ansys OpticStudio User Guide, **FFT Through Focus MTF** — fast calculation uses the same algorithm as `MTFA, Grid=0`.
+- Ansys OpticStudio User Guide, **FFT Through Focus MTF** — fast calculation uses the same algorithm family as `MTFA, Grid=0`.
 - `docs/TASK_005D_PHASE_B_STOP_2026-08-19.md`.
+- `docs/TASK_005D_PHASE_B1_MTFA_PROBE_REVIEW_2026-08-19.md`.
 - `docs/TASK_005D_CORNEA_LOCK_ASSETS.md`.
