@@ -25,7 +25,12 @@ from whole_eye_mvp.carrier_q_zos import (
     validate_zero_hoa_measurement,
 )
 from whole_eye_mvp.carriers import SA_TARGETS_UM, sha256_path
-from whole_eye_mvp.domain import CURRENT_SCIENTIFIC_BASELINE_ID, BaseId, PlatformId, ScientificBaseline
+from whole_eye_mvp.domain import (
+    CURRENT_SCIENTIFIC_BASELINE_ID,
+    BaseId,
+    PlatformId,
+    ScientificBaseline,
+)
 from whole_eye_mvp.standard_eye import ARTIFACT_ID as STANDARD_EYE_ARTIFACT_ID
 from whole_eye_mvp.standard_eye import RELATIVE_PATH as STANDARD_EYE_RELATIVE_PATH
 from whole_eye_mvp.store import open_project_store
@@ -41,6 +46,7 @@ OUTPUT_RELATIVE_DIR = Path("diagnostics/task007/q_zero_hoa_probe")
 REPORT_NAME = "TASK_007_Q_ZERO_HOA_PROBE.json"
 SUMMARY_NAME = "TASK_007_Q_ZERO_HOA_SUMMARY.csv"
 ZERO_HOA_NAME = "TASK007_ZERO_HOA_LB_A0.zmx"
+C40_REPEATABILITY_TOLERANCE_UM = 0.001
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -198,6 +204,7 @@ def main() -> None:
         )
         if zero_findings:
             raise SystemExit("ZERO_HOA validation failed: " + " | ".join(zero_findings))
+
         build_zero_hoa_reference_in_standard_eye(
             session,
             standard_eye_path,
@@ -205,7 +212,13 @@ def main() -> None:
             radius_post_mm=radius_post_mm,
         )
         SequentialEditor(session.system, session.zosapi).save_as(zero_path)
+        session.system.LoadFile(str(zero_path.resolve()), False)
         zero_replay = measure_standard_eye_c40(session)
+        if (
+            abs(zero_replay.c40_um - zero_reference.wavefront.c40_um)
+            > C40_REPEATABILITY_TOLERANCE_UM
+        ):
+            raise SystemExit("ZERO_HOA saved-file C40 replay exceeded repeatability tolerance")
 
         for platform, destination in candidate_paths.items():
             solution = solve_q_for_platform(
@@ -225,7 +238,15 @@ def main() -> None:
                 q=solution.q,
             )
             SequentialEditor(session.system, session.zosapi).save_as(destination)
+            session.system.LoadFile(str(destination.resolve()), False)
             candidate_replay = measure_standard_eye_c40(session)
+            if (
+                abs(candidate_replay.c40_um - solution.candidate_c40_um)
+                > C40_REPEATABILITY_TOLERANCE_UM
+            ):
+                raise SystemExit(
+                    f"{platform} saved-file candidate C40 replay exceeded repeatability tolerance"
+                )
             replay_sa = candidate_replay.c40_um - zero_replay.c40_um
             replay_error = replay_sa - float(SA_TARGETS_UM[platform])
             if abs(replay_error) > Q_REPLAY_SA_TOLERANCE_UM:
@@ -272,6 +293,7 @@ def main() -> None:
         "residual_calibration_completed": False,
         "zero_hoa_reference_model": "paired_paraxial_surface_powers_with_material_slab",
         "zero_hoa_opd_mode": 1,
+        "c40_repeatability_tolerance_um": C40_REPEATABILITY_TOLERANCE_UM,
         "inputs": {
             "phase_a1_report_path": str(a1_report_path),
             "phase_a1_report_sha256": sha256_path(a1_report_path),
