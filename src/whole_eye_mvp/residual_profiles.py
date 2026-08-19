@@ -54,10 +54,11 @@ RAD_OPTIC_RADIUS_MM = 3.00
 
 @dataclass(frozen=True)
 class HoaBenchSeed:
-    """Bench-derived HOA calibration seed, not a commercial manufacturing prescription."""
+    """Bench-derived 4th/6th-order HOA seed, not a manufacturing prescription."""
 
     wavelength_um: float = 0.546
     source_power_d: float = 22.0
+    zernike_radius_mm: float = 1.00
     core_radius_mm: float = 0.90
     transition_outer_radius_mm: float = 1.10
     z4_waves: float = -0.49
@@ -91,9 +92,10 @@ def _validate_radius(radius_mm: float, *, maximum_mm: float) -> float:
 def wfs_raw_surface_sag_um(radius_mm: float, seed: WfsPatentSeed = WFS_PATENT_SEED) -> float:
     """Return the residual-only phase-shift sag from the public WFS patent embodiment.
 
-    The base conic/asphere in the patent is intentionally excluded. Beyond r4 the
-    residual component remains on its outer plateau; r5 is retained as provenance
-    for the first/second base-zone boundary but does not add another residual step.
+    The patent's base asphere is intentionally excluded because TASK-007 controls base
+    spherical aberration through the matched carrier Q(P). With one controlled base
+    profile, the residual outer plateau is continued through the 3 mm optic radius.
+    r5 is retained as provenance for the patent's base-zone boundary.
     """
 
     radius = _validate_radius(radius_mm, maximum_mm=seed.optic_radius_mm)
@@ -192,17 +194,40 @@ def hoa_window(radius_mm: float, seed: HoaBenchSeed = HOA_BENCH_SEED) -> float:
     return 1.0 - smoothstep
 
 
-def hoa_raw_opd_um(radius_mm: float, *, a_um_per_mm6: float, b_um_per_mm4: float) -> float:
-    """Evaluate the frozen HOA parameterization W=A(r)(a r^6 + b r^4)."""
+def osa_primary_spherical(rho: float) -> float:
+    """OSA/ANSI normalized Z(4,0) radial polynomial on the unit disk."""
 
-    if not math.isfinite(a_um_per_mm6) or not math.isfinite(b_um_per_mm4):
-        raise ValueError("HOA coefficients must be finite")
-    if a_um_per_mm6 * b_um_per_mm4 >= 0.0:
-        raise ValueError("HOA r^6 and r^4 coefficients must have opposite signs")
-    radius = _validate_radius(radius_mm, maximum_mm=RAD_OPTIC_RADIUS_MM)
-    return hoa_window(radius) * (
-        a_um_per_mm6 * radius**6 + b_um_per_mm4 * radius**4
+    if not math.isfinite(rho) or rho < 0.0 or rho > 1.0:
+        raise ValueError("normalized radius must lie inside the unit disk")
+    return math.sqrt(5.0) * (6.0 * rho**4 - 6.0 * rho**2 + 1.0)
+
+
+def osa_secondary_spherical(rho: float) -> float:
+    """OSA/ANSI normalized Z(6,0) radial polynomial on the unit disk."""
+
+    if not math.isfinite(rho) or rho < 0.0 or rho > 1.0:
+        raise ValueError("normalized radius must lie inside the unit disk")
+    return math.sqrt(7.0) * (
+        20.0 * rho**6 - 30.0 * rho**4 + 12.0 * rho**2 - 1.0
     )
+
+
+def hoa_raw_opd_um(radius_mm: float, seed: HoaBenchSeed = HOA_BENCH_SEED) -> float:
+    """Window a bounded opposite-sign Z4/Z6 combination into the central HOA zone.
+
+    The bench coefficients are used as a mechanism seed for a simplified 4th/6th-order
+    surrogate. The real commercial optic also contains additional terms, so these
+    coefficients are not treated as a manufacturing prescription or a hard achieved
+    whole-eye Zernike target. Local OpticStudio validation remains mandatory.
+    """
+
+    radius = _validate_radius(radius_mm, maximum_mm=RAD_OPTIC_RADIUS_MM)
+    rho = min(radius / seed.zernike_radius_mm, 1.0)
+    central_opd = (
+        seed.z4_um * osa_primary_spherical(rho)
+        + seed.z6_um * osa_secondary_spherical(rho)
+    )
+    return hoa_window(radius, seed) * central_opd
 
 
 def sample_radial_profile(
