@@ -45,7 +45,7 @@ A0 是后续 B0 排序的参考阈值，而当前 A0 的高阶径向项 `Z37≈0
 transition slices = 4 / 8 / 16
 ```
 
-该检查只观察 A0 的 achieved ΔC40、Z37 和控制 conic 是否随离散加密趋于稳定；不新增 hard scientific threshold，也不重新优化 A0 的临床处方。
+该检查固定 Phase A 已校准的 `inner_conic=-0.1125`，只观察 achieved ΔC40 和 Z37 随离散加密是否趋于稳定；不为每个 N 重新求 conic，也不新增 hard scientific threshold。
 
 如果 N8→N16 已基本稳定，则继续使用 nominal N8 并进入 Phase B。若不稳定，再在 Web 端修订 A0 数值实现；本地不人工调参。
 
