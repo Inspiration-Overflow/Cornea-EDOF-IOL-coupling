@@ -25,7 +25,7 @@ class Operand:
             5: Cell("Field"),
             6: Cell("Type"),
             7: Cell("Epsilon"),
-            8: Cell("Vertex"),
+            8: Cell("Vertex?"),
         }
 
     def ChangeType(self, kind):
