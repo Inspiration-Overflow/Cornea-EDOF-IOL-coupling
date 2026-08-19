@@ -6,10 +6,10 @@ from dataclasses import dataclass
 
 from .carrier_scaffold import CONTROLLED_IOL_CARRIER_546_V1
 from .residual_profiles import (
-    LowOrderFit,
     RAD_OPTIC_RADIUS_MM,
     RESIDUAL_NORMALIZATION_RADIUS_MM,
     RESIDUAL_SAMPLE_STEP_MM,
+    LowOrderFit,
     fit_piston_and_global_defocus,
     hoa_raw_opd_um,
     rad_raw_opd_um,

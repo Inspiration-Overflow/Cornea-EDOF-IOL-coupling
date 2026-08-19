@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from itertools import pairwise
 
 import pytest
 
@@ -80,7 +81,7 @@ def test_rad_patent_zones_are_continuous_and_match_table_endpoints() -> None:
     for radius, power in expected.items():
         assert rad_relative_power_d(radius) == pytest.approx(power, abs=1.0e-12)
 
-    for left, right in zip(RAD_PATENT_ZONES, RAD_PATENT_ZONES[1:], strict=True):
+    for left, right in pairwise(RAD_PATENT_ZONES):
         assert left.outer_radius_mm == pytest.approx(right.inner_radius_mm)
         assert left.end_power_d == pytest.approx(right.start_power_d)
 
