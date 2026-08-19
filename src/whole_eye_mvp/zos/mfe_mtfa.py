@@ -2,7 +2,7 @@
 
 TASK-005D B0 production uses OpticStudio's Merit Function Editor ``MTFA``
 operand with ``Grid=0`` instead of creating FFT/Huygens analysis settings
-objects.  A set of adjacent temporary operands is inserted, evaluated by one
+objects. A set of adjacent temporary operands is inserted, evaluated by one
 ``CalculateMeritFunction()`` call, read, and removed again without saving the
 lens.
 """
@@ -96,6 +96,7 @@ class MfeMtfaRunner:
         if not callable(calculate):
             raise MfeMtfaError("installed MFE exposes no CalculateMeritFunction")
         baseline_count = int(mfe.NumberOfOperands)
+        maximum_added = len(settings.frequencies_cyc_per_mm)
         operands: list[Any] = []
         try:
             for offset, frequency in enumerate(settings.frequencies_cyc_per_mm, start=1):
@@ -105,7 +106,10 @@ class MfeMtfaRunner:
             calculate()
             values = tuple(self._read_operand_value(operand) for operand in operands)
         finally:
-            self._remove_temporary_operands(mfe, baseline_count, len(operands))
+            # Use the requested batch size rather than only the number of Python-side
+            # operand handles. A native InsertNewOperandAt may add a row before an
+            # exception prevents the wrapper from returning its handle.
+            self._remove_temporary_operands(mfe, baseline_count, maximum_added)
 
         if not all(math.isfinite(value) for value in values):
             raise MfeMtfaError(f"MFE MTFA returned non-finite values: {values!r}")
@@ -130,13 +134,13 @@ class MfeMtfaRunner:
         return operand
 
     @staticmethod
-    def _remove_temporary_operands(mfe: Any, baseline_count: int, expected_added: int) -> None:
+    def _remove_temporary_operands(mfe: Any, baseline_count: int, maximum_added: int) -> None:
         added = int(mfe.NumberOfOperands) - baseline_count
         if added <= 0:
             return
-        if added > expected_added:
+        if added > maximum_added:
             raise MfeMtfaError(
-                f"unexpected temporary MTFA operand count: expected <= {expected_added}, got {added}"
+                f"unexpected temporary MTFA operand count: expected <= {maximum_added}, got {added}"
             )
         remove = getattr(mfe, "RemoveOperandsAt", None)
         if not callable(remove):
