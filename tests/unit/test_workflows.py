@@ -11,6 +11,7 @@ from whole_eye_mvp.analysis import (
     AberrationSummary,
     ConfigArtifacts,
     ConfigResult,
+    summarize_mtfa_curve,
     with_shape_axis,
 )
 from whole_eye_mvp.carriers import (
@@ -22,7 +23,12 @@ from whole_eye_mvp.carriers import (
     expected_calibration_carriers,
     expected_carrier_keys,
 )
-from whole_eye_mvp.domain import NOMINAL_MAIN_555_V1, PlatformId, RunEnvironment, ScientificBaseline
+from whole_eye_mvp.domain import (
+    NOMINAL_MAIN_FFT_MTF_555_V2,
+    PlatformId,
+    RunEnvironment,
+    ScientificBaseline,
+)
 from whole_eye_mvp.manifest import build_manifests, compute_lock_set_hash
 from whole_eye_mvp.store import PROJECT_SCHEMA_VERSION, ProjectStoreError, open_project_store
 from whole_eye_mvp.workflows import (
@@ -160,20 +166,30 @@ def test_export_manifest_writes_versioned_exact_18_and_72_csv_rows(tmp_path: Pat
 def fake_result(config, output: Path, run_id: str) -> ConfigResult:
     output.mkdir(parents=True, exist_ok=True)
     paths = []
-    for name in ("model.zmx", "through_focus.csv", "tf.png", "mtf.png", "p1.png", "p2.png", "p3.png"):
+    for name in ("model.zmx", "through_focus.csv", "tf.png", "mtf.png"):
         path = output / name
         path.write_text("x", encoding="utf-8")
         paths.append(str(path))
-    defocus = NOMINAL_MAIN_555_V1.defocus_grid()
-    vsotf = tuple(max(0.05, 1 - abs(index - 2) * 0.15) for index in range(len(defocus)))
-    mtfa = tuple(value * 0.7 for value in vsotf)
-    columns = [tuple(value for value in vsotf) for _ in range(6)]
-    rows = with_shape_axis(defocus, mtfa, vsotf, columns)
+
+    defocus = NOMINAL_MAIN_FFT_MTF_555_V2.defocus_grid()
+    mtfa = tuple(max(0.05, 0.8 - abs(index - 2) * 0.10) for index in range(len(defocus)))
+    columns = [tuple(value * (1 - index * 0.05) for value in mtfa) for index in range(6)]
+    rows = with_shape_axis(defocus, mtfa, columns)
+    summary = summarize_mtfa_curve(rows)
     return ConfigResult(
         config,
         run_id,
         rows,
-        0.0,
+        float(summary["distance_peak_retina_d"]),
+        float(summary["distance_peak_mtfa"]),
+        float(summary["mtfa_at_zero_d"]),
+        summary["dof50_far_d"],
+        summary["dof50_near_d"],
+        float(summary["dof50_width_d"]),
+        bool(summary["dof50_far_censored"]),
+        bool(summary["dof50_near_censored"]),
+        float(summary["tf_mtfa_mean"]),
+        bool(summary["peak_search_censored"]),
         AberrationSummary(0.1, 0.02, 0.1),
         5,
         3,
@@ -188,7 +204,7 @@ def fake_result(config, output: Path, run_id: str) -> ConfigResult:
         4.5,
         4.5,
         False,
-        ConfigArtifacts(paths[0], paths[1], paths[2], paths[3], tuple(paths[4:])),
+        ConfigArtifacts(paths[0], paths[1], paths[2], paths[3]),
         True,
     )
 
@@ -214,7 +230,7 @@ def environment(baseline_id: str, bundle) -> RunEnvironment:
         "0.1.0",
         "2026 R1",
         baseline_id,
-        NOMINAL_MAIN_555_V1.settings_id,
+        NOMINAL_MAIN_FFT_MTF_555_V2.settings_id,
         bundle.manifest_hash,
         compute_lock_set_hash(bundle.physical_carriers),
     )
