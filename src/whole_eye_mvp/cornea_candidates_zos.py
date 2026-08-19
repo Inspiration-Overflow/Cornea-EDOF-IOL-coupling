@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 from dataclasses import dataclass
+from itertools import pairwise
 from pathlib import Path
-from typing import Callable
 
 from .cornea_assets import (
     MAIN_CORNEA_SCAFFOLD,
@@ -158,7 +159,7 @@ def _solve_scalar_target(
             return control, value
 
     bracket: tuple[tuple[float, float], tuple[float, float]] | None = None
-    for left, right in zip(samples, samples[1:]):
+    for left, right in pairwise(samples):
         if (left[1] - target) * (right[1] - target) < 0:
             bracket = (left, right)
             break

@@ -12,6 +12,7 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass
+from itertools import pairwise
 from typing import Any
 
 from .primitives import ZosPrimitiveError
@@ -55,7 +56,7 @@ class MfeMtfaSettings:
         frequencies = tuple(float(value) for value in self.frequencies_cyc_per_mm)
         if not all(math.isfinite(value) and value >= 0 for value in frequencies):
             raise ValueError("MTFA frequencies must be finite and non-negative")
-        if any(right <= left for left, right in zip(frequencies, frequencies[1:])):
+        if any(right <= left for left, right in pairwise(frequencies)):
             raise ValueError("MTFA frequencies must be strictly increasing")
         if self.sampling < 1:
             raise ValueError("MTFA sampling index must be positive")

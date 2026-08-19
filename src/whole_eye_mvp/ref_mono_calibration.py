@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from itertools import pairwise
 from pathlib import Path
 
 from .domain import ScientificBaseline
@@ -152,7 +153,7 @@ def solve_ref_mono_neutral_conic(
             return RefMonoSaCalibration(radius_mm, conic, reference_c40, actual, delta)
 
     bracket: tuple[tuple[float, float, float], tuple[float, float, float]] | None = None
-    for left, right in zip(samples, samples[1:]):
+    for left, right in pairwise(samples):
         if left[2] * right[2] < 0:
             bracket = (left, right)
             break

@@ -13,7 +13,6 @@ from .base_assets import (
 )
 from .cornea_assets import MAIN_CORNEA_SCAFFOLD, cornea_lock_eye_geometry
 from .cornea_zos import (
-    DISTANCE_CORNEA_ANT_ROLE,
     FIXED_CORNEA_POST_ROLE,
     measure_distance_cornea_scaffold,
     validate_distance_cornea_measurements,

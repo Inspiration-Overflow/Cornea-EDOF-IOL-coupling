@@ -217,7 +217,7 @@ class B0LockMtfaSettings:
         ratio = self.q_lock_max_cycles_per_mm / step
         if not math.isclose(ratio, round(ratio), rel_tol=0.0, abs_tol=1.0e-12):
             raise ValueError("B0 MTFA frequency step must divide Q-lock maximum exactly")
-        return tuple(round(index * step, 10) for index in range(int(round(ratio)) + 1))
+        return tuple(round(index * step, 10) for index in range(round(ratio) + 1))
 
 
 # Legacy v1 provenance: the first Phase B design used Huygens MTF and stopped on

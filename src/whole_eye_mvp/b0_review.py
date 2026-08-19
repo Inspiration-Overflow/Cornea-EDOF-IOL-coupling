@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import json
 import math
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from .b0 import B0CandidateInput, B0Lock, B0ScanReport, LockCurve, lock_b0, rank_b0_candidates
 from .domain import CORNEA_LOCK_B0_555_V2

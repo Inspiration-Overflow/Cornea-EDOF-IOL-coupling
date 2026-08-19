@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from itertools import pairwise
 
 from .b0 import LockCurve
 from .domain import CORNEA_LOCK_B0_555_V2
@@ -83,7 +84,7 @@ def q_lock_from_mtfa_samples(
         raise B0ZosError("MTFA Q_lock frequency grid must end at the frozen maximum")
     if any(
         right <= left
-        for left, right in zip(frequencies_cyc_per_mm, frequencies_cyc_per_mm[1:])
+        for left, right in pairwise(frequencies_cyc_per_mm)
     ):
         raise B0ZosError("MTFA Q_lock frequencies must be strictly increasing")
     if any(value < -1.0e-9 or value > 1.01 for value in mtf_average):
@@ -92,7 +93,7 @@ def q_lock_from_mtfa_samples(
     points = tuple(zip(frequencies_cyc_per_mm, mtf_average, strict=True))
     area = math.fsum(
         0.5 * (left_y + right_y) * (right_x - left_x)
-        for (left_x, left_y), (right_x, right_y) in zip(points, points[1:])
+        for (left_x, left_y), (right_x, right_y) in pairwise(points)
     )
     result = area / maximum_frequency
     if not math.isfinite(result) or result < 0 or result > 1.01:

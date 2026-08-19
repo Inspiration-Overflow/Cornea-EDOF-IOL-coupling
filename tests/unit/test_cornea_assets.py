@@ -5,9 +5,9 @@ from dataclasses import replace
 import pytest
 
 from whole_eye_mvp.cornea_assets import (
-    C0RadialDesign,
     MAIN_CORNEA_SCAFFOLD,
     MAIN_CORNEA_SCAFFOLD_ID,
+    C0RadialDesign,
     CorneaSurfaceFamily,
     cornea_lock_eye_geometry,
     cornea_lock_prescriptions,

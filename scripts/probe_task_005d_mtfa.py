@@ -55,9 +55,8 @@ def _max_abs_difference(
     right: dict[str, dict[str, object]],
 ) -> float:
     differences: list[float] = []
-    for candidate_id in left:
-        for pupil_key in left[candidate_id]:
-            left_values = left[candidate_id][pupil_key]
+    for candidate_id, candidate_values in left.items():
+        for pupil_key, left_values in candidate_values.items():
             right_values = right[candidate_id][pupil_key]
             assert isinstance(left_values, dict) and isinstance(right_values, dict)
             for left_q, right_q in zip(left_values["q_lock"], right_values["q_lock"], strict=True):

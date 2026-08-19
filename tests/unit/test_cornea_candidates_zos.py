@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from itertools import pairwise
+
 import pytest
 
 from whole_eye_mvp.cornea_assets import (
@@ -35,4 +37,4 @@ def test_a0_binary4_has_treated_transition_and_untreated_regions() -> None:
 
     apertures = tuple(zone.radial_aperture for zone in zones)
     assert apertures == tuple(sorted(apertures))
-    assert all(right > left for left, right in zip(apertures, apertures[1:]))
+    assert all(right > left for left, right in pairwise(apertures))
