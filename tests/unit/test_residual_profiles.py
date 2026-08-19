@@ -5,6 +5,7 @@ import math
 import pytest
 
 from whole_eye_mvp.carrier_scaffold import CONTROLLED_IOL_CARRIER_546_V1
+from whole_eye_mvp.residual_policy import RESIDUAL_VALIDATION_546_V1
 from whole_eye_mvp.residual_profiles import (
     HOA_BENCH_SEED,
     RAD_PATENT_ZONES,
@@ -31,6 +32,15 @@ def test_controlled_carrier_scaffold_is_minimal_and_fixed() -> None:
     assert scaffold.optical_diameter_mm == pytest.approx(6.0)
     assert scaffold.bending == "symmetric_biconvex"
     assert scaffold.asphere_surface == "anterior"
+
+
+def test_residual_validation_policy_is_frozen_before_opticstudio_calibration() -> None:
+    policy = RESIDUAL_VALIDATION_546_V1
+    policy.validate()
+    assert policy.policy_id == "RESIDUAL_VALIDATION_546_v1"
+    assert policy.piston_tolerance_um == pytest.approx(0.010)
+    assert policy.global_defocus_tolerance_d == pytest.approx(0.125)
+    assert len(policy.policy_hash) == 64
 
 
 def test_wfs_public_seed_hits_frozen_phase_shift_boundaries() -> None:
