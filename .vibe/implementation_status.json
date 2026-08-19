@@ -1,27 +1,26 @@
 {
   "version": 2,
   "as_of": "2026-08-19",
-  "phase": "task005d-phase-b1-pass_full-b0-scan-pending",
+  "phase": "task005d-task006-complete_b0-20-locked_task007-next",
   "project_schema_version": 2,
   "offline_unit_tests": {
-    "status": "rerun-required-after-2026-08-19-consistency-patch",
-    "last_recorded_passed": 69,
-    "last_recorded_failed": 0,
-    "last_recorded_skipped_zemax": 2
+    "status": "PASS",
+    "passed": 157,
+    "failed": 0,
+    "ruff": "PASS",
+    "compileall": "PASS",
+    "uv_lock_check": "PASS",
+    "validated_commit": "c9720ae6975cb2b0176045a2eb1975569c70d704"
   },
-  "environment_pending": [
-    "uv run pytest tests/unit after current consistency patch",
-    "uv run ruff check . after current consistency patch",
-    "TASK-005D Phase B.2 full five-candidate OpticStudio scan"
-  ],
+  "environment_pending": [],
   "tasks": {
     "RMD-TASK-001": "complete",
     "RMD-TASK-002": "zos-session-and-worker-gate-locally-validated",
     "RMD-TASK-003": "complete_fail-closed-provenance-hardened",
     "RMD-TASK-004": "offline-complete_representative-zemax-crosscheck-later",
-    "RMD-TASK-005": "005A-005C-complete_005D-phase-A-A1-B1-pass_full-b0-scan-pending",
-    "RMD-TASK-006": "ranking-morphology-review-lock-path-complete_real-five-candidate-scan-pending",
-    "RMD-TASK-007": "evidence-backed-gate-and-lock-orchestration-complete_real-pq-residual-calibration-pending",
+    "RMD-TASK-005": "complete_A0-B0.20-C0-frozen",
+    "RMD-TASK-006": "complete_B0.20-immutable-lock",
+    "RMD-TASK-007": "evidence-backed-gate-and-lock-orchestration-complete_real-residual-science-and-calibration-pending",
     "RMD-TASK-008": "manifest-builder-provenance-hardened_formal-output-blocked-by-task007",
     "RMD-TASK-009": "analysis-contract-provenance-hardened_representative-huygens-psf-zernike-pending",
     "RMD-TASK-010": "thread-safe-thin-gui-composition-complete_local-full-flow-smoke-pending",
@@ -29,21 +28,29 @@
   },
   "merged_prs": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 23],
   "science_gates_still_active": [
-    "TASK-005D-full-five-candidate-B0-scan-and-morphology-lock",
-    "TDD-TEST-999",
+    "TDD-TEST-999 residual scientific payload and low/median/high actual-power calibration",
     "representative-3-config-sampling-and-mtf-crosscheck"
   ],
   "task005d": {
+    "status": "complete",
     "analysis_settings": "CORNEA_LOCK_B0_555_v2",
     "phase_b1": "PASS",
+    "phase_b2": "PASS",
+    "phase_b3": "PASS",
+    "phase_b4": "PASS",
     "production_mtfa_sampling": 3,
     "production_frequency_step_cycles_per_mm": 5.0,
     "q_lock_max_cycles_per_mm": 50.0,
-    "next_action": "scripts/run_task_005d_b0_scan.py",
-    "morphology_review_after_scan": "scripts/review_task_005d_b0.py"
+    "source_scan_hash": "11d8eac7a79696d4f5219b60bd79cadad7bdc114994b77e8afe1b6325ae7af84",
+    "selected_candidate": "B0.20",
+    "override": false,
+    "b0_lock_sha256": "24c25fea95db394998c0a4dd2ef7b0499e1e792c1275c117c23faeba0d2ea06c",
+    "formal_artifact": true,
+    "selection_locked": true,
+    "next_action": "TASK-007 Web-side residual scientific payload review"
   },
   "review_hardening": {
-    "status": "2026-08-19-pre-experiment-consistency-patch-applied",
+    "status": "2026-08-19-B0-lock-complete",
     "normative_science_changed": false,
     "main_run72_pipeline_changed": false
   }
