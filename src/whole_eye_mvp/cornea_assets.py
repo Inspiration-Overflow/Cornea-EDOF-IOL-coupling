@@ -69,7 +69,7 @@ def paraxial_cornea_power_d(
     *,
     scaffold: CorneaScaffold = MAIN_CORNEA_SCAFFOLD,
 ) -> float:
-    """Return thick-cornea equivalent power in diopters for a fixed posterior surface."""
+    """Return thick-cornea equivalent power for a fixed posterior surface."""
 
     scaffold.validate()
     if not math.isfinite(front_radius_mm) or front_radius_mm == 0:
@@ -87,7 +87,7 @@ def front_radius_for_cornea_power_d(
     *,
     scaffold: CorneaScaffold = MAIN_CORNEA_SCAFFOLD,
 ) -> float:
-    """Invert the thick-cornea power equation while the posterior surface stays fixed."""
+    """Invert thick-cornea power while the posterior surface stays fixed."""
 
     scaffold.validate()
     if not math.isfinite(target_power_d):
@@ -243,9 +243,8 @@ class C0RadialDesign:
     def target_cornea_power_d(self, radius_mm: float) -> float:
         add = self.prescription.add_rx_d
         assert add is not None
-        return distance_corrected_cornea_power_d(self.prescription.treatment_d) + add * self.near_weight(
-            radius_mm
-        )
+        distance = distance_corrected_cornea_power_d(self.prescription.treatment_d)
+        return distance + add * self.near_weight(radius_mm)
 
     def target_front_radius_mm(self, radius_mm: float) -> float:
         return front_radius_for_cornea_power_d(self.target_cornea_power_d(radius_mm))
