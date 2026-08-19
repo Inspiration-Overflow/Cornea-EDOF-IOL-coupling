@@ -262,7 +262,7 @@ OpticStudio 2026 R1 GUI 推荐 `.zmx`。但本次 MFE-ZERN production integratio
 
 ---
 
-## 9. 当前状态
+## 9. 当前状态与合并门槛
 
 ```text
 scientific C40 definition = PASS
@@ -270,8 +270,20 @@ manual GUI C40 validation = PASS
 MFE ZERN equivalence = PASS
 production MFE-ZERN integration = PASS
 formal TASK-005C asset/validation/lock = CREATED + PASS
-review hardening: exact frozen settings = IMPLEMENTED, local regression pending
-PR #22 = DRAFT until that small regression + final review
+review hardening: exact frozen settings = IMPLEMENTED
+PR #22 = DRAFT until latest-head regression + final review
 ```
+
+55ed85f 的正式实机结果继续有效；后续 review hardening 只收紧 settings validator，不改变 production 默认参数或光学计算路径。合并 PR #22 前，应在**最新 branch head** 上至少执行：
+
+```text
+unit MFE-ZERN tests
+unit standard-eye tests
+ruff / compileall / uv lock
+standard-eye Zemax integration test
+formal 005C validate-only
+```
+
+要求既有正式 asset hash `4dfc8d84...` 不变，readback/C40 继续 PASS。若通过，可把 TASK-005C 视为完成并进入 PR 最终审核；`.zmx` canonical migration 另开独立工程变更。
 
 本文件的核心规则是：**以后如果需要新的 Term/Wave/Samp/Field/Type/Epsilon/Vertex 组合，应建立新的明确 acquisition contract，而不是修改本 settings 对象后继续把输出称为 TASK-005C Z11/Z37。**
