@@ -20,6 +20,15 @@ class B0LockAcquisition:
     curve: LockCurve
 
 
+@dataclass(frozen=True, slots=True)
+class B0QSampleSet:
+    pupil_mm: float
+    defocus_d: tuple[float, ...]
+    q_lock: tuple[float, ...]
+    sampling: int
+    frequency_step_cyc_per_mm: float
+
+
 def object_thickness_for_defocus_d(
     defocus_d: float,
     *,
@@ -100,15 +109,7 @@ def _set_epd(session: ZosSession, pupil_mm: float) -> None:
     aperture.ApertureValue = pupil_mm
 
 
-def acquire_b0_lock_curve(
-    session: ZosSession,
-    pupil_mm: float,
-    *,
-    sampling: int | None = None,
-    frequency_step_cyc_per_mm: float | None = None,
-) -> B0LockAcquisition:
-    """Acquire the frozen 17-point B0 Q_lock curve through temporary MFE MTFA operands."""
-
+def _validate_loaded_b0_eye(session: ZosSession, pupil_mm: float) -> None:
     settings = CORNEA_LOCK_B0_555_V2
     settings.validate()
     if pupil_mm not in settings.pupils_mm:
@@ -122,16 +123,40 @@ def acquire_b0_lock_curve(
         )
     _require_cycles_per_mm(session)
     _set_epd(session, pupil_mm)
-
-    lde = session.system.LDE
-    if int(lde.NumberOfSurfaces) != 7:
+    if int(session.system.LDE.NumberOfSurfaces) != 7:
         raise B0ZosError(
-            f"B0 lock REF_MONO eye must have 7 surfaces, got {lde.NumberOfSurfaces}"
+            "B0 lock REF_MONO eye must have 7 surfaces, "
+            f"got {session.system.LDE.NumberOfSurfaces}"
         )
-    object_surface = lde.GetSurfaceAt(0)
-    saved_object_thickness = float(object_surface.Thickness)
+
+
+def acquire_b0_q_samples(
+    session: ZosSession,
+    pupil_mm: float,
+    defocus_d: tuple[float, ...],
+    *,
+    sampling: int | None = None,
+    frequency_step_cyc_per_mm: float | None = None,
+) -> B0QSampleSet:
+    """Acquire Q_lock at a subset of the frozen B0 defocus planes for probing or production."""
+
+    settings = CORNEA_LOCK_B0_555_V2
+    _validate_loaded_b0_eye(session, pupil_mm)
+    if not defocus_d:
+        raise ValueError("B0 Q sample set must include at least one defocus plane")
+    frozen_grid = settings.defocus_grid()
+    if any(value not in frozen_grid for value in defocus_d):
+        raise ValueError("B0 Q probe defocus values must come from the frozen 17-plane grid")
+    if len(set(defocus_d)) != len(defocus_d):
+        raise ValueError("B0 Q probe defocus values must be unique")
+
     selected_sampling = settings.mtfa_sampling if sampling is None else int(sampling)
-    frequencies = settings.frequency_grid(step_cyc_per_mm=frequency_step_cyc_per_mm)
+    frequency_step = (
+        settings.mtfa_frequency_step_cyc_per_mm
+        if frequency_step_cyc_per_mm is None
+        else float(frequency_step_cyc_per_mm)
+    )
+    frequencies = settings.frequency_grid(step_cyc_per_mm=frequency_step)
     mtfa_settings = MfeMtfaSettings(
         frequencies_cyc_per_mm=frequencies,
         sampling=selected_sampling,
@@ -141,12 +166,13 @@ def acquire_b0_lock_curve(
         data_type=settings.mtfa_data_type,
     )
     runner = MfeMtfaRunner(session.system, session.zosapi)
-    grid = settings.defocus_grid()
+    object_surface = session.system.LDE.GetSurfaceAt(0)
+    saved_object_thickness = float(object_surface.Thickness)
     values: list[float] = []
     try:
-        for defocus_d in grid:
+        for defocus_value in defocus_d:
             object_surface.Thickness = object_thickness_for_defocus_d(
-                defocus_d,
+                defocus_value,
                 infinity_thickness_mm=saved_object_thickness,
             )
             mtfa = runner.run(mtfa_settings)
@@ -160,8 +186,35 @@ def acquire_b0_lock_curve(
     finally:
         object_surface.Thickness = saved_object_thickness
 
-    if len(values) != len(grid) or not all(
-        math.isfinite(value) and value >= 0 for value in values
+    return B0QSampleSet(
+        pupil_mm=pupil_mm,
+        defocus_d=tuple(float(value) for value in defocus_d),
+        q_lock=tuple(values),
+        sampling=selected_sampling,
+        frequency_step_cyc_per_mm=frequency_step,
+    )
+
+
+def acquire_b0_lock_curve(
+    session: ZosSession,
+    pupil_mm: float,
+    *,
+    sampling: int | None = None,
+    frequency_step_cyc_per_mm: float | None = None,
+) -> B0LockAcquisition:
+    """Acquire the frozen 17-point B0 Q_lock curve through temporary MFE MTFA operands."""
+
+    settings = CORNEA_LOCK_B0_555_V2
+    grid = settings.defocus_grid()
+    samples = acquire_b0_q_samples(
+        session,
+        pupil_mm,
+        grid,
+        sampling=sampling,
+        frequency_step_cyc_per_mm=frequency_step_cyc_per_mm,
+    )
+    if len(samples.q_lock) != len(grid) or not all(
+        math.isfinite(value) and value >= 0 for value in samples.q_lock
     ):
         raise B0ZosError("B0 Q_lock acquisition returned an incomplete or invalid curve")
-    return B0LockAcquisition(pupil_mm, LockCurve(grid, tuple(values)))
+    return B0LockAcquisition(pupil_mm, LockCurve(grid, samples.q_lock))
