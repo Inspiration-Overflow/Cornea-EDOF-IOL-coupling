@@ -6,7 +6,7 @@
 
 ## 1. 结论摘要
 
-TASK-005C 目前已经把两个问题分开并分别解决：
+TASK-005C 已把科学问题和工程问题分开，并分别获得实机证据：
 
 1. **科学模型 / reference convention：PASS**
    - corrected Liou standard-eye scaffold；
@@ -18,360 +18,260 @@ TASK-005C 目前已经把两个问题分开并分别解决：
      - `Z4 = +0.00434634 waves`；
      - `Z11 = +0.47360558 waves`；
      - `Z37 = +0.00025905 waves`；
-     - `C4^0 = Z11 × 0.546 = +0.25858864668 µm`；
-   - 因而满足冻结 scientific gate：`+0.258±0.005 µm`。
+     - `C40 = Z11 × 0.546 = +0.25858864668 µm`；
+   - 因此满足冻结 gate `+0.258±0.005 µm`。
 
-2. **自动获取路径：MFE ZERN 等价性 PASS**
-   - 不创建 `Zernike Standard Coefficients` analysis；
-   - 不访问 `AS_ZernikeStandardCoefficients` / `IAS_ZernikeStandardCoefficients`；
-   - 使用 Merit Function Editor 的两个相邻 `ZERN` operands；
-   - `Term=11` 与 `Term=37` 共同使 Standard Zernike fit 的最高阶为 37；
-   - A/B/C 三个 GUI oracle 均被 MFE `ZERN` 复现，差值远小于 `1e-5 waves`。
+2. **MFE `ZERN` 自动获取与 GUI 等价：PASS**
+   - 不创建 `AS_ZernikeStandardCoefficients` / Zernike analysis settings type；
+   - 使用 Merit Function `ZERN` 临时 operand；
+   - A/B/C 三个 GUI oracle 均被实机复现；
+   - C 的 Z11/Z37 差值均远小于 `1e-5 waves` 工程等价性阈值。
 
-因此 production TASK-005C **不得继续依赖当前会触发 Python.NET/ZemaxEngine 类型加载故障的 Zernike analysis settings 路径**；MVP production acquisition 应改用本文件冻结的 MFE `ZERN` 路径。
-
----
-
-## 2. 实机环境与 Git provenance
-
-验证环境：
-
-```text
-branch = feat/task-005c-standard-eye
-head = 43a1659428775d6d7d35ae58e4514efb6d960e9d
-OpticStudio = 2026 R1.00 / Premium
-ZOS-API license = PremiumEdition
-ZOS-API mode = Server
-Python = 3.12.9
-```
-
-PR：
-
-```text
-https://github.com/Inspiration-Overflow/Cornea-EDOF-IOL-coupling/pull/22
-```
-
-在本文件建立时，PR #22 必须继续保持 Draft，直到 production code 按本契约实现并完成正式 TASK-005C 实机验证。
+3. **production TASK-005C：PASS**
+   - production 已切换至 MFE-ZERN；
+   - 正式 build、validate-only、Zemax integration test、全套 Zemax gates 均通过；
+   - 正式 `STD_IOL_EYE_2024`、validation CSV、lock 已生成；
+   - validate-only optical-file hash 不变。
 
 ---
 
-## 3. GUI 科学 oracle
+## 2. 冻结 MFE-ZERN acquisition contract
 
-三个 diagnostic `.zmx` 使用同一套 GUI Zernike Standard Coefficients 设置：
-
-```text
-Sampling = 32 × 32
-Maximum Term = 37
-Wavelength = 1
-Field = 1
-Ref OPD To Vertex = OFF
-Surface = Image
-Sx = 0
-Sy = 0
-Sr = 1
-Epsilon = 0
-OPD reference = chief ray
-```
-
-### 3.1 DIAG-A — fixed reference
-
-GUI 输出：
+production acquisition 必须创建两个**相邻** `ZERN` operands：
 
 ```text
-Z4  = -31.04766552 waves
-Z11 =  +0.22875730 waves
-Z37 =  +0.00007592 waves
+Term 11 + Term 37
+Wave=1
+Samp=1
+Field=1
+Type=1
+Epsilon=0
+Vertex=0
 ```
 
-A 是固定 anterior-cornea→IMAGE = 23.950 mm 的诊断参考面，不是 C40 scientific acceptance focus。
+语义：
 
-### 3.2 DIAG-B — paraxial diagnostic focus
+- Term 11 = Standard Zernike primary spherical coefficient；
+- adjacent Term 37 = 将 Standard-Zernike fit 的 maximum term 固定到 37；
+- `Wave=1` = 标准眼唯一 546-nm wavelength；
+- `Samp=1` = 32×32 pupil grid；
+- `Field=1` = on-axis field；
+- `Type=1` = Standard Zernike；
+- `Epsilon=0` = full circular pupil；
+- `Vertex=0` = chief-ray OPD reference，对应 GUI `Ref OPD To Vertex = OFF`。
 
-GUI 输出：
+这些值是**精确冻结值，不是推荐默认值**。`MfeZernikeStandardSettings.validate()` 必须拒绝任何 drift，包括但不限于：
 
-```text
-Z4  = +1.80814115 waves
-Z11 = +0.48911744 waves
-Z37 = +0.00027315 waves
-```
+- Term 12/36/38；
+- Wave 2；
+- Samp 2；
+- Field 2；
+- Type 非 1；
+- Epsilon 非 0；
+- Vertex 1。
 
-B 是连续 `n≈1.336` 条件下的项目一阶旁轴诊断焦面，不是正式 best-focus definition。
-
-GUI 测得的 `TASK005C_B_PARAXIAL_FOCUS_2.zmx` 与原始 B `.zmx` / 初始 B diagnostic 文件实机确认字节相同，因此本轮 B provenance 已解除歧义。
-
-### 3.3 DIAG-C — Wavefront Error best focus
-
-Quick Focus：
-
-```text
-criterion = Wavefront Error
-UseCentroid = False
-IOL_REF→IMAGE = 26.600571884912345 mm
-```
-
-GUI 输出：
-
-```text
-Z4  = +0.00434634 waves
-Z11 = +0.47360558 waves
-Z37 = +0.00025905 waves
-```
-
-换算：
-
-```text
-C40 = 0.47360558 × 0.546 µm
-    = 0.25858864668 µm
-```
-
-因此：
-
-```text
-scientific C40 gate = PASS
-```
-
-这证明当前 Liou/Norrby `+0.258 µm` 可以继续作为 OpticStudio direct scientific gate；不需要降级成仅 provenance anchor，也不得为了适配旧 API 失败去调 Liou R/Q 或放宽容差。
+原因不仅是 scientific provenance：production result 字段固定命名为 `z11_waves` / `z37_waves`，因此允许 term drift 会直接造成语义错误。
 
 ---
 
-## 4. MFE ZERN production acquisition contract
+## 3. 已验证 API 路径
 
-### 4.1 禁止路径
-
-TASK-005C production C40 acquisition 不再使用：
-
-```text
-New_ZernikeStandardCoefficients()
-AS_ZernikeStandardCoefficients
-IAS_ZernikeStandardCoefficients
-```
-
-原因不是科学定义，而是该工作站上该 settings type 路径出现过可复现的 Python.NET / `ZemaxEngine.dll` native type-loading failure。
-
-GUI Zernike Standard Coefficients 仍可作为人工/独立 cross-check，不作为 production API 路径。
-
-### 4.2 Production MFE 设置
-
-在 loaded lens 的 Merit Function Editor 中建立两个**相邻**临时 `ZERN` operands：
-
-```text
-row N:
-  Type = ZERN
-  Term = 11
-  Wave = 1
-  Samp = 1
-  Field = 1
-  Zernike Type = 1
-  Epsilon = 0
-  Vertex = 0
-
-row N+1:
-  Type = ZERN
-  Term = 37
-  Wave = 1
-  Samp = 1
-  Field = 1
-  Zernike Type = 1
-  Epsilon = 0
-  Vertex = 0
-```
-
-项目冻结语义：
-
-```text
-Samp = 1       -> 32×32
-Zernike Type=1 -> Standard
-Vertex = 0     -> chief-ray OPD reference / Ref OPD To Vertex OFF
-Wave = 1
-Field = 1
-Maximum fit term = 37, established by adjacent Term 11 + Term 37 ZERN operands
-```
-
-### 4.3 ZOS-API path verified on 2026 R1
-
-实机 spike 已验证可用路径：
+OpticStudio 2026 R1.00 Premium / Python 3.12.9 实机确认：
 
 ```text
 MFE.InsertNewOperandAt(...)
 MFE.GetOperandAt(...)
 operand.ChangeType(MeritOperandType.ZERN)
-set parameter cells Term/Wave/Samp/Field/Type/Epsilon/Vertex
+set Term/Wave/Samp/Field/Type/Epsilon/Vertex cells
 MFE.CalculateMeritFunction()
 read operand.Value
+MFE.RemoveOperandsAt(...)
 ```
 
-OpticStudio 2026 R1 的方法名是 `InsertNewOperandAt`。不得在 production 中使用未经该版本验证的 `InsertOperandAt`。
+2026 R1 中正确插入方法名是 `InsertNewOperandAt`，不是 `InsertOperandAt`。
 
-`GetOperandValue` 在该版本 API surface 中存在，但本轮未作为 production-equivalence evidence 使用；MVP 应优先复用已实机通过的“临时 MFE rows + CalculateMeritFunction + operand.Value”路径，不为追求更短代码切换到未经本轮实证的另一条 API。
+production primitive 必须：
 
-### 4.4 Mutation / persistence rule
+1. 记录原始 MFE operand count；
+2. 在末尾插入两个 temporary ZERN rows；
+3. 验证参数 cell layout；
+4. 写入冻结参数；
+5. Calculate；
+6. 读取 Z11/Z37；
+7. `finally` 中移除 temporary rows；
+8. 验证 MFE operand count 恢复；
+9. 不 Save lens。
 
-MFE ZERN rows 是**临时 acquisition state**：
-
-- 不得保存进正式 lens artifact；
-- C40 获取前后 optical lens file SHA-256 必须保持不变；
-- acquisition 完成后清理临时 operands，或直接在不保存的 disposable/fresh session 中关闭 lens；
-- production validation 不得因 MFE 获取过程改变 surface geometry、materials、EPD、wavelength、IMAGE 保存位置或 carrier state。
+operand creation/evaluation、非 finite coefficient、unexpected cell layout、cleanup failure 均 fail closed。
 
 ---
 
-## 5. 实机等价性结果
+## 4. GUI ↔ MFE 实机等价性证据
 
-### DIAG-C — blocking oracle
-
-```text
-GUI Z11 = 0.47360558
-MFE Z11 = 0.4736063027853602
-|delta| = 7.23e-07 waves  -> PASS
-
-GUI Z37 = 0.00025905
-MFE Z37 = 0.00026011052367169805
-|delta| = 1.06e-06 waves  -> PASS
-```
-
-C `.zmx` SHA-256 before/after：
+人工 GUI 使用相同 settings：
 
 ```text
-a39d3ad8d20964120d578aaf451d6fe36d6508933ad001931860ebce7ecfaf80
+Analyze → Wavefront → Zernike Standard Coefficients
+Sampling = 32×32
+Maximum Term = 37
+Wavelength = 1
+Field = 1
+Ref OPD To Vertex = OFF
+Surface = Image
+Sx=0, Sy=0, Sr=1, Epsilon=0
 ```
 
-完全不变。
-
-### DIAG-A cross-check
+### C — Wavefront best focus
 
 ```text
-GUI Z11 = 0.22875730
-MFE Z11 = 0.2287573036054908
-|delta| = 3.61e-09 waves
+GUI Z11 = 0.47360558 waves
+MFE Z11 = 0.4736063027853602 waves
+delta   = 7.23e-07 waves
 
-GUI Z37 = 0.00007592
-MFE Z37 = 0.00007592431802708115
-|delta| = 4.32e-09 waves
+GUI Z37 = 0.00025905 waves
+MFE Z37 = 0.00026011052367169805 waves
+delta   = 1.06e-06 waves
 ```
 
-PASS。
-
-### DIAG-B cross-check
+### A — fixed reference
 
 ```text
-GUI Z11 = 0.48911744
-MFE Z11 = 0.4891174420997102
-|delta| = 2.10e-09 waves
+GUI Z11 = 0.22875730 waves
+MFE Z11 = 0.2287573036054908 waves
 
-GUI Z37 = 0.00027315
-MFE Z37 = 0.0002731506714183534
-|delta| = 6.71e-10 waves
+GUI Z37 = 0.00007592 waves
+MFE Z37 = 0.00007592431802708115 waves
 ```
 
-PASS。
-
-因此：
+### B — paraxial diagnostic focus
 
 ```text
-MFE_ZERN_EQUIVALENCE = PASS
+GUI Z11 = 0.48911744 waves
+MFE Z11 = 0.4891174420997102 waves
+
+GUI Z37 = 0.00027315 waves
+MFE Z37 = 0.0002731506714183534 waves
 ```
 
-MVP contract-test tolerance 冻结为：
+工程 acquisition-equivalence gate：
 
 ```text
-|MFE Z11 - GUI Z11| <= 1e-5 waves
-|MFE Z37 - GUI Z37| <= 1e-5 waves
+|MFE - GUI| <= 1e-5 waves
 ```
 
-这里的 `1e-5 waves` 是 acquisition-equivalence engineering tolerance，不替代 scientific `C4^0 ±0.005 µm` gate。
+该阈值只用于确认 API acquisition 与 GUI oracle 等价，不替代 scientific `C40=+0.258±0.005 µm` gate。
 
 ---
 
-## 6. Native warning handling
+## 5. production TASK-005C 正式结果
 
-MFE spike 的成功和失败尝试在 Python 进程退出阶段都可能输出：
+production implementation commit：
+
+```text
+55ed85f4ac35744f8b5fcf3bf5ace404b0ef52e6
+```
+
+实机环境：
+
+```text
+OpticStudio 2026 R1.00 Premium
+Python 3.12.9
+```
+
+正式 readback：
+
+```text
+EPD = 6.000 mm
+wavelength = 546.0 nm
+IOL footprint = 5.22108317213591 mm
+cornea_index = 1.376000000000115
+medium_index = 1.3360000000001004
+medium_index_after_iol_ref = 1.3360000000001004
+post-cornea→IOL_REF = 3.92354786166041 mm
+best-focus IOL_REF→IMAGE = 26.600571884912345 mm
+
+MFE Z11 = 0.4736063027853602 waves
+MFE Z37 = 0.00026011052367169805 waves
+C40 = 0.2585890413208067 µm
+```
+
+正式资产：
+
+```text
+project_mvp_2026_v2/models/assets/STD_IOL_EYE_2024.zos
+SHA-256 4dfc8d84d37f2ef6bf28c08a5b46436311ad0036e267cf5463cc4dc0d58fa414
+
+project_mvp_2026_v2/results/TASK_005C_STANDARD_EYE_VALIDATION.csv
+SHA-256 7d329ad1a134cdb557582901b3bd70477826ec5df324927d6a06aa48256c834c
+```
+
+validate-only 前后 `.zos` hash 完全一致；正式 asset 已 `locked=true`。
+
+---
+
+## 6. native warning 解释
+
+成功的 MFE/ZOS worker 在进程退出阶段可能输出：
 
 ```text
 *** FRU__delta_init(): Attempt to start when running!
 ```
 
-本轮特征：
+如果同时满足：
 
-- 出现在结果已经成功读取之后 / process exit 阶段；
+- acquisition result 已成功读取；
 - 无 `FileLoadException`；
 - 无 `ZemaxEngine.dll` imported-procedure failure；
 - lens hash 不变；
-- residual OpticStudio/Zemax process count = 0。
+- residual OpticStudio/Zemax processes = 0；
 
-因此 production 不能把这条单独的 exit-time stderr 文本等同于 acquisition failure；但必须完整记录 native stderr/warnings 作为 provenance。
+则该单独 exit-time line 记录为 provenance warning，不单独判 FAIL。
 
-以下情况仍为 hard STOP / failure：
+以下仍 hard FAIL：
 
-- ZERN operand 无法创建或求值；
-- 返回非有限数值；
+- operand creation/evaluation failure；
+- non-finite Z11/Z37；
+- frozen parameter/cell-layout mismatch；
+- cleanup failure；
 - `FileLoadException` / `ZemaxEngine.dll` type-loading failure；
-- process 残留；
-- lens hash 被意外修改；
-- C40 scientific gate 不通过。
+- lens unexpected hash mutation；
+- residual process；
+- scientific C40 gate fail。
 
 ---
 
-## 7. Production implementation requirements
+## 7. 与旧 Zernike analysis path 的关系
 
-下一轮 production code 修改必须是最小实现：
-
-1. 新增或替换一个可复用的 MFE Standard-Zernike acquisition primitive；
-2. TASK-005C C40 改用该 primitive；
-3. 保留 Quick Focus `Wavefront Error` best-focus validation；
-4. 保留 validation 后恢复 fixed saved IMAGE 的行为；
-5. 不调用 Zernike Standard analysis object；
-6. unit test 覆盖参数映射和 fail-closed 行为；
-7. Zemax integration test 必须在真实 2026 R1 上验证：
-   - `C40=+0.258±0.005 µm`；
-   - `Z11` acquisition 可用；
-   - `medium_index_after_iol_ref≈1.336`；
-   - footprint 通过；
-   - locked lens hash 在 validate-only 前后不变；
-   - 无残留进程；
-8. production 实现通过前，PR #22 继续 Draft。
-
-### 7.1 正式 005C 的实施顺序
-
-production 实现后，正式验证必须按以下顺序执行：
+TASK-005C production 不得调用：
 
 ```text
-candidate build in fresh process
-→ fresh-process reload
-→ geometry/index/footprint readback
-→ Quick Focus(Wavefront Error, UseCentroid=False)
-→ MFE ZERN Term11+Term37 acquisition
-→ C40 scientific gate
-→ restore fixed saved IMAGE state / do not persist acquisition state
-→ register formal standard-eye artifact only on PASS
-→ write validation CSV only on PASS
-→ validate-only reload and verify optical-file hash unchanged
+AS_ZernikeStandardCoefficients
+IAS_ZernikeStandardCoefficients
+New_ZernikeStandardCoefficients
 ```
 
-如果任一 gate 失败，仍不得产生正式 005C lock。
+旧 independent Zernike analysis smoke test 可以继续保留，用作 API 能力交叉检查；它不是 TASK-005C production C40 acquisition path。
 
 ---
 
-## 8. `.zmx` 文件格式问题
+## 8. `.zmx` 文件格式后续
 
-用户已确认 OpticStudio 2026 R1 GUI 推荐使用 `.zmx`，且 diagnostic GUI 工作流已经实际使用 `.zmx`。
+OpticStudio 2026 R1 GUI 推荐 `.zmx`。但本次 MFE-ZERN production integration 不与文件格式迁移混在同一变更中。
 
-但是本文件**不把 `.zos → .zmx` 迁移和 MFE-ZERN acquisition 修复混为同一改动**。文件格式迁移应作为紧随其后的独立 docs-first engineering revision，保留旧 `.zos` hash 作为历史 workstation evidence，再明确 current canonical artifact path/hash。
-
-在该独立修订完成前，不得因为格式迁移问题改变本文件冻结的 ZERN acquisition 语义。
+当前正式 005B/005C `.zos` hash 保留为已验证历史/正式证据。后续另做 docs-first `.zos → .zmx` canonical artifact revision，并独立验证 provenance、reload、readback、hash 与 lock 边界。
 
 ---
 
-## 9. 当前 TASK-005C 状态
-
-截至本文件：
+## 9. 当前状态
 
 ```text
-scientific standard-eye C40 definition = PASS
+scientific C40 definition = PASS
 manual GUI C40 validation = PASS
-MFE ZERN equivalence spike = PASS
-production MFE-ZERN integration = PENDING
-formal TASK-005C artifact/validation/lock = NOT YET CREATED
-PR #22 = DRAFT / DO NOT MERGE
+MFE ZERN equivalence = PASS
+production MFE-ZERN integration = PASS
+formal TASK-005C asset/validation/lock = CREATED + PASS
+review hardening: exact frozen settings = IMPLEMENTED, local regression pending
+PR #22 = DRAFT until that small regression + final review
 ```
 
-下一步：按本契约实现 production MFE-ZERN acquisition，完成真实 OpticStudio 2026 R1 formal TASK-005C validation；之后再单独进行 `.zmx` canonical artifact 格式修订。
+本文件的核心规则是：**以后如果需要新的 Term/Wave/Samp/Field/Type/Epsilon/Vertex 组合，应建立新的明确 acquisition contract，而不是修改本 settings 对象后继续把输出称为 TASK-005C Z11/Z37。**
