@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import asdict
 
 import pytest
@@ -60,6 +61,12 @@ def source_scan_payload() -> dict[str, object]:
     }
 
 
+def disk_scan_payload() -> dict[str, object]:
+    result = json.loads(json.dumps(source_scan_payload()))
+    assert isinstance(result, dict)
+    return result
+
+
 def all_accept() -> tuple[MorphologyDecision, ...]:
     return tuple(
         MorphologyDecision(candidate_id, False, "")
@@ -68,8 +75,8 @@ def all_accept() -> tuple[MorphologyDecision, ...]:
 
 
 @pytest.mark.unit
-def test_review_reproduces_scan_then_reject_changes_recommendation_and_hash() -> None:
-    payload = source_scan_payload()
+def test_review_reproduces_disk_scan_then_reject_changes_recommendation_and_hash() -> None:
+    payload = disk_scan_payload()
     original = payload["scan_report"]
     assert isinstance(original, dict)
 
@@ -93,7 +100,7 @@ def test_review_reproduces_scan_then_reject_changes_recommendation_and_hash() ->
 
 @pytest.mark.unit
 def test_review_requires_complete_decisions_and_reject_reason() -> None:
-    payload = source_scan_payload()
+    payload = disk_scan_payload()
     with pytest.raises(B0ReviewError, match="cover exactly"):
         review_b0_scan_payload(payload, all_accept()[:-1])
 
@@ -105,7 +112,7 @@ def test_review_requires_complete_decisions_and_reject_reason() -> None:
 
 @pytest.mark.unit
 def test_review_and_lock_records_reviewed_hash_and_override_rule() -> None:
-    payload = source_scan_payload()
+    payload = disk_scan_payload()
     report = review_b0_scan_payload(payload, all_accept())
     reviewed = review_and_lock_b0_scan_payload(
         payload,
