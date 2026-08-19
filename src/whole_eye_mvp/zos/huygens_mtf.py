@@ -21,6 +21,8 @@ class HuygensMtfSettings:
     maximum_frequency_cyc_per_mm: float = 50.0
     wavelength_number: int = 1
     field_number: int = 1
+    normalize: bool = True
+    use_centroid: bool = False
     use_polarization: bool = False
 
     def validate(self) -> None:
@@ -151,6 +153,10 @@ class HuygensMtfRunner:
             target.Field.SetFieldNumber(settings.field_number)
             if hasattr(target, "ShowDiffractionLimit"):
                 target.ShowDiffractionLimit = False
+            if hasattr(target, "Normalize"):
+                target.Normalize = bool(settings.normalize)
+            if hasattr(target, "UseCentroid"):
+                target.UseCentroid = bool(settings.use_centroid)
             if hasattr(target, "UsePolarization"):
                 target.UsePolarization = bool(settings.use_polarization)
             return lifecycle.run_and_parse(analysis, _parse_curve)
