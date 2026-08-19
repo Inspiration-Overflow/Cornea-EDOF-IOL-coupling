@@ -1,4 +1,4 @@
-"""Generate TASK-005C diagnostic .zos files for manual OpticStudio GUI review.
+"""Generate TASK-005C diagnostic .zmx files for manual OpticStudio GUI review.
 
 This script intentionally never creates a Zernike analysis.  The three output files
 are diagnostic-only and must never be registered as formal project assets or locks.
@@ -31,9 +31,9 @@ INSTALL_ENV = "WHOLE_EYE_ZOS_INSTALL_DIR"
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = REPOSITORY_ROOT / "diagnostics" / "task005c_manual"
 
-FIXED_NAME = "TASK005C_A_FIXED_REFERENCE.zos"
-PARAXIAL_NAME = "TASK005C_B_PARAXIAL_FOCUS.zos"
-WAVEFRONT_NAME = "TASK005C_C_WAVEFRONT_BEST_FOCUS.zos"
+FIXED_NAME = "TASK005C_A_FIXED_REFERENCE.zmx"
+PARAXIAL_NAME = "TASK005C_B_PARAXIAL_FOCUS.zmx"
+WAVEFRONT_NAME = "TASK005C_C_WAVEFRONT_BEST_FOCUS.zmx"
 MANIFEST_NAME = "TASK005C_DIAGNOSTIC_MANIFEST.json"
 WORKER_ACTIONS = ("fixed", "paraxial", "wavefront")
 

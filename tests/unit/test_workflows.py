@@ -172,7 +172,7 @@ def test_export_manifest_writes_versioned_exact_18_and_72_csv_rows(tmp_path: Pat
 def fake_result(config, output: Path, run_id: str) -> ConfigResult:
     output.mkdir(parents=True, exist_ok=True)
     paths = []
-    for name in ("model.zos", "through_focus.csv", "tf.png", "mtf.png", "p1.png", "p2.png", "p3.png"):
+    for name in ("model.zmx", "through_focus.csv", "tf.png", "mtf.png", "p1.png", "p2.png", "p3.png"):
         path = output / name
         path.write_text("x", encoding="utf-8")
         paths.append(str(path))

@@ -198,7 +198,7 @@ def main() -> None:
         return
 
     with tempfile.TemporaryDirectory(prefix="task-005c-candidate-") as temp_name:
-        candidate = Path(temp_name) / "STD_IOL_EYE_2024.candidate.zos"
+        candidate = Path(temp_name) / "STD_IOL_EYE_2024.candidate.zmx"
         built = _run_worker(args, "build-candidate", candidate_path=candidate)
         if not built.get("passed", False):
             _emit(built)

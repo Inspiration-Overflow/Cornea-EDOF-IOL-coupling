@@ -19,7 +19,7 @@ from .zos import (
 )
 
 ARTIFACT_ID = "STD_IOL_EYE_2024"
-RELATIVE_PATH = "models/assets/STD_IOL_EYE_2024.zos"
+RELATIVE_PATH = "models/assets/STD_IOL_EYE_2024.zmx"
 VALIDATION_ID = "TASK_005C_STANDARD_EYE_VALIDATION"
 VALIDATION_PATH = "results/TASK_005C_STANDARD_EYE_VALIDATION.csv"
 
@@ -890,6 +890,6 @@ def build_standard_eye(
         )
     spec = standard_eye_construction(baseline)
     with tempfile.TemporaryDirectory(prefix="task-005c-standard-eye-") as temp_name:
-        scratch = Path(temp_name) / "STD_IOL_EYE_2024.zos"
+        scratch = Path(temp_name) / "STD_IOL_EYE_2024.zmx"
         build_standard_eye_asset(session, spec, scratch)
         return finalize_standard_eye_candidate(session, store, baseline, scratch)

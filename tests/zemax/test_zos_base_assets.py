@@ -56,8 +56,8 @@ def test_task_005b_base_assets_build_reload_and_validate_without_rewrite(tmp_pat
     project_dir = tmp_path / "project_mvp_2026_v2"
     built = _run_base_worker(project_dir)
     paths = (
-        project_dir / "models" / "assets" / "BASE_LB_PSEUDOPHAKIC.zos",
-        project_dir / "models" / "assets" / "BASE_ATC_M3_PSEUDOPHAKIC.zos",
+        project_dir / "models" / "assets" / "BASE_LB_PSEUDOPHAKIC.zmx",
+        project_dir / "models" / "assets" / "BASE_ATC_M3_PSEUDOPHAKIC.zmx",
     )
     hashes_before = tuple(_sha256(path) for path in paths)
 
