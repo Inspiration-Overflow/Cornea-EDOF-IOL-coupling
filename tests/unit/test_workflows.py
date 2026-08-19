@@ -98,41 +98,29 @@ def residual(tmp_path: Path, platform: str, all_carriers: list[ProvisionalCarrie
 def formal_bundle(tmp_path: Path):
     all_carriers = carriers()
     residuals = [residual(tmp_path, platform, all_carriers) for platform in ("WFS", "RAD", "HOA")]
-    deltas = {carrier.key.carrier_id: 0.1 for carrier in all_carriers}
     locks = finalize_carrier_locks(
         all_carriers,
         residuals,
-        deltas,
         residual_policy=POLICY,
     )
     return build_manifests(locks)
 
 
 @pytest.mark.unit
-def test_formal_locks_require_all_evidence_gates_and_delta_f_map(tmp_path: Path) -> None:
+def test_formal_locks_require_all_residual_evidence_gates(tmp_path: Path) -> None:
     all_carriers = carriers()
     residuals = [residual(tmp_path, platform, all_carriers) for platform in ("WFS", "RAD", "HOA")]
-    deltas = {carrier.key.carrier_id: 0.1 for carrier in all_carriers}
     locks = finalize_carrier_locks(
         all_carriers,
         residuals,
-        deltas,
         residual_policy=POLICY,
     )
     assert len(locks) == 18
     assert len({lock.lock_hash for lock in locks}) == 18
-    with pytest.raises(ScientificInvariantError, match="delta-F"):
-        finalize_carrier_locks(
-            all_carriers,
-            residuals,
-            {},
-            residual_policy=POLICY,
-        )
     with pytest.raises(ScientificInvariantError, match="residuals"):
         finalize_carrier_locks(
             all_carriers,
             residuals[:-1],
-            deltas,
             residual_policy=POLICY,
         )
 
@@ -147,7 +135,6 @@ def test_formal_locks_require_all_evidence_gates_and_delta_f_map(tmp_path: Path)
         finalize_carrier_locks(
             all_carriers,
             [forged, *residuals[1:]],
-            deltas,
             residual_policy=POLICY,
         )
 
@@ -160,6 +147,7 @@ def test_export_manifest_writes_versioned_exact_18_and_72_csv_rows(tmp_path: Pat
         rows = list(csv.DictReader(handle))
         assert len(rows) == 18
         assert {row["schema_version"] for row in rows} == {str(PROJECT_SCHEMA_VERSION)}
+        assert "delta_f_residual_d" not in rows[0]
     with open(paths.nominal_72_csv, encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))
         assert len(rows) == 72
@@ -338,14 +326,13 @@ def test_analysis_environment_must_match_manifest_lock_set_settings_and_project_
 def test_residual_policy_numeric_change_changes_policy_and_formal_lock_hash(tmp_path: Path) -> None:
     all_carriers = carriers()
     residuals = [residual(tmp_path, platform, all_carriers) for platform in ("WFS", "RAD", "HOA")]
-    deltas = {carrier.key.carrier_id: 0.1 for carrier in all_carriers}
     first_policy = ResidualValidationPolicy("POLICY", 0.01, 0.05)
     second_policy = ResidualValidationPolicy("POLICY", 0.02, 0.05)
     first = finalize_carrier_locks(
-        all_carriers, residuals, deltas, residual_policy=first_policy
+        all_carriers, residuals, residual_policy=first_policy
     )
     second = finalize_carrier_locks(
-        all_carriers, residuals, deltas, residual_policy=second_policy
+        all_carriers, residuals, residual_policy=second_policy
     )
     assert first_policy.policy_hash != second_policy.policy_hash
     assert first[0].lock_hash != second[0].lock_hash
