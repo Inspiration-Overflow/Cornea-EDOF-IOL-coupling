@@ -30,13 +30,16 @@ from whole_eye_mvp.domain import (
     ScientificBaseline,
 )
 from whole_eye_mvp.manifest import build_manifests, compute_lock_set_hash
-from whole_eye_mvp.store import PROJECT_SCHEMA_VERSION, ProjectStoreError, open_project_store
+from whole_eye_mvp.manifest_io import ManifestLoadError, load_formal_manifest_bundle
+from whole_eye_mvp.quality import settings_hash
+from whole_eye_mvp.store import PROJECT_SCHEMA_VERSION, ProjectStoreError, open_project_store, sha256_file
 from whole_eye_mvp.workflows import (
     export_manifest_bundle,
     finalize_carrier_locks,
     rerun_failed,
     run_analysis_batch,
 )
+from whole_eye_mvp.zos import TASK009_MFE_FULL_HOA_555_V1
 
 POLICY = ResidualValidationPolicy("TEST_POLICY_v1", 0.01, 0.05)
 
@@ -147,8 +150,9 @@ def test_formal_locks_require_all_residual_evidence_gates(tmp_path: Path) -> Non
 
 @pytest.mark.unit
 def test_export_manifest_writes_versioned_exact_18_and_72_csv_rows(tmp_path: Path) -> None:
-    bundle = formal_bundle(tmp_path)
-    paths = export_manifest_bundle(bundle, tmp_path / "manifest")
+    bundle = formal_bundle(tmp_path / "science")
+    project = tmp_path / "project"
+    paths = export_manifest_bundle(bundle, project / "manifests")
     with open(paths.physical_carriers_csv, encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))
         assert len(rows) == 18
@@ -161,6 +165,19 @@ def test_export_manifest_writes_versioned_exact_18_and_72_csv_rows(tmp_path: Pat
         assert {row["schema_version"] for row in rows} == {str(PROJECT_SCHEMA_VERSION)}
         assert all(row["carrier_lock_hash"] for row in rows)
     assert Path(paths.manifest_hash_file).read_text(encoding="utf-8").strip() == bundle.manifest_hash
+
+    loaded = load_formal_manifest_bundle(
+        project,
+        expected_manifest_hash=bundle.manifest_hash,
+        expected_physical_csv_sha256=sha256_file(paths.physical_carriers_csv),
+        expected_nominal_csv_sha256=sha256_file(paths.nominal_72_csv),
+    )
+    assert loaded == bundle
+
+    nominal = Path(paths.nominal_72_csv)
+    nominal.write_text(nominal.read_text(encoding="utf-8").replace("CFG_", "BROKEN_", 1), encoding="utf-8")
+    with pytest.raises(ManifestLoadError):
+        load_formal_manifest_bundle(project, expected_manifest_hash=bundle.manifest_hash)
 
 
 def fake_result(config, output: Path, run_id: str) -> ConfigResult:
@@ -177,35 +194,40 @@ def fake_result(config, output: Path, run_id: str) -> ConfigResult:
     rows = with_shape_axis(defocus, mtfa, columns)
     summary = summarize_mtfa_curve(rows)
     return ConfigResult(
-        config,
-        run_id,
-        rows,
-        float(summary["distance_peak_retina_d"]),
-        float(summary["distance_peak_mtfa"]),
-        float(summary["mtfa_at_zero_d"]),
-        summary["dof50_far_d"],
-        summary["dof50_near_d"],
-        float(summary["dof50_width_d"]),
-        bool(summary["dof50_far_censored"]),
-        bool(summary["dof50_near_censored"]),
-        float(summary["tf_mtfa_mean"]),
-        bool(summary["peak_search_censored"]),
-        AberrationSummary(0.1, 0.02, 0.1),
-        5,
-        3,
-        5,
-        6,
-        "h",
-        "h",
-        23.95,
-        23.95,
-        4.5,
-        4.5,
-        4.5,
-        4.5,
-        False,
-        ConfigArtifacts(paths[0], paths[1], paths[2], paths[3]),
-        True,
+        config=config,
+        run_id=run_id,
+        rows=rows,
+        distance_peak_retina_d=float(summary["distance_peak_retina_d"]),
+        distance_peak_mtfa=float(summary["distance_peak_mtfa"]),
+        mtfa_at_zero_d=float(summary["mtfa_at_zero_d"]),
+        dof50_far_d=summary["dof50_far_d"],
+        dof50_near_d=summary["dof50_near_d"],
+        dof50_width_d=float(summary["dof50_width_d"]),
+        dof50_far_censored=bool(summary["dof50_far_censored"]),
+        dof50_near_censored=bool(summary["dof50_near_censored"]),
+        tf_mtfa_mean=float(summary["tf_mtfa_mean"]),
+        peak_search_censored=bool(summary["peak_search_censored"]),
+        aberrations=AberrationSummary(0.1, 0.02, 0.1),
+        analysis_settings_hash=settings_hash(NOMINAL_MAIN_FFT_MTF_555_V2),
+        hoa_settings_id=TASK009_MFE_FULL_HOA_555_V1.settings_id,
+        hoa_settings_hash=TASK009_MFE_FULL_HOA_555_V1.settings_hash,
+        cornea_footprint_mm=5,
+        stop_footprint_mm=3,
+        iol_footprint_mm=5,
+        iol_optical_diameter_mm=6,
+        model_hash_before="h",
+        model_hash_after="h",
+        entity_fingerprint_before="entity",
+        entity_fingerprint_after="entity",
+        retina_position_before_mm=23.95,
+        retina_position_after_mm=23.95,
+        iol_position_before_mm=4.5,
+        iol_position_after_mm=4.5,
+        elp_before_mm=4.5,
+        elp_after_mm=4.5,
+        unintended_vignetting=False,
+        artifacts=ConfigArtifacts(paths[0], paths[1], paths[2], paths[3]),
+        completed=True,
     )
 
 
@@ -344,11 +366,7 @@ def test_residual_policy_numeric_change_changes_policy_and_formal_lock_hash(tmp_
     residuals = [residual(tmp_path, platform, all_carriers) for platform in ("WFS", "RAD", "HOA")]
     first_policy = ResidualValidationPolicy("POLICY", 0.01, 0.05)
     second_policy = ResidualValidationPolicy("POLICY", 0.02, 0.05)
-    first = finalize_carrier_locks(
-        all_carriers, residuals, residual_policy=first_policy
-    )
-    second = finalize_carrier_locks(
-        all_carriers, residuals, residual_policy=second_policy
-    )
+    first = finalize_carrier_locks(all_carriers, residuals, residual_policy=first_policy)
+    second = finalize_carrier_locks(all_carriers, residuals, residual_policy=second_policy)
     assert first_policy.policy_hash != second_policy.policy_hash
     assert first[0].lock_hash != second[0].lock_hash
