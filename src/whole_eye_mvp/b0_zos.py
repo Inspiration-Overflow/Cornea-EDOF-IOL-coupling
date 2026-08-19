@@ -8,6 +8,7 @@ from .domain import CORNEA_LOCK_B0_555_V1
 from .zos import HuygensMtfCurve, HuygensMtfRunner, HuygensMtfSettings, ZosSession
 
 B0_Q_LOCK_MAX_FREQUENCY_CYC_PER_MM = 50.0
+B0_MTF_ANALYSIS_MAX_FREQUENCY_CYC_PER_MM = 60.0
 B0_OBJECT_INFINITY_MM = 1.0e10
 B0_PUPILS_MM = (3.0, 5.0)
 
@@ -23,11 +24,7 @@ class B0LockAcquisition:
 
 
 def object_thickness_for_defocus_d(defocus_d: float) -> float:
-    """Map the frozen through-focus vergence to OBJECT thickness in air.
-
-    Negative defocus represents a real near object and therefore yields a positive
-    object-to-cornea distance.  Positive defocus yields the corresponding virtual object.
-    """
+    """Map frozen through-focus vergence to temporary OBJECT thickness in air."""
 
     if not math.isfinite(defocus_d):
         raise ValueError("B0 defocus must be finite")
@@ -119,7 +116,9 @@ def acquire_b0_lock_curve(session: ZosSession, pupil_mm: float) -> B0LockAcquisi
     settings.validate()
     if pupil_mm not in settings.pupils_mm:
         raise ValueError(f"pupil {pupil_mm:g} mm is not frozen for B0 lock")
-    wavelength_nm = float(session.system.SystemData.Wavelengths.GetWavelength(1).Wavelength) * 1000
+    wavelength_nm = (
+        float(session.system.SystemData.Wavelengths.GetWavelength(1).Wavelength) * 1000.0
+    )
     if abs(wavelength_nm - settings.wavelength_nm) > 1.0e-6:
         raise B0ZosError(
             f"B0 lock requires {settings.wavelength_nm:g} nm, got {wavelength_nm:.12g} nm"
@@ -129,7 +128,9 @@ def acquire_b0_lock_curve(session: ZosSession, pupil_mm: float) -> B0LockAcquisi
 
     lde = session.system.LDE
     if int(lde.NumberOfSurfaces) != 7:
-        raise B0ZosError(f"B0 lock REF_MONO eye must have 7 surfaces, got {lde.NumberOfSurfaces}")
+        raise B0ZosError(
+            f"B0 lock REF_MONO eye must have 7 surfaces, got {lde.NumberOfSurfaces}"
+        )
     object_surface = lde.GetSurfaceAt(0)
     saved_object_thickness = float(object_surface.Thickness)
     runner = HuygensMtfRunner(session.system, session.zosapi)
@@ -137,17 +138,28 @@ def acquire_b0_lock_curve(session: ZosSession, pupil_mm: float) -> B0LockAcquisi
         pupil_sampling=settings.huygens_pupil_sampling,
         image_sampling=settings.huygens_image_sampling,
         image_delta_um=settings.huygens_image_delta_um,
-        maximum_frequency_cyc_per_mm=B0_Q_LOCK_MAX_FREQUENCY_CYC_PER_MM,
+        maximum_frequency_cyc_per_mm=B0_MTF_ANALYSIS_MAX_FREQUENCY_CYC_PER_MM,
+        normalize=settings.huygens_normalize,
+        use_centroid=settings.huygens_use_centroid,
+        use_polarization=settings.huygens_use_polarization,
     )
+    grid = settings.defocus_grid()
     values: list[float] = []
     try:
-        for defocus_d in settings.defocus_grid():
+        for defocus_d in grid:
             object_surface.Thickness = object_thickness_for_defocus_d(defocus_d)
             curve = runner.run(mtf_settings)
-            values.append(q_lock_from_huygens_mtf(curve))
+            values.append(
+                q_lock_from_huygens_mtf(
+                    curve,
+                    maximum_frequency=settings.b0_q_lock_max_cycles_per_mm,
+                )
+            )
     finally:
         object_surface.Thickness = saved_object_thickness
 
-    curve = LockCurve(settings.defocus_grid(), tuple(values))
-    curve.validate()
-    return B0LockAcquisition(pupil_mm, curve)
+    if len(values) != len(grid) or not all(
+        math.isfinite(value) and value >= 0 for value in values
+    ):
+        raise B0ZosError("B0 Q_lock acquisition returned an incomplete or invalid curve")
+    return B0LockAcquisition(pupil_mm, LockCurve(grid, tuple(values)))
