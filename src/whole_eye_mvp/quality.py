@@ -64,15 +64,20 @@ def read_csv_strict(
 
 def assert_trace_coverage(
     trace_text: str,
+    urd_ac_count: int = 10,
+    mdd_api_count: int = 13,
     *,
     urd_req_count: int = 18,
-    urd_ac_count: int = 10,
     add_fr_count: int = 10,
     add_dp_count: int = 10,
     mdd_mod_count: int = 10,
-    mdd_api_count: int = 13,
 ) -> None:
-    """Fail if the active trace map silently retains an older document-ID universe."""
+    """Fail if the active trace map silently retains an older document-ID universe.
+
+    ``urd_ac_count`` and ``mdd_api_count`` deliberately remain the first optional
+    positional parameters for compatibility with the pre-v1.6 helper signature.
+    New ID-universe counts are keyword-only.
+    """
 
     expected_groups = (
         ("URD-REQ", urd_req_count),
