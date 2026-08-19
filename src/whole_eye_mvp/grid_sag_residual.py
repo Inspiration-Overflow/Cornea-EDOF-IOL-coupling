@@ -167,9 +167,17 @@ def apply_grid_sag_residual(
     if not callable(import_file):
         raise GridSagResidualError("installed Grid Sag surface exposes no ImportData.ImportDataFile")
     result = import_file(str(data.resolve()))
-    result_text = str(result)
-    if result_text and result_text.lower() not in {"success", "none"} and "success" not in result_text.lower():
-        raise GridSagResidualError(f"Grid Sag import returned unexpected status: {result_text}")
+    if isinstance(result, bool):
+        if not result:
+            raise GridSagResidualError("Grid Sag import reported failure")
+    else:
+        result_text = str(result)
+        if (
+            result_text
+            and result_text.lower() not in {"success", "none"}
+            and "success" not in result_text.lower()
+        ):
+            raise GridSagResidualError(f"Grid Sag import returned unexpected status: {result_text}")
 
     output = Path(destination)
     output.parent.mkdir(parents=True, exist_ok=True)
