@@ -21,6 +21,12 @@ from .errors import (
     ZosModeError,
     ZosSessionError,
 )
+from .mfe_zernike import (
+    MfeZernikeError,
+    MfeZernikeResult,
+    MfeZernikeStandardRunner,
+    MfeZernikeStandardSettings,
+)
 from .primitives import Binary4Zone, SequentialEditor
 from .session import ZosSession, ZosSessionAdapter, open_zos_session
 
@@ -30,6 +36,10 @@ __all__ = [
     "HuygensPsfGrid",
     "HuygensPsfRunner",
     "HuygensPsfSettings",
+    "MfeZernikeError",
+    "MfeZernikeResult",
+    "MfeZernikeStandardRunner",
+    "MfeZernikeStandardSettings",
     "SequentialEditor",
     "ZernikeCoefficient",
     "ZernikeStandardError",

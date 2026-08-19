@@ -129,7 +129,9 @@ def _parse_worker_json(stdout: str) -> dict[str, Any]:
             payload, _ = json.JSONDecoder().raw_decode(stdout[start:])
         except json.JSONDecodeError:
             continue
-        if isinstance(payload, dict) and "passed" in payload:
+        # Only the outer worker payload carries both markers; nested payloads such as
+        # StandardEyeValidation also contain "passed" but never "mode".
+        if isinstance(payload, dict) and "passed" in payload and "mode" in payload:
             return payload
     raise RuntimeError(f"worker emitted no JSON payload:\n{stdout}")
 

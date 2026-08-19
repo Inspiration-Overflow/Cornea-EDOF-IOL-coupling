@@ -68,6 +68,11 @@ def test_task_005c_standard_eye_build_reload_and_validate_without_rewrite(tmp_pa
     assert measurement["calibration_aperture_mm"] == pytest.approx(6.0, abs=0.001)
     assert measurement["corneal_sa_pupil_mm"] == pytest.approx(6.0, abs=0.001)
     assert measurement["corneal_c40_um_6mm"] == pytest.approx(0.258, abs=0.005)
+    # GUI/MFE acquisition-equivalence regression oracle (engineering gate, not
+    # a scientific tolerance): the validated MFE ZERN path must reproduce the
+    # manual GUI Zernike Standard readings of the C diagnostic within 1e-5 waves.
+    assert measurement["corneal_z11_waves_6mm"] == pytest.approx(0.47360558, abs=1e-5)
+    assert measurement["corneal_z37_waves_6mm"] == pytest.approx(0.00025905, abs=1e-5)
     assert measurement["iol_footprint_mm_6mm"] == pytest.approx(5.15, abs=0.10)
     assert measurement["cornea_index"] == pytest.approx(1.376, abs=1e-6)
     assert measurement["medium_index"] == pytest.approx(1.336, abs=1e-6)

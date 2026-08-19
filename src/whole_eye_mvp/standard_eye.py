@@ -11,7 +11,12 @@ from typing import Any
 from .carriers import ProvisionalCarrier
 from .domain import ArtifactRecord, ArtifactRef, BaselineStandardEyeSpec, ScientificBaseline
 from .store import ProjectStore
-from .zos import SequentialEditor, ZernikeStandardRunner, ZernikeStandardSettings, ZosSession
+from .zos import (
+    MfeZernikeStandardRunner,
+    MfeZernikeStandardSettings,
+    SequentialEditor,
+    ZosSession,
+)
 
 ARTIFACT_ID = "STD_IOL_EYE_2024"
 RELATIVE_PATH = "models/assets/STD_IOL_EYE_2024.zos"
@@ -305,6 +310,8 @@ class StandardEyeMeasurements:
     calibration_aperture_mm: float
     corneal_sa_pupil_mm: float
     corneal_c40_um_6mm: float
+    corneal_z11_waves_6mm: float
+    corneal_z37_waves_6mm: float
     iol_footprint_mm_6mm: float
     cornea_front_radius_mm: float
     cornea_front_conic: float
@@ -375,6 +382,18 @@ def validate_standard_eye_measurements(
         spec.eye.corneal_c40_um,
         C40_TOLERANCE_UM,
     )
+    if not math.isfinite(measurements.corneal_z11_waves_6mm):
+        findings.append("corneal_z11_waves_6mm must be finite")
+    if not math.isfinite(measurements.corneal_z37_waves_6mm):
+        findings.append("corneal_z37_waves_6mm must be finite")
+    if math.isfinite(measurements.corneal_z11_waves_6mm):
+        expected_c40 = measurements.corneal_z11_waves_6mm * measurements.wavelength_nm / 1000.0
+        close(
+            "corneal_c40_um_6mm_conversion",
+            measurements.corneal_c40_um_6mm,
+            expected_c40,
+            1.0e-9,
+        )
     close(
         "iol_footprint_mm_6mm",
         measurements.iol_footprint_mm_6mm,
@@ -604,7 +623,7 @@ def _wavefront_quick_focus_criterion(session: ZosSession) -> Any:
     try:
         system_module = importlib.import_module("System")
         names = tuple(str(name) for name in system_module.Enum.GetNames(enum_type))
-    except Exception as exc:  # noqa: BLE001 - installed enum differences are runtime evidence
+    except Exception as exc:
         raise StandardEyeError(
             "installed API exposes no recognized QuickFocus wavefront criterion"
         ) from exc
@@ -652,6 +671,8 @@ def _measure(session: ZosSession, spec: StandardEyeConstruction) -> StandardEyeM
     footprint = _footprint_mm(session, 3)
     saved_iol_to_image = float(rows[2].Thickness)
     c40_um = math.nan
+    z11_waves = math.nan
+    z37_waves = math.nan
     best_focus_iol_to_image = math.nan
     try:
         # Norrby's literature anchor is a best-focus wavefront quantity. Use OpticStudio's
@@ -662,9 +683,14 @@ def _measure(session: ZosSession, spec: StandardEyeConstruction) -> StandardEyeM
             raise StandardEyeError(
                 f"Quick Focus produced invalid image distance: {best_focus_iol_to_image}"
             )
-        c40_um = ZernikeStandardRunner(system, session.zosapi).run(
-            ZernikeStandardSettings(sample_size=32, maximum_terms=37)
-        ).c40_um
+        # C40 comes from the frozen MFE ZERN acquisition contract, not from a Zernike
+        # Standard analysis object whose settings type crashes on this workstation.
+        mfe_result = MfeZernikeStandardRunner(system, session.zosapi).run(
+            MfeZernikeStandardSettings()
+        )
+        c40_um = mfe_result.c40_um
+        z11_waves = mfe_result.z11_waves
+        z37_waves = mfe_result.z37_waves
     finally:
         # C40 best-focus mutation is diagnostic/validation-only. Never save it into the
         # fixed-reference standard-eye asset.
@@ -675,6 +701,8 @@ def _measure(session: ZosSession, spec: StandardEyeConstruction) -> StandardEyeM
         calibration_aperture_mm=calibration_aperture,
         corneal_sa_pupil_mm=spec.corneal_sa_pupil_mm,
         corneal_c40_um_6mm=c40_um,
+        corneal_z11_waves_6mm=z11_waves,
+        corneal_z37_waves_6mm=z37_waves,
         iol_footprint_mm_6mm=footprint,
         cornea_front_radius_mm=float(rows[0].Radius),
         cornea_front_conic=float(rows[0].Conic),

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from dataclasses import replace
 
 import pytest
@@ -12,13 +13,13 @@ from whole_eye_mvp.domain import (
     ScientificBaseline,
 )
 from whole_eye_mvp.standard_eye import (
-    CORNEAL_SA_PUPIL_MM,
     CORNEA_BACK_CONIC,
     CORNEA_BACK_RADIUS_MM,
     CORNEA_FRONT_CONIC,
     CORNEA_FRONT_RADIUS_MM,
     CORNEA_INDEX,
     CORNEA_THICKNESS_MM,
+    CORNEAL_SA_PUPIL_MM,
     STANDARD_EYE_CALIBRATION_WAVELENGTH_NM,
     StandardEyeMeasurements,
     ZeroHoaReferenceRecord,
@@ -72,7 +73,9 @@ def test_standard_eye_measurements_enforce_shared_6mm_calibration_and_continuous
         wavelength_nm=546.0,
         calibration_aperture_mm=6.0,
         corneal_sa_pupil_mm=6.0,
-        corneal_c40_um_6mm=0.258,
+        corneal_c40_um_6mm=0.25858864668,
+        corneal_z11_waves_6mm=0.47360558,
+        corneal_z37_waves_6mm=0.00025905,
         iol_footprint_mm_6mm=5.15,
         cornea_front_radius_mm=7.77,
         cornea_front_conic=-0.18,
@@ -108,6 +111,18 @@ def test_standard_eye_measurements_enforce_shared_6mm_calibration_and_continuous
     wrong = replace(measurements, best_focus_criterion="Paraxial")
     findings = validate_standard_eye_measurements(wrong, spec)
     assert any("best_focus_criterion" in finding for finding in findings)
+
+    wrong = replace(measurements, corneal_z11_waves_6mm=math.nan)
+    findings = validate_standard_eye_measurements(wrong, spec)
+    assert any("corneal_z11_waves_6mm" in finding for finding in findings)
+
+    wrong = replace(measurements, corneal_z37_waves_6mm=math.nan)
+    findings = validate_standard_eye_measurements(wrong, spec)
+    assert any("corneal_z37_waves_6mm" in finding for finding in findings)
+
+    wrong = replace(measurements, corneal_c40_um_6mm=0.25858864668 + 1.0e-6)
+    findings = validate_standard_eye_measurements(wrong, spec)
+    assert any("corneal_c40_um_6mm_conversion" in finding for finding in findings)
 
 
 @pytest.mark.unit

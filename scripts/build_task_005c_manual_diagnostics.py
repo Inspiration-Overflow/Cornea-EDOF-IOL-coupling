@@ -122,7 +122,7 @@ def _quick_focus_wavefront(session: Any) -> None:
         try:
             system_module = importlib.import_module("System")
             names = tuple(str(name) for name in system_module.Enum.GetNames(enum_type))
-        except Exception as exc:  # noqa: BLE001 - workstation enum discovery is diagnostic
+        except Exception as exc:
             raise DiagnosticBuildError(
                 "cannot enumerate QuickFocusCriterion values"
             ) from exc
