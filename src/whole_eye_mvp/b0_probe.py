@@ -29,6 +29,13 @@ class B0ProbeEvidence:
     max_abs_q_difference_frequency_5_to_2_5: float
 
 
+def _json_normalized(value: Any) -> Any:
+    try:
+        return json.loads(json.dumps(value, ensure_ascii=False, sort_keys=True))
+    except (TypeError, ValueError) as exc:
+        raise B0ProbeEvidenceError("Phase B.1 probe settings are not JSON-serializable") from exc
+
+
 def validate_b0_probe_payload(
     payload: Mapping[str, Any],
     *,
@@ -48,8 +55,9 @@ def validate_b0_probe_payload(
     if runtime_passed is not True:
         raise B0ProbeEvidenceError("Phase B.1 MTFA probe did not complete successfully")
 
-    expected_settings = asdict(CORNEA_LOCK_B0_555_V2)
-    if payload.get("settings") != expected_settings:
+    expected_settings = _json_normalized(asdict(CORNEA_LOCK_B0_555_V2))
+    actual_settings = _json_normalized(payload.get("settings"))
+    if actual_settings != expected_settings:
         raise B0ProbeEvidenceError(
             "Phase B.1 probe settings do not match frozen CORNEA_LOCK_B0_555_v2"
         )
