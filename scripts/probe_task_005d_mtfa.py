@@ -166,7 +166,12 @@ def main() -> None:
 
     payload = {
         "formal_artifact": False,
-        "passed": True,
+        "runtime_passed": True,
+        "passed_semantics": (
+            "runtime acquisition completed successfully; this is not an automatic "
+            "convergence-threshold decision"
+        ),
+        "requires_production_freeze_review": True,
         "settings": asdict(CORNEA_LOCK_B0_555_V2),
         "probe_defocus_d": PROBE_DEFOCUS_D,
         "candidate_ref_mono": {
