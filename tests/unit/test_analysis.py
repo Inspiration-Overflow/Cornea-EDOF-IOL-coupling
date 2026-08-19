@@ -66,7 +66,7 @@ def result(state: str, *, peak_d: float = 0.0, run_id: str = "run") -> ConfigRes
         4.5,
         4.5,
         False,
-        ConfigArtifacts("a.zos", "tf.csv", "tf.png", "mtf.png", ("p1.png", "p2.png", "p3.png")),
+        ConfigArtifacts("a.zmx", "tf.csv", "tf.png", "mtf.png", ("p1.png", "p2.png", "p3.png")),
         True,
     )
 
