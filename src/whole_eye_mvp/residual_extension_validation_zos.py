@@ -17,10 +17,17 @@ from .residual_policy import RESIDUAL_VALIDATION_546_V1
 from .store import sha256_file
 from .zos import SequentialEditor, ZosSession
 
-VALIDATION_SCHEMA_VERSION = 1
+# v2 restores the gate domain frozen by TASK-007 Web review.  v1 incorrectly
+# promoted actual-eye aperture-limited SSAG Mode-0 low-order readback to a hard gate.
+VALIDATION_SCHEMA_VERSION = 2
 VALIDATION_PUPIL_MM = 5.0
 VALIDATION_INDEX_NAME = "VALIDATION_INDEX.json"
 CURRENT_POINTER_NAME = "CURRENT.json"
+NORMATIVE_LOW_ORDER_GATE_DOMAIN = "STD_IOL_EYE_2024_EPD6_imported_residual_readback"
+ACTUAL_EYE_LOW_ORDER_ROLE = "diagnostic_only_aperture_limited_mode0"
+TASK007_CONSOLIDATED_REVIEW_HASH = (
+    "f325533cb86910399a2290426cdfe52215968450edb3a82c62553c38a8aaecc6"
+)
 
 
 class ResidualExtensionValidationError(RuntimeError):
@@ -93,12 +100,30 @@ def _policy_pass(readback) -> bool:
     )
 
 
+def _numerical_gate_pass(
+    *,
+    standard_policy_passed: bool,
+    mono_ray_health_passed: bool,
+    edof_ray_health_passed: bool,
+) -> bool:
+    """TASK-007 normative numerical gate for an exact carrier/residual pair.
+
+    Actual-eye SSAG Mode-0 piston/defocus is deliberately absent: TASK-007
+    consolidated Web review froze that readback as diagnostic-only because it is
+    aperture-limited.  The low-order hard gate lives in STD_IOL_EYE_2024 EPD6.
+    """
+
+    return (
+        bool(standard_policy_passed)
+        and bool(mono_ray_health_passed)
+        and bool(edof_ray_health_passed)
+    )
+
+
 def _read_actual_carrier_geometry(
     session: ZosSession,
     carrier_path: Path,
 ) -> tuple[float, float, float]:
-    """Read Rant/Rpost/Q from the exact saved actual-eye carrier bytes."""
-
     session.system.LoadFile(str(carrier_path.resolve()), False)
     lde = session.system.LDE
     if int(lde.NumberOfSurfaces) != 7:
@@ -141,6 +166,8 @@ def _load_reusable_validation(
         or payload.get("carrier_sha256") != carrier_sha256
         or payload.get("residual_sha256") != residual_sha256
         or payload.get("policy_id") != RESIDUAL_VALIDATION_546_V1.policy_id
+        or payload.get("normative_low_order_gate_domain") != NORMATIVE_LOW_ORDER_GATE_DOMAIN
+        or payload.get("actual_eye_low_order_role") != ACTUAL_EYE_LOW_ORDER_ROLE
         or payload.get("passed") is not True
     ):
         return None
@@ -214,7 +241,8 @@ def _write_validation_index(validation_root: Path) -> Path:
                 f"validation record root is not an object: {record_path}"
             )
         if (
-            payload.get("carrier_id") != pointer.get("carrier_id")
+            payload.get("schema_version") != pointer.get("schema_version")
+            or payload.get("carrier_id") != pointer.get("carrier_id")
             or payload.get("carrier_sha256") != pointer.get("carrier_sha256")
             or payload.get("residual_sha256") != pointer.get("residual_sha256")
             or payload.get("policy_id") != pointer.get("policy_id")
@@ -233,6 +261,12 @@ def _write_validation_index(validation_root: Path) -> Path:
                 "residual_id": payload.get("residual_id"),
                 "residual_sha256": payload.get("residual_sha256"),
                 "policy_id": payload.get("policy_id"),
+                "normative_low_order_gate_domain": payload.get("normative_low_order_gate_domain"),
+                "actual_eye_low_order_role": payload.get("actual_eye_low_order_role"),
+                "actual_policy_passed_diagnostic": payload.get(
+                    "actual_policy_passed_diagnostic"
+                ),
+                "standard_policy_passed": payload.get("standard_policy_passed"),
                 "passed": payload.get("passed"),
                 "record_relative_path": relative,
                 "record_sha256": expected_record_sha,
@@ -245,6 +279,9 @@ def _write_validation_index(validation_root: Path) -> Path:
         json.dumps(
             {
                 "schema_version": VALIDATION_SCHEMA_VERSION,
+                "normative_low_order_gate_domain": NORMATIVE_LOW_ORDER_GATE_DOMAIN,
+                "actual_eye_low_order_role": ACTUAL_EYE_LOW_ORDER_ROLE,
+                "task007_consolidated_review_hash": TASK007_CONSOLIDATED_REVIEW_HASH,
                 "validation_count": len(rows),
                 "all_passed": bool(rows) and all(row["passed"] is True for row in rows),
                 "records": rows,
@@ -281,12 +318,11 @@ def ensure_frozen_residual_carrier_validation(
     residual_sha256: str,
     validation_root: str | Path,
 ) -> dict[str, object]:
-    """Validate exact saved carrier bytes with exact frozen residual before EDOF production.
+    """Validate exact carrier bytes with the exact frozen residual before production.
 
-    The numerical hard gates intentionally match TASK-007 consolidated calibration:
-    actual-eye and standard-eye piston/global-defocus readback plus EPD5 actual-eye
-    MONO/EDOF ray health. Power-envelope coverage is descriptive only; these exact-
-    carrier replay checks determine whether production may continue.
+    TASK-007 frozen Web review defines the normative low-order hard gate in
+    STD_IOL_EYE_2024 EPD6. Actual-eye SSAG Mode-0 piston/defocus is preserved as
+    diagnostic-only. Actual-eye MONO/EDOF EPD5 ray health remains a hard gate.
     """
 
     project_root = Path(project_dir).resolve()
@@ -329,20 +365,9 @@ def ensure_frozen_residual_carrier_validation(
     std_mono = root / "STD_MONO.zmx"
     std_edof = root / "STD_EDOF.zmx"
 
-    apply_grid_sag_residual(
-        session,
-        mono_path,
-        candidate,
-        residual_path,
-        actual_edof,
-    )
-    actual_readback = readback_residual_low_order(
-        session,
-        mono_path,
-        actual_edof,
-        candidate,
-    )
-    actual_policy_passed = _policy_pass(actual_readback)
+    apply_grid_sag_residual(session, mono_path, candidate, residual_path, actual_edof)
+    actual_readback = readback_residual_low_order(session, mono_path, actual_edof, candidate)
+    actual_policy_passed_diagnostic = _policy_pass(actual_readback)
     mono_health = _ray_health(session, mono_path)
     edof_health = _ray_health(session, actual_edof)
 
@@ -354,26 +379,14 @@ def ensure_frozen_residual_carrier_validation(
         q=q_ant,
     )
     SequentialEditor(session.system, session.zosapi).save_as(std_mono)
-    apply_grid_sag_residual(
-        session,
-        std_mono,
-        candidate,
-        residual_path,
-        std_edof,
-    )
-    standard_readback = readback_residual_low_order(
-        session,
-        std_mono,
-        std_edof,
-        candidate,
-    )
+    apply_grid_sag_residual(session, std_mono, candidate, residual_path, std_edof)
+    standard_readback = readback_residual_low_order(session, std_mono, std_edof, candidate)
     standard_policy_passed = _policy_pass(standard_readback)
 
-    passed = (
-        actual_policy_passed
-        and standard_policy_passed
-        and bool(mono_health["passed"])
-        and bool(edof_health["passed"])
+    passed = _numerical_gate_pass(
+        standard_policy_passed=standard_policy_passed,
+        mono_ray_health_passed=bool(mono_health["passed"]),
+        edof_ray_health_passed=bool(edof_health["passed"]),
     )
     artifacts = {
         "actual_edof": {"name": actual_edof.name, "sha256": sha256_file(actual_edof)},
@@ -387,20 +400,19 @@ def ensure_frozen_residual_carrier_validation(
         "cornea_id": cornea_id,
         "platform_id": platform_id,
         "carrier_sha256": carrier_sha,
-        "carrier_geometry": {
-            "r_ant_mm": r_ant,
-            "r_post_mm": r_post,
-            "q_ant": q_ant,
-        },
+        "carrier_geometry": {"r_ant_mm": r_ant, "r_post_mm": r_post, "q_ant": q_ant},
         "residual_id": residual_id,
         "residual_sha256": residual_sha256,
         "policy_id": RESIDUAL_VALIDATION_546_V1.policy_id,
+        "task007_consolidated_review_hash": TASK007_CONSOLIDATED_REVIEW_HASH,
+        "normative_low_order_gate_domain": NORMATIVE_LOW_ORDER_GATE_DOMAIN,
+        "actual_eye_low_order_role": ACTUAL_EYE_LOW_ORDER_ROLE,
         "piston_tolerance_um": RESIDUAL_VALIDATION_546_V1.piston_tolerance_um,
         "global_defocus_tolerance_d": RESIDUAL_VALIDATION_546_V1.global_defocus_tolerance_d,
         "validation_pupil_mm": VALIDATION_PUPIL_MM,
         "actual_readback": asdict(actual_readback),
         "standard_readback": asdict(standard_readback),
-        "actual_policy_passed": actual_policy_passed,
+        "actual_policy_passed_diagnostic": actual_policy_passed_diagnostic,
         "standard_policy_passed": standard_policy_passed,
         "mono_ray_health": mono_health,
         "edof_ray_health": edof_health,
