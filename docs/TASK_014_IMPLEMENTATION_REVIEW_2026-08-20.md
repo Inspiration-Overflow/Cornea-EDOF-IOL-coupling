@@ -378,7 +378,13 @@ uv lock --check = PASS
 
 ## 12. 本地执行命令
 
-在 Windows + OpticStudio/ZOS-API 环境、干净 checkout 下：
+完整本地交接文件：
+
+```text
+docs/TASK_014_LOCAL_EXECUTION_HANDOFF_2026-08-20.md
+```
+
+核心命令：
 
 ```powershell
 uv run python scripts/run_task_014_vertex_corrected_cornea.py `
