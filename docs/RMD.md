@@ -5,7 +5,7 @@
 ## Metadata
 
 - document_id: `RMD-0001`
-- version: `1.6`
+- version: `1.7`
 - status: `active`
 - source_docs: `URD-0001 v1.6`, `ADD-0001 v1.6`, `MDD-0001 v1.5`, `TDD-0001 v1.6`
 - last_updated: `2026-08-19`
@@ -15,6 +15,8 @@
 - active_task_branch: `feat/task-011-run72`
 - active_production_acquisition: `TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2`
 - active_production_sampling: `128`
+- active_analysis_task: `TASK-012`
+- active_analysis_plan: `docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md`
 
 ---
 
@@ -22,22 +24,23 @@
 
 ## Web
 
-负责科学研究/规范/冻结决策、Python 主代码与测试、GitHub static review、结构化 evidence 审核、formal gate/clearance。
+负责科学研究/规范/冻结决策、Python 主代码与测试、GitHub static review、结构化 evidence 审核、formal gate/clearance，以及 TASK-012 的纯离线结果统计和图表。
 
 ## Local Windows / ZCode
 
-只负责必须由真实 OpticStudio/ZOS-API 给出的新事实：runtime/API 差异、`.zmx` 实机结果、正式大批次 Run72，以及确有必要的 GUI/full-flow smoke。
+只负责必须由真实 OpticStudio/ZOS-API 给出的新事实：runtime/API 差异、`.zmx` 实机结果，以及未来确有科学必要的新增光学 acquisition。
+
+TASK-011 正式 Run72 已完成。TASK-012 不需要 OpticStudio。
 
 ## Cost-aware handoff rule
 
 本地 OpticStudio 任务成本高。TASK-009 corrected representative batch 已约32分钟，前一轮约55分钟。因此：
 
-- 文档、provenance、普通 Python、unit regression 全部留在 Web/GitHub CI；
+- 文档、provenance、普通 Python、unit regression、Run72 结果统计全部留在 Web/GitHub CI；
 - 已满足科学 gate 的代表配置不重复运行；
-- 本地任务尽量一次大批量、fail-closed；
-- JSON/CSV evidence 推 GitHub，本地只回 commit/path/hash/PASS/FAIL/关键 summary；
+- 已接受的 Run72 不因少量 censoring 重新运行；
 - science definition 变化必须回 Web；
-- 不用“保险起见”增加未预注册 sampling 层级或重复 probe。
+- 不用“保险起见”增加未预注册 sampling 层级、扩大 focus window 或重复 probe。
 
 ---
 
@@ -51,6 +54,8 @@ uv lock --check
 ```
 
 unit tests 不依赖 OpticStudio。正式 scientific assets immutable；analysis provenance 必须版本化/hashable；formal lock 同 ID 不允许以不同科学内容覆盖。
+
+TASK-012 新分析代码也必须满足上述离线 gate，并优先使用现有依赖，不为了普通 CSV 分析引入不必要的新依赖。
 
 ---
 
@@ -67,6 +72,9 @@ unit tests 不依赖 OpticStudio。正式 scientific assets immutable；analysis
 | TASK-007 | complete | 18 P/Q、3 residuals、9 calibrations、TDD-999 cleared |
 | TASK-008 | complete | 18 formal carrier locks、3 residual locks、72-config manifest |
 | TASK-009 | complete | paired-MONO MTFA production method + 128 formal sampling lock + Web provenance hardening |
+| TASK-011 | complete | formal Run72: 72 configs / 36 pairs / 1080 through-focus rows; Web evidence review PASS |
+
+TASK-010 GUI 仍为 optional integration，不是 TASK-012 前置条件。
 
 TASK-008 identity 只读：
 
@@ -113,7 +121,7 @@ production_sampling_locked = true
 sampling_escalation_256_active = false
 ```
 
-`AS_FftMtf`/`New_FftMtf` production path retired。`NOMINAL_MAIN_FFT_MTF_555_v2` 名称中的 FFT 仅保留历史 hash continuity。
+`AS_FftMtf`/`New_FftMtf()` production path retired。`NOMINAL_MAIN_FFT_MTF_555_v2` 名称中的 FFT 仅保留历史 hash continuity。Huygens、complex OTF 与 VSOTF 也不属于当前生产路线。
 
 ## 4.2 Corrected representative evidence
 
@@ -129,97 +137,56 @@ CSV SHA256 = e51e524ee1eb009a1e2ae8cd56cc0bc101aa3dda052fe14dfba585d583987006
 
 ## 4.3 Run-level provenance hardening
 
-`RunEnvironment` 必须非空保存 program/OpticStudio version、baseline、analysis settings、manifest、lock-set、acquisition contract ID/hash 与 frequency-scale mode。`run_analysis_batch()` 在 acquisition 前检查 backend 自报的 acquisition ID/hash/scale 是否完全一致。
+`RunEnvironment` 非空保存 program/OpticStudio version、baseline、analysis settings、manifest、lock-set、acquisition contract ID/hash 与 frequency-scale mode。`run_analysis_batch()` 在 acquisition 前检查 backend 自报 acquisition ID/hash/scale 是否完全一致。
 
 ---
 
-# 5. TASK-010 — GUI integration（非 Run72 科学前置）
+# 5. TASK-010 — GUI integration（可选）
 
-TASK-010 只负责 GUI action dispatch、progress/log/failed-target rerun UI 与必要的最小 GUI smoke。**它不是 CLI Run72 的科学前置条件。**
+TASK-010 只负责 GUI action dispatch、progress/log/failed-target rerun UI 与必要的最小 GUI smoke。
+
+它不是 TASK-011 CLI Run72 的前置条件，也不是 TASK-012 结果分析的前置条件。当前科学优先级不因 GUI 推迟。
 
 ---
 
-# 6. TASK-011 — Run72
+# 6. TASK-011 — Formal Run72 complete
 
-TASK-011 的 Web runner 已实现于：
+TASK-011 的正式 runner：
 
 ```text
 src/whole_eye_mvp/run72.py
 scripts/run_task_011_run72.py
 ```
 
-正式批次：
-
-\[
-18\ carriers\times2\ states\times2\ pupils=72\ configs
-\]
-
-每 config 15 planes，共1080 through-focus rows、36 matched deltas。
-
-## 6.1 Preflight
-
-启动正式 acquisition 前必须满足：
-
-1. clean tracked checkout；
-2. offline pytest/ruff/compileall/uv-lock PASS；
-3. `TASK009_RUN72_WEB_CLEARANCE_v1` exact PASS；
-4. frozen TASK-008 manifest 18/72/36 + exact manifest/lock-set hash；
-5. sampling=128 formally locked；
-6. pair-MONO acquisition ID/hash/scale exact；
-7. complete `RunEnvironment`；
-8. backend provenance exact match。
-
-## 6.2 Angular-scale reference freeze
-
-首次 Run72 在真实 OpticStudio 中，对 frozen manifest 的 36 个 `pair_key` 各读取一次 residual-free MONO nominal-distance EFFL。形成 36 条：
+Web 代码基点：
 
 ```text
-pair_key
-reference_effl_mm
-mm_per_degree
-model_sha256
-entity_fingerprint
+01f13b768cf1eca361703469b2fdce3d21f3376d
 ```
 
-并计算 `pair_reference_set_sha256`。该集合定义本次 Run72 的角频率坐标 provenance。
-
-- 同一 pair 的 MONO/EDOF、全部 defocus plane 都复用同一 reference；
-- 如果后续仅重跑失败 config，必须复用第一次 report 中同一 36-reference set；
-- resume 时集合 hash 不一致立即 fail-closed；
-- 不因失败重跑重新测量/改变角尺度。
-
-## 6.3 Failure/resume
-
-首次运行无论是否有 config 失败，都保存本地 report：
+正式 evidence commit：
 
 ```text
-project_mvp_2026_v2_zmx/results/task011_run72/reports/<run_id>.json
+f28b3032136aa28f54abb5fe5129765a125d3926
 ```
 
-普通 config-level failure 由 `run_analysis_batch()` 隔离，不回滚已完成结果。
-
-若 report 中 `failed_config_ids` 非空：
+正式批次结果：
 
 ```text
---resume-report <prior-report.json>
-```
-
-只重跑这些 failed IDs，生成新 run ID；已完成 config 的 `config_result.json` 必须重新校验后复用。最终 acceptance 可以由多个 run ID 的完成结果组合，但每个 config 的实际 `run_id` 必须保留在正式 CSV provenance 中。
-
-## 6.4 Acceptance / evidence
-
-完整 acceptance：
-
-```text
+run_id = analysis-1cc1441dec4744a18d7ac73763507a6c
+resume_mode = false
 completed config IDs = exact frozen 72
-failed = 0 after any permitted rerun
-rows/config = 15
-total rows = 1080
+failed configs = 0
+through-focus rows/config = 15
+total through-focus rows = 1080
 matched deltas = 36
 pair-reference records = 36
+pair_reference_set_sha256 = a1cb8a899718d0327d8b1ecde21a4324e54090fd3db12cab36e649bb3cfc5b5d
+acceptance_passed = true
+run72_complete = true
 ```
 
-成功后只提交 sanitized structured evidence：
+正式 evidence：
 
 ```text
 docs/evidence/task011/TASK_011_RUN72_EVIDENCE.json
@@ -228,11 +195,93 @@ docs/evidence/task011/TASK_011_RUN72_THROUGH_FOCUS.csv
 docs/evidence/task011/TASK_011_RUN72_PAIRED_DELTAS.csv
 ```
 
-其中 evidence JSON 保存 36 条 pair-reference records + `pair_reference_set_sha256`，但不保存本机绝对 result paths。大型 working `.zmx` 与逐配置本地 artifacts 留在 project results/diagnostics，不提交 Git。
+Web 已独立从 GitHub evidence 审核：配置完整、无 failed config、无 resume 混入、provenance/identity 一致。TASK-011 computational PASS + Web evidence review PASS。
+
+## 6.1 Censoring 保留
+
+TASK-011 acceptance 不取消派生指标的边界限制：
+
+- `peak_search_censored=true` 时，`distance_peak_retina_d=-0.50 D` 与相应 `DeltaF_residual` 是预注册距离峰搜索边界受限值；
+- peak-censored 时 `distance_peak_mtfa` 只解释为预注册搜索窗口内观察到的峰值；
+- `dof50_far_censored=true` 时 DOF50 width 为 lower bound；
+- TASK-012 必须从 config-level CSV 传播 censor flags，不能只读取 paired-delta CSV 后直接排序。
+
+不因这些 censoring 改变预注册窗口或重跑72 configs。
 
 ---
 
-# 7. Git checkpoints
+# 7. TASK-012 — Run72 offline analysis
+
+正式计划：
+
+```text
+docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md
+```
+
+## 7.1 Scope
+
+TASK-012 只读取 `f28b303...` 的四个 TASK-011 evidence 文件，完成：
+
+1. evidence SHA 与72/36/1080 completeness 校验；
+2. 从72-config summary 独立重建36个 EDOF−MONO deltas；
+3. 从1080-row through-focus evidence 复核 `mtfa_at_zero_d` 与 `tf_mtfa_mean`；
+4. config→pair censor propagation；
+5. Base × Cornea × Platform × Pupil 描述性 factorial contrasts；
+6. Cornea × Platform difference-in-differences interaction；
+7. pupil/base sensitivity；
+8. through-focus shape analysis；
+9. 3×3 coupling matrix、trade-off、mechanism figures；
+10. 单元测试、code review、result/document review 和 hashed analysis evidence。
+
+不启动 OpticStudio。
+
+## 7.2 Primary paired outcomes
+
+所有 paired effect 固定定义为 `EDOF - MONO`：
+
+```text
+Delta DOF50_width
+Delta distance_peak_mtfa
+Delta mtfa_at_zero_d
+Delta tf_mtfa_mean
+Delta C40
+Delta C60
+Delta HOA_RMS
+Delta F_residual
+```
+
+## 7.3 Statistical interpretation
+
+这是确定性光学矩阵。默认使用：
+
+- matched contrasts；
+- difference-in-differences interactions；
+- effect ranges；
+- rank/direction stability；
+- pupil/base sensitivity；
+- censor-aware qualitative classification。
+
+不把36个 pair 当作随机临床样本直接做传统 ANOVA p-value 推断。
+
+## 7.4 Proposed code boundary
+
+```text
+src/whole_eye_mvp/run72_analysis.py
+scripts/analyze_task_012_run72.py
+tests/unit/test_task012_run72_analysis.py
+```
+
+正式分析产物放入：
+
+```text
+docs/evidence/task012/
+```
+
+并记录上游四文件 hashes、分析计划 identity/hash、分析代码 commit 与输出 hashes。
+
+---
+
+# 8. Git checkpoints
 
 ```text
 feat/task-009-fft-mtf-main
@@ -242,25 +291,30 @@ feat/task-011-run72
   1. Web Run72 runner + exact aggregate
   2. failed-only resume + fixed 36-reference provenance
   3. Web CI + execution-plan freeze
-  4. one formal local Run72 batch
-  5. optional failed-only resume
-  6. sanitized TASK-011 evidence
-  7. Web final review
+  4. formal local Run72 batch
+  5. sanitized TASK-011 evidence
+  6. Web independent evidence review PASS
+  7. status docs synchronized
+  8. TASK-012 analysis plan frozen
+  9. TASK-012 pure-Web analysis implementation + tests
+  10. TASK-012 results/evidence + scientific review
 ```
 
-PR #25 和 TASK-011 PR 均保持 Draft，除非另行授权合并。
+PR #26 保持 Draft，除非另行授权改变状态或合并。
 
 ---
 
-# 8. Current STOP conditions
+# 9. Current STOP conditions
 
-1. TASK-005–008 frozen assets 不得修改；
-2. TASK-008 manifest/hash/lock-set preflight 不通过不得启动 Run72；
-3. sampling lock 缺失或不是128不得启动；
-4. acquisition ID/hash/scale 与 formal contract 不同不得启动；
-5. RunEnvironment/backend provenance 不一致不得启动；
-6. 首次固定的 36-reference set 在 resume 中 hash 不一致不得继续；
-7. 单 config optical/ray/entity/export failure 不能伪装 completed；
-8. 不得恢复 `AS_FftMtf` production path；
-9. 不得使用 per-state EFFL 改变 matched MONO/EDOF cpd 坐标；
-10. 不得为了重复确认 TASK-009 已通过 gate 再执行耗时代表性复验。
+1. TASK-005–009 frozen assets/method locks 不得修改；
+2. TASK-008 manifest/hash/lock-set 不得因 TASK-012 改变；
+3. sampling lock 必须保持128；
+4. 不恢复 `AS_FftMtf`、Huygens、complex OTF 或 VSOTF production path；
+5. 不使用 per-state/EDOF EFFL 改变 matched MONO/EDOF cpd 坐标；
+6. 不因 peak/DOF censoring 扩大预注册窗口后补跑矩阵；
+7. 不重新优化 B0.20 或 residual profiles；
+8. 不把 `DeltaF_residual` 写入 carrier physical lock identity；
+9. TASK-012 四文件 SHA、72/36/1080 completeness 或 paired reconstruction 任一失败时停止结果解释；
+10. TASK-012 分析失败默认检查 evidence/代码，不以 OpticStudio rerun 作为机械修复；
+11. 不把确定性矩阵直接当随机临床样本做传统显著性检验；
+12. 不为获得特定结果事后改变主要 outcome、censor policy 或 interaction definition。
