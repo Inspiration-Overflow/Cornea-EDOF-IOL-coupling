@@ -38,6 +38,7 @@ from .primitives import Binary4Zone, SequentialEditor
 from .session import ZosSession, ZosSessionAdapter, open_zos_session
 
 __all__ = [
+    "TASK009_MFE_FULL_HOA_555_V1",
     "Binary4Zone",
     "FftMtfError",
     "FftMtfResult",
@@ -63,7 +64,6 @@ __all__ = [
     "MfeZernikeStandardRunner",
     "MfeZernikeStandardSettings",
     "SequentialEditor",
-    "TASK009_MFE_FULL_HOA_555_V1",
     "ZernikeCoefficient",
     "ZernikeStandardError",
     "ZernikeStandardResult",

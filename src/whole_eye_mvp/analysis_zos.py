@@ -5,9 +5,10 @@ import hashlib
 import json
 import math
 import shutil
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from .analysis import (
     AberrationSummary,
@@ -35,7 +36,6 @@ from .residual_payload import (
 )
 from .store import sha256_file
 from .zos import (
-    TASK009_MFE_FULL_HOA_555_V1,
     FftMtfRunner,
     FftMtfSettings,
     MfeEfflRunner,
@@ -444,11 +444,11 @@ class ZosFftMtfAnalysisBackend:
                 mtfa_values.append(
                     mtfa(cpd, avg, max_cpd=NOMINAL_MAIN_FFT_MTF_555_V2.mtfa_max_cpd)
                 )
-                for frequency in fixed_columns:
-                    index = int(
-                        round(frequency / NOMINAL_MAIN_FFT_MTF_555_V2.mtf_frequency_step_cpd)
+                for frequency, values in fixed_columns.items():
+                    index = round(
+                        frequency / NOMINAL_MAIN_FFT_MTF_555_V2.mtf_frequency_step_cpd
                     )
-                    fixed_columns[frequency].append(float(avg[index]))
+                    values.append(float(avg[index]))
                 if abs(defocus_d) <= 1.0e-12:
                     zero_mtf = tuple(float(value) for value in avg)
         finally:

@@ -7,7 +7,6 @@ import pytest
 from whole_eye_mvp.domain import NOMINAL_MAIN_FFT_MTF_555_V2
 from whole_eye_mvp.quality import assert_trace_coverage
 
-
 ACTIVE_SPEC_FILES = (
     Path("docs/URD.md"),
     Path("docs/ADD.md"),

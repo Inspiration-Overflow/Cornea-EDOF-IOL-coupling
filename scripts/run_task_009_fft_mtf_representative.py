@@ -13,7 +13,6 @@ import argparse
 import csv
 import hashlib
 import json
-import math
 import os
 import shutil
 import subprocess

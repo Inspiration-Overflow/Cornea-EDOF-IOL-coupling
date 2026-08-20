@@ -32,7 +32,12 @@ from whole_eye_mvp.domain import (
 from whole_eye_mvp.manifest import build_manifests, compute_lock_set_hash
 from whole_eye_mvp.manifest_io import ManifestLoadError, load_formal_manifest_bundle
 from whole_eye_mvp.quality import settings_hash
-from whole_eye_mvp.store import PROJECT_SCHEMA_VERSION, ProjectStoreError, open_project_store, sha256_file
+from whole_eye_mvp.store import (
+    PROJECT_SCHEMA_VERSION,
+    ProjectStoreError,
+    open_project_store,
+    sha256_file,
+)
 from whole_eye_mvp.workflows import (
     export_manifest_bundle,
     finalize_carrier_locks,
@@ -49,7 +54,7 @@ def carrier(key, index: int) -> ProvisionalCarrier:
         key.platform_id
     ]
     power = 18.0 + index * 0.25
-    return ProvisionalCarrier(key, power, -0.2, power, 12, -12, 1, "IOL", 4.5, target)
+    return ProvisionalCarrier(key, power, -0.2, power, 12.0, -12.0, 1.0, "IOL", 4.5, target)
 
 
 def carriers() -> list[ProvisionalCarrier]:

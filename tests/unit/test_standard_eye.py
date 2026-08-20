@@ -8,7 +8,7 @@ import pytest
 from whole_eye_mvp.carriers import CarrierKey, ProvisionalCarrier
 from whole_eye_mvp.domain import (
     CURRENT_SCIENTIFIC_BASELINE_ID,
-    NOMINAL_MAIN_555_V1,
+    NOMINAL_MAIN_FFT_MTF_555_V2,
     PlatformId,
     ScientificBaseline,
 )
@@ -55,7 +55,7 @@ def test_standard_eye_calibration_is_separate_from_nominal_3mm_5mm_performance()
     baseline = ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID)
     assert baseline.standard_eye_spec.aperture_mm == 6.0
     assert baseline.nominal_condition.pupils_mm == (3.0, 5.0)
-    assert NOMINAL_MAIN_555_V1.pupils_mm == (3.0, 5.0)
+    assert NOMINAL_MAIN_FFT_MTF_555_V2.pupils_mm == (3.0, 5.0)
 
 
 @pytest.mark.unit
