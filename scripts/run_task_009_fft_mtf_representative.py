@@ -216,7 +216,7 @@ def _summary(result: ConfigResult) -> dict[str, object]:
 
 
 def _opticstudio_version(session) -> str:
-    for name in ("ZOSVersion", "Version"):
+    for name in ("ZOSVersion", "OpticStudioVersion", "Version"):
         value = getattr(session.app, name, None)
         if value is not None and str(value).strip():
             return str(value).strip()
