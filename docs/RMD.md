@@ -13,6 +13,8 @@
 - package_manager: uv
 - default_branch: main
 - active_task_branch: `feat/task-009-fft-mtf-main`
+- active_production_acquisition: `TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2`
+- active_production_sampling: `128`
 
 ---
 
@@ -20,19 +22,22 @@
 
 ## Web
 
-负责科学研究/规范/冻结决策、Python 主代码与测试、GitHub static review、读取结构化 evidence、决定是否进入下一 task。
+负责科学研究/规范/冻结决策、Python 主代码与测试、GitHub static review、结构化 evidence 审核、formal gate/clearance。
 
 ## Local Windows / ZCode
 
-负责真实 OpticStudio/ZOS-API、API enum/header/cast/runtime behavior、`.zmx` 实机结果、integration/full-flow smoke，以及明确允许范围内的机械 API 适配。
+只负责必须由真实 OpticStudio/ZOS-API 给出的新事实：runtime/API 差异、`.zmx` 实机结果、正式大批次 Run72，以及确有必要的 GUI/full-flow smoke。
 
-## Handoff rule
+## Cost-aware handoff rule
 
-- 大任务尽量单次批量执行；
-- JSON/CSV evidence 优先推 GitHub；
-- 本地回复只给 commit/path/hash/PASS/FAIL/关键 summary；
+本地 OpticStudio 任务成本高。TASK-009 corrected representative batch 已约32分钟，前一轮约55分钟。因此：
+
+- 文档、provenance、普通 Python、unit regression 全部留在 Web/GitHub CI；
+- 已满足科学 gate 的代表配置不重复运行；
+- 本地任务尽量一次大批量、fail-closed；
+- JSON/CSV evidence 推 GitHub，本地只回 commit/path/hash/PASS/FAIL/关键 summary；
 - science definition 变化必须回 Web；
-- 本地不得自行把 sampling candidate 变成 formal sampling lock。
+- 不用“保险起见”增加未预注册 sampling 层级或重复 probe。
 
 ---
 
@@ -45,7 +50,7 @@ uv run python -m compileall -q src tests scripts
 uv lock --check
 ```
 
-unit tests 不依赖 OpticStudio；真实 ZOS diagnostics 只在 Windows workstation；scientific artifacts 必须 hash/provenance；formal locks 同 ID 不允许不同内容覆盖。
+unit tests 不依赖 OpticStudio。正式 scientific assets immutable；analysis provenance 必须版本化/hashable；formal lock 同 ID 不允许以不同科学内容覆盖。
 
 ---
 
@@ -56,112 +61,63 @@ unit tests 不依赖 OpticStudio；真实 ZOS diagnostics 只在 Windows worksta
 | TASK-001 | complete | uv/src/tests/git skeleton |
 | TASK-002 | complete | ZOS session lifecycle validated |
 | TASK-003 | complete | domain + ProjectStore + hash/run provenance |
-| TASK-004 | complete then migrated | pure metric layer now FFT-MTF/MTFa v2 |
+| TASK-004 | complete then migrated | current MTFa metric layer |
 | TASK-005 | complete | LB/ATC、standard eye、A0/B candidates/C0 |
 | TASK-006 | complete | B0.20 immutable lock |
 | TASK-007 | complete | 18 P/Q、3 residuals、9 calibrations、TDD-999 cleared |
 | TASK-008 | complete | 18 formal carrier locks、3 residual locks、72-config manifest |
+| TASK-009 | complete | paired-MONO MTFA production method + 128 formal sampling lock + Web provenance hardening |
 
-TASK-008 formal identity：
+TASK-008 identity 只读：
 
 ```text
 manifest_hash = 29205cf1bd27848bb378fad956709b7cde4686ffd917b10351a992fc0d59ad49
 lock_set_hash = b1dff4c05d2c817099c913c32d9eb8c0b1c9cfa3c9ca8a2022b20c6521e08923
 ```
 
-从 TASK-009 起只读。
-
 ---
 
-# 4. Current task — TASK-009
+# 4. TASK-009 final state
 
-## Goal
-
-在 Run72 前一次验证新的主分析方法及**真实 production execution contract**：
+## 4.1 Production method
 
 ```text
 frozen TASK-008 manifest
-→ ZosFftMtfAnalysisBackend
-→ OpticStudio FFT MTF / EFFL / HOA / footprint
-→ MTFa / DOF50 / TF_MTFa_mean
+→ residual-free MONO EFFL once per matched pair
+→ paired_residual_free_MONO_EFFL angular scale
+→ ZosMtfaPairScaleAnalysisBackend
+→ MFE MTFA Grid=1 / Data Type=0 / Wave1 / Field1
+→ 15-plane MTFa + MTF10..60
+→ HOA / footprint / entity invariants
 → ConfigResult
 → run_analysis_batch
-→ artifact/run/environment provenance
 → matched pair deltas
 ```
 
-active main settings：
+Active identities：
 
 ```text
 NOMINAL_MAIN_FFT_MTF_555_v2
-SHA256 0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc
-```
+SHA256 = 0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc
 
-HOA readback：
+TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2
+SHA256 = f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d
+frequency_scale_mode = paired_residual_free_MONO_EFFL
 
-```text
 TASK009_MFE_ZERN_HOA_555_v1
-SHA256 7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2
+SHA256 = 7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2
+
+TASK009_PRODUCTION_SAMPLING_LOCK_v1
+production_sampling = 128
+production_sampling_locked = true
+sampling_escalation_256_active = false
 ```
 
-## Web checkpoint — review hardened
+`AS_FftMtf`/`New_FftMtf` production path retired。`NOMINAL_MAIN_FFT_MTF_555_v2` 名称中的 FFT 仅保留历史 hash continuity。
 
-Web 必须在 local run 前完成：
+## 4.2 Corrected representative evidence
 
-- active URD/ADD/MDD/TDD/RMD synchronization；
-- strict frozen-manifest loader；
-- exact main/HOA settings hash regression；
-- FFT MTF runtime API metadata capture；
-- real `ZosFftMtfAnalysisBackend`；
-- in-memory entity fingerprint；
-- ConfigResult/acceptance migration；
-- representative script 使用 frozen config IDs；
-- 6-config integration 经 `run_analysis_batch`；
-- active-source/script/spec regression gate。
-
-## Local TASK-009 batch
-
-### Stage A — sync/offline regression
-
-1. checkout expected Web HEAD；
-2. clean status、OpticStudio process=0；
-3. full pytest/ruff/compileall/uv-lock；
-4. 机械性 stale constructor/import/API wrapper 问题可最小修复并继续；
-5. 不允许改 scientific threshold/settings/representative set。
-
-### Stage B — frozen manifest reload
-
-在启动 OpticStudio 前：
-
-- physical CSV SHA 与 TASK-008 evidence 一致；
-- nominal CSV SHA 一致；
-- strict 18/72 reload；
-- rebuild manifest hash 一致；
-- lock-set hash 一致；
-- frozen representative 6 config IDs 可唯一选择。
-
-任何差异立即 STOP，不启动 optical acquisition。
-
-### Stage C — real FFT MTF / EFFL / HOA capability
-
-验证并记录：
-
-- `New_FftMtf()`；
-- settings implementation type；
-- sample enum mapping64/128/256；
-- modulation enum；
-- DataSeries count/runtime type；
-- selected series type；
-- labels/XLabel；
-- EFFL temporary operand；
-- ZERN Z7..Z28 temporary operands；
-- 60-cpd coverage。
-
-真实 API 差异可机械适配；不得猜列位置。
-
-### Stage D — sampling convergence
-
-冻结代表 EDOF：
+三个 frozen pair：
 
 ```text
 LB+A0+WFS+EPD3
@@ -169,102 +125,91 @@ ATC+B0+RAD+EPD5
 ATC+C0+HOA+EPD5
 ```
 
-每个 64/128/256 ×15 planes。
+corrected paired-MONO scale 下：
 
-128→256：peak MTFa relative≤2%；TF mean relative≤2%；peak shift≤0.25D；DOF50 width change≤0.25D。
+- 128→256 convergence 全 PASS；
+- repeat128 全 PASS；
+- 6-config `run_analysis_batch` integration = 6/6 PASS；
+- entity/ray-health PASS；
+- 20/40/60 cpd production-vs-repeat MTFA abs=0；
+- 20/40/60 cpd MTFA-vs-mean(MTFT,MTFS) abs=0；
+- HOA TF mean 128→256 从旧坐标的2.019%修正为0.520%；
+- 无需256→512 escalation。
 
-任一 fail：尽量完成三个 representative evidence 后 exit nonzero；不得自行改 sampling。
-
-### Stage E — repeatability
-
-每 EDOF representative 独立再跑一次128：peak sample identical、peak MTFa relative≤0.1%、TF mean≤0.1%、C4/C6≤0.001µm。
-
-### Stage F — six-config real production integration
-
-三个 frozen pair 的 MONO+EDOF 共6 configs 必须由：
-
-```text
-ZosFftMtfAnalysisBackend
-→ run_analysis_batch
-```
-
-运行。
-
-必须验证：
-
-- frozen manifest config identity；
-- formal carrier/residual hashes；
-- RunEnvironment；
-- running/completed/failed states；
-- complete ConfigResult；
-- analysis/HOA settings hashes；
-- working model hash；
-- entity fingerprint before/after；
-- retina/IOL/ELP invariants；
-- footprint/vignetting；
-- required artifacts；
-- matched delta / `DeltaF_residual`。
-
-独立 probe 手工输出不算本阶段 PASS。
-
-### Stage G — limited extraction diagnostic
-
-MFE `MTFA Grid=1` 或同 family 独立 export/readback，在20/40/60 cpd比较少量值。只记录 frequency、两种 acquisition、absolute differences、actual API mapping；不新增 threshold。
-
-### Stage H — GitHub evidence
-
-结构化 evidence：
+Evidence：
 
 ```text
-docs/evidence/task009/TASK_009_FFT_MTF_REPRESENTATIVE_EVIDENCE.json
-docs/evidence/task009/TASK_009_REPRESENTATIVE_THROUGH_FOCUS.csv
+commit = 47f901dad36fb9d407826a6da8baceeef4c2edfd
+JSON SHA256 = 404502231e154ebae0813c6b52151961ad4278bef8cc4d29f412d21db7bc8d49
+CSV SHA256 = e51e524ee1eb009a1e2ae8cd56cc0bc101aa3dda052fe14dfba585d583987006
 ```
 
-large `.zmx` 留 project diagnostics/results，不进 Git。
+## 4.3 Run-level provenance hardening
 
-Local evidence 必须：
+`RunEnvironment` 必须非空保存：
 
 ```text
-evidence_only = true
-formal_artifact = false
-run72_started = false
-production_sampling_candidate_passed = <computed>
-production_sampling_locked = false
+program_version
+opticstudio_version
+baseline_id
+analysis_settings_id
+manifest_hash
+lock_set_hash
+acquisition_contract_id
+acquisition_contract_hash
+frequency_scale_mode
 ```
 
-## TASK-009 Done When
-
-1. offline checks PASS；
-2. strict manifest reload PASS；
-3. real API/EFFL/HOA PASS；
-4. three convergence gates PASS；
-5. three repeatability gates PASS；
-6. real 6-config batch integration PASS；
-7. Web review 接受 independent extraction diagnostic；
-8. Web 写正式 production-sampling lock；
-9. docs/status synchronized。
+`run_analysis_batch()` 在任何 acquisition 前检查 backend 自报的 acquisition ID/hash/scale 是否与 RunEnvironment 完全一致；旧 per-state-EFL backend 不能静默进入正式 Run72。
 
 ---
 
-# 5. TASK-010
+# 5. TASK-010 — GUI integration（非 Run72 科学前置）
 
-TASK-009 PASS 后只做：
+TASK-010 仅负责：
 
-- 将已经验证的 `run_analysis_batch` 接到现有 GUI action dispatch；
-- 本地最小 GUI/full-flow smoke；
-- progress/log/failed-target rerun UI 验证。
+- 将已验证的 `run_analysis_batch` 接到 GUI action dispatch；
+- progress/log/failed-target rerun UI；
+- 必要时做最小 GUI smoke。
 
-**TASK-010 不再负责首次实现或首次验证 real AnalysisBackend。**
+**TASK-010 不再负责首次实现或首次验证 real AnalysisBackend，也不是 CLI Run72 的科学前置条件。**
+
+考虑本地运行时间成本，除非 GUI 本身是当轮目标，不应为了 Run72 再做一次长 optical full-flow smoke。
 
 ---
 
-# 6. TASK-011 / Run72
+# 6. TASK-011 — Run72
 
-Depends on TASK-009 formal sampling lock（以及需要时 TASK-010 smoke）。
+TASK-009 Web clearance 后可进入 Run72。正式批次：
 
-Run72：18 carriers × MONO/EDOF × EPD3/5 =72 configs；每 config15 planes→1080 rows。
+\[
+18\ carriers\times2\ states\times2\ pupils=72\ configs
+\]
 
-Acceptance：exact72 completed IDs==manifest、36 matched deltas、1080 rows、all required artifacts/environment/settings/manifest/lock identities；failed 不计 completed；failed-only rerun 使用新 run ID。
+每 config 15 planes，共1080 through-focus rows、36 matched deltas。
+
+Run72 preflight 必须在启动 OpticStudio 前检查：
+
+1. clean tracked checkout；
+2. offline pytest/ruff/compileall/uv-lock PASS；
+3. frozen TASK-008 manifest 18/72/36 + exact hashes PASS；
+4. `TASK009_PRODUCTION_SAMPLING_LOCK_v1` 存在且 sampling=128；
+5. acquisition contract ID/hash = pair-MONO v2；
+6. frequency scale mode = `paired_residual_free_MONO_EFFL`；
+7. `RunEnvironment` 完整；
+8. backend provenance 与 environment exact match。
+
+Run72 acceptance：
+
+```text
+completed config IDs = exact frozen 72
+failed = 0 after any permitted rerun
+rows/config = 15
+total rows = 1080
+matched deltas = 36
+```
+
+失败 config 不计 completed；failed-only rerun 使用新 run ID，不重跑已成功 config。
 
 ---
 
@@ -272,24 +217,33 @@ Acceptance：exact72 completed IDs==manifest、36 matched deltas、1080 rows、a
 
 ```text
 feat/task-009-fft-mtf-main
-  1. Web analysis migration
-  2. Web review-hardening
-  3. local mechanical compatibility fixes
-  4. TASK-009 evidence
-  5. Web cross-check review + formal sampling lock + status sync
+  1. analysis migration
+  2. local real MTFA evidence
+  3. paired-MONO scale correction + corrected evidence
+  4. Web sampling lock
+  5. Web RunEnvironment/backend provenance hardening
+  6. active specs/status synchronization
+  7. CI + Run72 Web clearance
+
+next: TASK-011 / Run72 branch or approved continuation
 ```
 
-之后才进入 Run72 分支或合并 main。
+PR #25 保持 Draft 作为 Web quality gate，除非另行授权合并。
 
 ---
 
 # 8. Current STOP conditions
 
-1. TASK-005–008 frozen assets 不得被 TASK-009 修改。
-2. strict frozen manifest reload 不通过不得启动 real analysis。
-3. sampling convergence/repeatability 未 PASS 不得 Run72。
-4. real 6-config batch integration 未 PASS 不得 Run72。
-5. independent extraction diagnostic 未经 Web review 不得 Run72。
-6. Web 未写正式 production-sampling lock 不得 Run72。
-7. 若128不满足 gate，必须回 Web 版本化新 settings ID。
-8. API 机械问题可同一大任务最小修复；science definition 变化立即 STOP。
+仍然有效的 STOP：
+
+1. TASK-005–008 frozen assets 不得修改；
+2. TASK-008 manifest/hash/lock-set preflight 不通过不得启动 Run72；
+3. sampling lock 缺失或不是128不得启动；
+4. acquisition ID/hash/scale 与 formal contract 不同不得启动；
+5. RunEnvironment/backend provenance 不一致不得启动；
+6. 单 config optical/ray/entity/export failure 不能伪装 completed；
+7. 不得恢复 `AS_FftMtf` production path；
+8. 不得使用 per-state EFFL 改变 matched MONO/EDOF cpd 坐标；
+9. 不得为了重复确认 TASK-009 已通过 gate 再执行耗时代表性复验。
+
+TASK-009 已不存在 sampling/convergence/repeatability/crosscheck STOP；这些门禁已通过并正式固化。
