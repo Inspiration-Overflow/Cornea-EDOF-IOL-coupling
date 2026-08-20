@@ -35,6 +35,7 @@ from whole_eye_mvp.run72 import (
     build_run72_aggregate,
     config_scalar_row,
     load_config_result_json,
+    pair_reference_set_hash,
     paired_delta_row,
     through_focus_rows,
     validate_run72_clearance,
@@ -179,7 +180,7 @@ def _write_repo_evidence(
     evidence = {
         key: value
         for key, value in report.items()
-        if key not in {"completed_result_json_paths", "pair_references"}
+        if key != "completed_result_json_paths"
     }
     evidence.update(
         {
@@ -241,7 +242,7 @@ def main() -> None:
     combined: dict[str, ConfigResult] = {}
     prior_run_ids: list[str] = []
     pair_reference_effl_mm: dict[str, float] = {}
-    pair_reference_records: dict[str, object] = {}
+    pair_reference_records: dict[str, dict[str, object]] = {}
 
     if args.resume_report is not None:
         prior_payload = _load_json(args.resume_report.resolve())
@@ -262,9 +263,13 @@ def main() -> None:
         for pair_key, record in raw_refs.items():
             if not isinstance(record, dict):
                 raise SystemExit("resume pair reference record is malformed")
-            effl = float(record["reference_effl_mm"])
+            normalized = {str(key): value for key, value in record.items()}
+            effl = float(normalized["reference_effl_mm"])
             pair_reference_effl_mm[str(pair_key)] = effl
-            pair_reference_records[str(pair_key)] = record
+            pair_reference_records[str(pair_key)] = normalized
+        pair_reference_hash = pair_reference_set_hash(pair_reference_records)
+        if pair_reference_hash != prior_payload.get("pair_reference_set_sha256"):
+            raise SystemExit("resume pair-reference set hash differs from prior report")
     else:
         selection = tuple(config.config_id for config in bundle.nominal_configs)
 
@@ -298,6 +303,7 @@ def main() -> None:
                 pair_reference_effl_mm[pair_key] = reference.reference_effl_mm
                 pair_reference_records[pair_key] = asdict(reference)
 
+        pair_reference_hash = pair_reference_set_hash(pair_reference_records)
         selection_set = set(selection)
         required_pairs = {
             config.pair_key
@@ -378,6 +384,7 @@ def main() -> None:
         "selection_count": len(selection),
         "selection_config_ids": list(selection),
         "pair_reference_count": len(pair_reference_records),
+        "pair_reference_set_sha256": pair_reference_hash,
         "pair_references": pair_reference_records,
         "completed_config_count": len(combined),
         "completed_config_ids": sorted(combined),
