@@ -59,6 +59,10 @@ class Task014ResidualPowerEnvelopeCheck:
     existing_max_power_d: float
     passed: bool
 
+    @property
+    def extension_validation_required(self) -> bool:
+        return not self.passed
+
 
 def _platform_values() -> tuple[str, ...]:
     return tuple(str(value) for value in PlatformId)
@@ -275,6 +279,8 @@ def check_task014_residual_power_envelopes(
     existing_carriers: Sequence[ProvisionalCarrier],
     corrected_carriers: Sequence[ProvisionalCarrier],
 ) -> tuple[Task014ResidualPowerEnvelopeCheck, ...]:
+    """Classify existing residual-validation power coverage for corrected carriers."""
+
     for carrier in corrected_carriers:
         validate_task014_carrier(carrier)
     checks: list[Task014ResidualPowerEnvelopeCheck] = []
@@ -317,19 +323,14 @@ def require_task014_residual_power_envelopes(
     existing_carriers: Sequence[ProvisionalCarrier],
     corrected_carriers: Sequence[ProvisionalCarrier],
 ) -> tuple[Task014ResidualPowerEnvelopeCheck, ...]:
-    checks = check_task014_residual_power_envelopes(existing_carriers, corrected_carriers)
-    failures = tuple(check for check in checks if not check.passed)
-    if failures:
-        detail = ", ".join(
-            f"{item.carrier_id}={item.corrected_power_d:.6g}D outside "
-            f"[{item.existing_min_power_d:.6g},{item.existing_max_power_d:.6g}]D"
-            for item in failures
-        )
-        raise Task014ExtensionError(
-            "TASK-014 carrier lies outside frozen residual calibration power envelope; "
-            f"additional residual replay validation is required: {detail}"
-        )
-    return checks
+    """Backward-compatible coverage classifier; out-of-range now triggers replay validation.
+
+    Exact-carrier frozen-residual validation is enforced in the TASK-014 EDOF model
+    materialization path.  This helper therefore no longer raises solely because a
+    corrected carrier lies outside the historical power envelope.
+    """
+
+    return check_task014_residual_power_envelopes(existing_carriers, corrected_carriers)
 
 
 def manifest_config_map(bundle: Task014ManifestBundle) -> Mapping[str, NominalConfig]:
