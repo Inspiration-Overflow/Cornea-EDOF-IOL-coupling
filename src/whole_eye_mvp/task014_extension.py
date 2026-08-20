@@ -57,11 +57,11 @@ class Task014ResidualPowerEnvelopeCheck:
     corrected_power_d: float
     existing_min_power_d: float
     existing_max_power_d: float
-    passed: bool
+    within_existing_coverage: bool
 
     @property
     def extension_validation_required(self) -> bool:
-        return not self.passed
+        return not self.within_existing_coverage
 
 
 def _platform_values() -> tuple[str, ...]:
@@ -313,7 +313,7 @@ def check_task014_residual_power_envelopes(
                     corrected_power_d=power,
                     existing_min_power_d=low,
                     existing_max_power_d=high,
-                    passed=low <= power <= high,
+                    within_existing_coverage=low <= power <= high,
                 )
             )
     return tuple(checks)
@@ -323,10 +323,10 @@ def require_task014_residual_power_envelopes(
     existing_carriers: Sequence[ProvisionalCarrier],
     corrected_carriers: Sequence[ProvisionalCarrier],
 ) -> tuple[Task014ResidualPowerEnvelopeCheck, ...]:
-    """Backward-compatible coverage classifier; out-of-range now triggers replay validation.
+    """Backward-compatible coverage classifier; out-of-range triggers replay validation.
 
     Exact-carrier frozen-residual validation is enforced in the TASK-014 EDOF model
-    materialization path.  This helper therefore no longer raises solely because a
+    materialization path. This helper therefore no longer raises solely because a
     corrected carrier lies outside the historical power envelope.
     """
 
