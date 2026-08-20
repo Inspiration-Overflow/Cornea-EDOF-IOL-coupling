@@ -17,6 +17,7 @@ from whole_eye_mvp.run72_analysis import (
     analyze_evidence,
     sha256_file,
 )
+from whole_eye_mvp.run72_figures import generate_task012_figures
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_EVIDENCE_DIR = REPOSITORY_ROOT / "docs/evidence/task011"
@@ -68,6 +69,7 @@ def build_evidence_payload(
     code_commit: str,
     plan_sha256: str,
     output_hashes: dict[str, str],
+    figure_count: int,
 ) -> dict[str, object]:
     status_counts: dict[str, int] = {}
     for pair in analysis.pairs:
@@ -86,10 +88,12 @@ def build_evidence_payload(
         "pair_count": len(analysis.pairs),
         "contrast_count": len(analysis.contrasts),
         "coupling_cell_count": len(analysis.coupling_matrix),
+        "figure_count": figure_count,
         "dof50_effect_status_counts": status_counts,
         "peak_censored_pair_count": sum(pair.pair_peak_censored for pair in analysis.pairs),
         "reconstruction_gate_passed": True,
         "censor_propagation_passed": True,
+        "figures_generated": figure_count > 0,
         "opticstudio_used": False,
         "output_files": output_hashes,
     }
@@ -108,10 +112,16 @@ def main() -> None:
     contrast_csv = output_dir / "TASK_012_INTERACTION_CONTRASTS.csv"
     coupling_csv = output_dir / "TASK_012_COUPLING_MATRIX.csv"
     evidence_json = output_dir / "TASK_012_ANALYSIS_EVIDENCE.json"
+    figures_dir = output_dir / "figures"
 
     _write_csv(pair_csv, [pair.to_row() for pair in analysis.pairs])
     _write_csv(contrast_csv, list(analysis.contrasts))
     _write_csv(coupling_csv, list(analysis.coupling_matrix))
+    figures = generate_task012_figures(
+        analysis,
+        through_focus_csv=evidence_dir / "TASK_011_RUN72_THROUGH_FOCUS.csv",
+        output_dir=figures_dir,
+    )
 
     plan_path = REPOSITORY_ROOT / TASK012_ANALYSIS_PLAN
     if not plan_path.is_file():
@@ -121,12 +131,17 @@ def main() -> None:
         pair_csv.name: sha256_file(pair_csv),
         contrast_csv.name: sha256_file(contrast_csv),
         coupling_csv.name: sha256_file(coupling_csv),
+        **{
+            f"figures/{path.name}": sha256_file(path)
+            for path in sorted(figures, key=lambda item: item.name)
+        },
     }
     evidence = build_evidence_payload(
         analysis,
         code_commit=code_commit,
         plan_sha256=sha256_file(plan_path),
         output_hashes=output_hashes,
+        figure_count=len(figures),
     )
     evidence_json.write_text(
         json.dumps(evidence, ensure_ascii=False, indent=2) + "\n",
@@ -136,7 +151,7 @@ def main() -> None:
     print(
         "TASK-012 offline analysis PASS: "
         f"pairs={len(analysis.pairs)} contrasts={len(analysis.contrasts)} "
-        f"coupling_cells={len(analysis.coupling_matrix)}"
+        f"coupling_cells={len(analysis.coupling_matrix)} figures={len(figures)}"
     )
     print(f"evidence={evidence_json.relative_to(REPOSITORY_ROOT)}")
     print(f"evidence_sha256={sha256_file(evidence_json)}")
