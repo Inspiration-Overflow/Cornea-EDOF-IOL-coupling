@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from whole_eye_mvp.analysis_zos import TASK009_MTF_ACQUISITION
 from whole_eye_mvp.domain import NOMINAL_MAIN_FFT_MTF_555_V2
 from whole_eye_mvp.quality import assert_trace_coverage
 
@@ -24,10 +25,14 @@ FORBIDDEN_ACTIVE_TOKENS = (
     "vsotf",
     "vsmtf",
 )
+FORBIDDEN_RUNTIME_TOKENS = (
+    "new_fftmtf",
+    "zosfftmtfanalysisbackend",
+)
 
 
 @pytest.mark.unit
-def test_active_main_analysis_settings_are_fft_mtf_only() -> None:
+def test_active_main_analysis_settings_and_acquisition_contract() -> None:
     settings = NOMINAL_MAIN_FFT_MTF_555_V2
     settings.validate()
     assert settings.settings_id == "NOMINAL_MAIN_FFT_MTF_555_v2"
@@ -44,12 +49,18 @@ def test_active_main_analysis_settings_are_fft_mtf_only() -> None:
     assert not hasattr(settings, "dof_relative_fraction")
     assert not hasattr(settings, "b0_q_lock_max_cycles_per_mm")
 
+    assert TASK009_MTF_ACQUISITION.contract_id == "TASK009_MFE_MTFA_GRID1_v1"
+    assert TASK009_MTF_ACQUISITION.production_operand == "MTFA"
+    assert TASK009_MTF_ACQUISITION.grid == 1
+    assert TASK009_MTF_ACQUISITION.data_type == 0
+    assert len(TASK009_MTF_ACQUISITION.contract_hash) == 64
 
-def _scan(paths) -> list[str]:
+
+def _scan(paths, tokens=FORBIDDEN_ACTIVE_TOKENS) -> list[str]:
     findings: list[str] = []
     for path in paths:
         text = path.read_text(encoding="utf-8").casefold()
-        for token in FORBIDDEN_ACTIVE_TOKENS:
+        for token in tokens:
             if token in text:
                 findings.append(f"{path}:{token}")
     return findings
@@ -57,14 +68,17 @@ def _scan(paths) -> list[str]:
 
 @pytest.mark.unit
 def test_production_source_does_not_reintroduce_removed_paths() -> None:
-    findings = _scan(Path("src/whole_eye_mvp").rglob("*.py"))
+    paths = tuple(Path("src/whole_eye_mvp").rglob("*.py"))
+    findings = _scan(paths)
+    findings += _scan(paths, FORBIDDEN_RUNTIME_TOKENS)
     assert not findings, "removed analysis path leaked into production source: " + ", ".join(findings)
 
 
 @pytest.mark.unit
 def test_active_scripts_do_not_reintroduce_removed_paths() -> None:
-    findings = _scan(Path("scripts").glob("*task_009*.py"))
-    findings += _scan(Path("scripts").glob("*run72*.py"))
+    paths = tuple(Path("scripts").glob("*task_009*.py")) + tuple(Path("scripts").glob("*run72*.py"))
+    findings = _scan(paths)
+    findings += _scan(paths, FORBIDDEN_RUNTIME_TOKENS)
     assert not findings, "removed analysis path leaked into active scripts: " + ", ".join(findings)
 
 
