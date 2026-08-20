@@ -53,7 +53,10 @@ def test_active_main_analysis_settings_and_acquisition_contract() -> None:
     assert TASK009_MTF_ACQUISITION.production_operand == "MTFA"
     assert TASK009_MTF_ACQUISITION.grid == 1
     assert TASK009_MTF_ACQUISITION.data_type == 0
-    assert len(TASK009_MTF_ACQUISITION.contract_hash) == 64
+    assert (
+        TASK009_MTF_ACQUISITION.contract_hash
+        == "5986a768779fc5be4798b3c9c608babbe46cc311d9e4928d7782879a95c9fd0b"
+    )
 
 
 def _scan(paths, tokens=FORBIDDEN_ACTIVE_TOKENS) -> list[str]:
