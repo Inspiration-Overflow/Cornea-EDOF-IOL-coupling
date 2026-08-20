@@ -101,6 +101,7 @@ def test_task014_power_envelope_accepts_corrected_carriers_inside_frozen_range()
     checks = require_task014_residual_power_envelopes(existing, corrected)
     assert len(checks) == 18
     assert all(check.within_existing_coverage for check in checks)
+    assert all(check.passed for check in checks)
     assert not any(check.extension_validation_required for check in checks)
 
 
@@ -120,3 +121,4 @@ def test_task014_power_envelope_outside_is_validation_trigger() -> None:
     assert all(check.platform_id == str(PlatformId.WFS) for check in flagged)
     assert all(check.carrier_id.endswith("_A0V12_WFS") for check in flagged)
     assert all(check.within_existing_coverage is False for check in flagged)
+    assert all(check.passed is False for check in flagged)
