@@ -143,7 +143,12 @@ def _generate_through_focus_panels(
                     ax.plot([x for x, _ in mono], [y for _, y in mono], marker="o", label="MONO")
                     ax.plot([x for x, _ in edof], [y for _, y in edof], marker="o", label="EDOF")
                     ax.axvline(0.0, linewidth=0.8)
-                    ax.set_title(f"{cornea} × {PLATFORM_LABELS[platform]}")
+                    title = f"{cornea} × {PLATFORM_LABELS[platform]}"
+                    if pair.pair_peak_censored:
+                        title += " [peak-window]"
+                    if pair.dof50_effect_status != "exact":
+                        title += f" [DOF:{pair.dof50_effect_status}]"
+                    ax.set_title(title)
                     if row_index == 2:
                         ax.set_xlabel("Retinal defocus (D)")
                     if col_index == 0:
@@ -157,26 +162,47 @@ def _generate_through_focus_panels(
     return paths
 
 
+def _tradeoff_group_label(dof_limited: bool, peak_limited: bool) -> str:
+    if dof_limited and peak_limited:
+        return "DOF boundary-limited + peak-window"
+    if dof_limited:
+        return "DOF boundary-limited"
+    if peak_limited:
+        return "Peak-window limited"
+    return "DOF exact + peak exact"
+
+
+def _tradeoff_marker(dof_limited: bool, peak_limited: bool) -> str:
+    if dof_limited and peak_limited:
+        return "s"
+    if dof_limited:
+        return "x"
+    if peak_limited:
+        return "^"
+    return "o"
+
+
 def _tradeoff_plot(
     pairs: Sequence[PairResult],
     y_outcome: str,
     y_label: str,
     path: Path,
 ) -> None:
-    exact = [pair for pair in pairs if pair.dof50_effect_status == "exact"]
-    limited = [pair for pair in pairs if pair.dof50_effect_status != "exact"]
     fig, ax = plt.subplots(figsize=(7.2, 5.4))
-    ax.scatter(
-        [pair.values["delta_dof50_width_d"] for pair in exact],
-        [pair.values[y_outcome] for pair in exact],
-        label="DOF50 exact",
-    )
-    if limited:
+    peak_sensitive = y_outcome == "delta_distance_peak_mtfa"
+    groups: dict[tuple[bool, bool], list[PairResult]] = {}
+    for pair in pairs:
+        key = (
+            pair.dof50_effect_status != "exact",
+            pair.pair_peak_censored if peak_sensitive else False,
+        )
+        groups.setdefault(key, []).append(pair)
+    for (dof_limited, peak_limited), members in sorted(groups.items()):
         ax.scatter(
-            [pair.values["delta_dof50_width_d"] for pair in limited],
-            [pair.values[y_outcome] for pair in limited],
-            marker="x",
-            label="DOF50 boundary-limited",
+            [pair.values["delta_dof50_width_d"] for pair in members],
+            [pair.values[y_outcome] for pair in members],
+            marker=_tradeoff_marker(dof_limited, peak_limited),
+            label=_tradeoff_group_label(dof_limited, peak_limited),
         )
     ax.axhline(0.0, linewidth=0.8)
     ax.axvline(0.0, linewidth=0.8)
@@ -205,6 +231,12 @@ def _generate_tradeoffs(analysis: Task012Analysis, output_dir: Path) -> list[Pat
     return paths
 
 
+def _sensitivity_label(row: dict[str, object], contrast_type: str) -> str:
+    if contrast_type == "pupil_sensitivity":
+        return f"{row['base_id']}|{row['cornea_id']}|{row['platform_id']}"
+    return f"{row['cornea_id']}|{row['platform_id']}|EPD{int(float(row['pupil_mm']))}"
+
+
 def _sensitivity_plot(
     analysis: Task012Analysis,
     contrast_type: str,
@@ -217,16 +249,29 @@ def _sensitivity_plot(
         for row in analysis.contrasts
         if row["contrast_type"] == contrast_type and row["outcome"] == outcome
     ]
-    labels: list[str] = []
-    values: list[float] = []
-    for row in rows:
-        if contrast_type == "pupil_sensitivity":
-            labels.append(f"{row['base_id']}|{row['cornea_id']}|{row['platform_id']}")
-        else:
-            labels.append(f"{row['cornea_id']}|{row['platform_id']}|EPD{int(float(row['pupil_mm']))}")
-        values.append(float(row["value"]))
+    labels = [_sensitivity_label(row, contrast_type) for row in rows]
     fig, ax = plt.subplots(figsize=(11.5, 5.2))
-    ax.scatter(range(len(values)), values)
+    if outcome == "delta_dof50_width_d":
+        groups: dict[str, list[tuple[int, float]]] = {}
+        for index, row in enumerate(rows):
+            groups.setdefault(str(row["bound_status"]), []).append((index, float(row["value"])))
+        marker_by_status = {
+            "exact": "o",
+            "lower_bound": ">",
+            "upper_bound": "<",
+            "bounded_interval": "s",
+            "indeterminate": "x",
+        }
+        for status, points in sorted(groups.items()):
+            ax.scatter(
+                [index for index, _ in points],
+                [value for _, value in points],
+                marker=marker_by_status.get(status, "x"),
+                label=f"DOF contrast: {status}",
+            )
+        ax.legend()
+    else:
+        ax.scatter(range(len(rows)), [float(row["value"]) for row in rows])
     ax.axhline(0.0, linewidth=0.8)
     ax.set_xticks(range(len(labels)), labels, rotation=70, ha="right")
     ax.set_ylabel("Contrast value")
