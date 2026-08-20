@@ -11,10 +11,29 @@ from pathlib import Path
 TASK012_SOURCE_COMMIT = "f28b3032136aa28f54abb5fe5129765a125d3926"
 TASK012_ANALYSIS_PLAN_ID = "TASK012_RUN72_ANALYSIS_PLAN_2026-08-19"
 TASK012_ANALYSIS_PLAN = "docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md"
-TASK012_SOURCE_HASHES = {
+
+# Repository-byte SHA256 values for the exact Git blobs committed at TASK012_SOURCE_COMMIT.
+# These are the hashes TASK-012 can reproduce from a Git checkout after text normalization.
+TASK012_REPOSITORY_HASHES = {
     "TASK_011_RUN72_EVIDENCE.json": (
         "d1b347cc221293fccd5a08679e8b6368788b22eecaa904f6b8f617a6296c50ee"
     ),
+    "TASK_011_RUN72_CONFIG_RESULTS.csv": (
+        "f51975b588bae3764806a7930fe6b49b0fc09f357d3ca9c11074fa20749cf615"
+    ),
+    "TASK_011_RUN72_THROUGH_FOCUS.csv": (
+        "f2723a30e0629b6f0b27f8f4f73bc469f1ee7fee7fe3c62d2413c0d4a8eba2b6"
+    ),
+    "TASK_011_RUN72_PAIRED_DELTAS.csv": (
+        "a6f0708e3339a6cec7b029f7d6675de291db4cea3162528d489189720c4598c5"
+    ),
+}
+# Backward-compatible name used by tests/CLI for repository-source verification.
+TASK012_SOURCE_HASHES = TASK012_REPOSITORY_HASHES
+
+# Producer-side hashes recorded inside TASK-011 evidence before Git text normalization.
+# The evidence JSON does not self-record a producer-side hash for itself.
+TASK011_RECORDED_EXPORT_HASHES = {
     "TASK_011_RUN72_CONFIG_RESULTS.csv": (
         "337628d95529a3711f36e7ea250ef435413d8f6aff11c25739e3c9b9ccc69dfa"
     ),
@@ -25,6 +44,7 @@ TASK012_SOURCE_HASHES = {
         "03dfe506566f83f6868c72890c042389ed8d0cd370255967fd1ff3b1ca25fa62"
     ),
 }
+
 TASK011_CODE_COMMIT = "01f13b768cf1eca361703469b2fdce3d21f3376d"
 TASK011_RUN_ID = "analysis-1cc1441dec4744a18d7ac73763507a6c"
 TASK011_MANIFEST_HASH = "29205cf1bd27848bb378fad956709b7cde4686ffd917b10351a992fc0d59ad49"
@@ -203,7 +223,7 @@ def sha256_file(path: Path) -> str:
 def verify_source_hashes(evidence_dir: Path) -> dict[str, str]:
     observed: dict[str, str] = {}
     mismatches: dict[str, tuple[str, str]] = {}
-    for filename, expected in TASK012_SOURCE_HASHES.items():
+    for filename, expected in TASK012_REPOSITORY_HASHES.items():
         path = evidence_dir / filename
         if not path.is_file():
             raise Task012Error(f"missing formal TASK-011 evidence file: {path}")
@@ -212,7 +232,7 @@ def verify_source_hashes(evidence_dir: Path) -> dict[str, str]:
         if actual != expected:
             mismatches[filename] = (actual, expected)
     if mismatches:
-        raise Task012Error(f"formal TASK-011 evidence hash mismatch: {mismatches}")
+        raise Task012Error(f"formal TASK-011 repository-byte hash mismatch: {mismatches}")
     return observed
 
 
@@ -246,9 +266,15 @@ def validate_evidence_metadata(path: Path) -> None:
         "accepted_completed_configs": 72,
         "accepted_matched_pairs": 36,
         "accepted_through_focus_rows": 1080,
-        "config_results_csv_sha256": TASK012_SOURCE_HASHES["TASK_011_RUN72_CONFIG_RESULTS.csv"],
-        "through_focus_csv_sha256": TASK012_SOURCE_HASHES["TASK_011_RUN72_THROUGH_FOCUS.csv"],
-        "paired_deltas_csv_sha256": TASK012_SOURCE_HASHES["TASK_011_RUN72_PAIRED_DELTAS.csv"],
+        "config_results_csv_sha256": TASK011_RECORDED_EXPORT_HASHES[
+            "TASK_011_RUN72_CONFIG_RESULTS.csv"
+        ],
+        "through_focus_csv_sha256": TASK011_RECORDED_EXPORT_HASHES[
+            "TASK_011_RUN72_THROUGH_FOCUS.csv"
+        ],
+        "paired_deltas_csv_sha256": TASK011_RECORDED_EXPORT_HASHES[
+            "TASK_011_RUN72_PAIRED_DELTAS.csv"
+        ],
     }
     mismatches = {
         key: (payload.get(key), value)
