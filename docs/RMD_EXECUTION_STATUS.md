@@ -13,6 +13,7 @@
 - TDD-999：cleared
 - TASK-009 corrected representative optical gate：**PASS**
 - production sampling：**128，Web 正式锁定**
+- sampling-lock regression CI：**199 passed / ruff / compileall / uv-lock PASS**
 - Run72：**未启动、未授权**
 
 ## TASK-008 formal identity
@@ -212,6 +213,15 @@ docs/TASK_009_PRODUCTION_SAMPLING_LOCK_2026-08-19.md
 ```
 
 不执行 256→512 escalation，因为 corrected 128→256 已全部满足预注册 gate。
+
+机器可读 lock 已进入 unit regression；对应 Web CI：
+
+```text
+pytest = 199 passed
+ruff = PASS
+compileall = PASS
+uv lock = PASS
+```
 
 ---
 
