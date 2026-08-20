@@ -78,11 +78,11 @@ production_sampling = 128
 B0 = B0.20 immutable
 ```
 
-`NOMINAL_MAIN_FFT_MTF_555_v2` 仅是历史 ID；当前生产数据由 MFE `MTFA Grid=1` 获得。TASK-012 不恢复 Huygens、complex OTF、VSOTF 或旧 FFT MTF Analysis production path。
+`NOMINAL_MAIN_FFT_MTF_555_v2` 仅是历史 ID；当前生产数据由 MFE `MTFA Grid=1` 获得。TASK-012 不恢复 TASK-009 已退休的旧生产分析路径。
 
 ---
 
-## 4. 分析单元与因素
+## 4. 分析单元、因素与显示名
 
 ### 4.1 主分析单元
 
@@ -104,27 +104,37 @@ Base × Cornea × Platform × Pupil
 
 正负方向在所有表格和图中保持一致，不针对不同 outcome 临时反转符号。
 
-### 4.2 因素
+### 4.2 正式因素列
+
+因素必须直接读取正式 CSV 的显式列，不得通过拆分 `config_id`、`pair_key` 或 `carrier_id` 推导因素。
+
+正式列及允许值：
 
 ```text
-Base:
+base_id:
 - LB_AL2395
 - ATC_M3_AL24477
 
-Cornea:
+cornea_id:
 - A0
 - B0
 - C0
 
-Platform:
+platform_id:
 - WFS
 - RAD
 - HOA
 
-Pupil:
-- EPD3
-- EPD5
+pupil_mm:
+- 3.0
+- 5.0
+
+optic_state:
+- MONO
+- EDOF
 ```
+
+`config_id`、`pair_key` 和 `carrier_id` 只用于身份、一致性和配对校验；它们不能成为因素解析的 source-of-truth。
 
 完整 factorial 结构：
 
@@ -133,6 +143,21 @@ Pupil:
 \]
 
 基础眼和瞳孔是正式因素，不先平均掉。
+
+### 4.3 报告显示名映射
+
+正式 evidence 原始值保持不变。论文、图表和解释层使用以下显示名：
+
+```text
+platform_id WFS -> WFS-like
+platform_id RAD -> RAD-like
+platform_id HOA -> HOA-like
+
+pupil_mm 3.0 -> EPD3
+pupil_mm 5.0 -> EPD5
+```
+
+分析表可同时保存 raw ID 与 reporting label；不得为了显示名方便而改写或重新生成 TASK-011 evidence。
 
 ---
 
@@ -178,7 +203,7 @@ through-focus rows/config = 15
 paired-delta rows = 36
 ```
 
-因素取值集合必须与第4节完全一致；不得混合 EPD3/EPD5 或 LB/ATC 后再构造 pair。
+显式因素列的取值集合必须与第4节完全一致。构造 pair 时必须验证 MONO/EDOF 的 `base_id`、`cornea_id`、`platform_id`、`pupil_mm` 完全相同；不得混合 EPD3/EPD5 或 LB/ATC 后再构造 pair。
 
 ### 6.3 Paired delta 独立重建
 
@@ -224,9 +249,20 @@ dof50_near_censored
 
 pair-level censor 状态必须由 MONO 和 EDOF 两侧 config-level flags 构成，不能从 paired-delta CSV 猜测。
 
-### 7.2 DOF50
+### 7.2 DOF50 config-level 状态
 
-定义：
+对每个 config：
+
+```text
+config_dof50_censored =
+    dof50_far_censored OR dof50_near_censored
+```
+
+在冻结 through-focus 窗口内，只要一侧 crossing 未被观察到，当前 `dof50_width_d` 就是该 config 的 **lower bound**；若两侧均未 censor，则为 exact。
+
+### 7.3 DOF50 pair-level effect status
+
+保留简单布尔标志：
 
 ```text
 pair_dof50_censored =
@@ -236,9 +272,35 @@ pair_dof50_censored =
     EDOF.dof50_near_censored
 ```
 
-若 EDOF far side 达到 `+0.50 D` through-focus 边界，则 EDOF `dof50_width_d` 是 lower bound；相应 `delta_dof50_width_d` 也不得作为普通精确值与 uncensored pair 等价排序。
+同时必须生成方向明确的：
 
-当前正式 evidence 已知至少包括：
+```text
+dof50_effect_status =
+- exact
+- lower_bound
+- upper_bound
+- indeterminate
+```
+
+因 `delta_dof50_width_d = EDOF - MONO`，状态规则固定为：
+
+| EDOF width | MONO width | `delta_dof50_width_d` status |
+| --- | --- | --- |
+| exact | exact | `exact` |
+| lower bound | exact | `lower_bound` |
+| exact | lower bound | `upper_bound` |
+| lower bound | lower bound | `indeterminate` |
+
+其中：
+
+- `lower_bound`：真实 delta 不小于报告值；
+- `upper_bound`：真实 delta 不大于报告值；
+- `indeterminate`：两侧都只有 lower bound，差值方向和精确幅度不能由这两个下限单独确定；
+- 非 `exact` 结果不得与 exact pair 等价进行精确排名。
+
+若 EDOF far side 达到 `+0.50 D` through-focus 边界而 MONO exact，则 EDOF `dof50_width_d` 及相应 `delta_dof50_width_d` 均按 `lower_bound` 处理。
+
+当前正式 evidence 已知至少包括以下 EDOF far-side censored configs：
 
 1. ATC + B0 + WFS + EPD3
 2. LB + B0 + WFS + EPD3
@@ -248,7 +310,7 @@ pair_dof50_censored =
 
 TASK-012 仍由代码从正式 CSV 自动识别，不依赖这份手工列表作为计算来源。
 
-### 7.3 Distance peak / DeltaF_residual
+### 7.4 Distance peak / DeltaF_residual
 
 定义：
 
@@ -266,11 +328,11 @@ pair_peak_censored =
 
 因此 peak-censored pair 在结果表和图中必须有显式标志。
 
-### 7.4 不扩大窗口
+### 7.5 不扩大窗口
 
 TASK-012 不因 censoring 事后扩大 distance-peak search window 或 through-focus span，也不补跑完整72-config矩阵。
 
-对于边界受限结果，优先使用方向性/下限解释，并结合 `mtfa_at_zero_d`、`tf_mtfa_mean` 和原始 through-focus 曲线。
+对于边界受限结果，优先使用方向性/上下界解释，并结合 `mtfa_at_zero_d`、`tf_mtfa_mean` 和原始 through-focus 曲线。
 
 ---
 
@@ -280,7 +342,7 @@ TASK-012 不因 censoring 事后扩大 distance-peak search window 或 through-f
 
 ### 8.1 平台 contrasts
 
-在固定 `Base × Cornea × Pupil` 条件下，比较：
+在固定 `Base × Cornea × Pupil` 条件下，以 raw `platform_id` 计算：
 
 ```text
 WFS - RAD
@@ -288,7 +350,7 @@ WFS - HOA
 RAD - HOA
 ```
 
-对第5节各 outcome 分别计算。
+报告时分别显示为 WFS-like、RAD-like、HOA-like。对第5节各 outcome 分别计算。
 
 ### 8.2 角膜 contrasts
 
@@ -304,7 +366,7 @@ B0 - C0
 
 “耦合/协同”不能仅由一个组合的绝对结果判断。正式 interaction 使用 difference-in-differences。
 
-例如 B0 是否对 WFS 具有相对特异优势，可计算：
+例如 B0 是否对 WFS-like 具有相对特异优势，可计算：
 
 \[
 [(B0-A0)_{WFS}] - [(B0-A0)_{RAD}]
@@ -316,7 +378,9 @@ B0 - C0
 [(B0-A0)_{WFS}] - [(B0-A0)_{HOA}]
 \]
 
-C0 × RAD、A0 × platform 等均使用同一结构。所有 interaction 首先在固定 Base 和 Pupil strata 内计算，再检查跨 strata 的方向稳定性。
+C0 × RAD-like、A0 × platform 等均使用同一结构。所有 interaction 首先在固定 Base 和 Pupil strata 内计算，再检查跨 strata 的方向稳定性。
+
+若参与 contrast 的 `delta_dof50_width_d` 存在非 exact 状态，DOF50 interaction 必须保留 constituent bound status，不得把下限/上限/indeterminate 输入当普通精确值后给出伪精确 interaction 排名。
 
 ### 8.4 Pupil sensitivity
 
@@ -383,10 +447,10 @@ EDOF MTFa(F)
 
 ## 10. 3×3 Cornea × Platform 耦合矩阵
 
-最终核心汇总结构：
+最终核心汇总结构使用报告显示名：
 
 ```text
-             WFS      RAD      HOA
+             WFS-like   RAD-like   HOA-like
 A0
 B0
 C0
@@ -396,7 +460,7 @@ C0
 
 每格至少报告：
 
-- `Delta DOF50` 四 strata 值及 censor 状态；
+- `Delta DOF50` 四 strata 值及 `dof50_effect_status`；
 - `Delta mtfa_at_zero_d`；
 - `Delta tf_mtfa_mean`；
 - `Delta distance_peak_mtfa` 及 peak-censor 状态；
@@ -410,7 +474,7 @@ C0
 可为了阅读方便给出低/中/高的**研究内部相对分类**，但：
 
 1. 不能把它写成临床阈值；
-2. censoring 使精确排序不成立时应写 `boundary-limited`，不强行分级；
+2. censoring 使精确排序不成立时应写相应 bound status，不强行分级；
 3. 不生成把延焦收益、距离质量代价、pupil/base stability 压成一个总分的综合评分。
 
 ---
@@ -419,12 +483,13 @@ C0
 
 优先生成：
 
-1. **3×3 pair-effect heatmap**：分别显示 `Delta DOF50`、`Delta mtfa_at_zero_d`、`Delta tf_mtfa_mean`；censored cells 显式标注。
+1. **3×3 pair-effect heatmap**：分别显示 `Delta DOF50`、`Delta mtfa_at_zero_d`、`Delta tf_mtfa_mean`；DOF50 cells 显式标注 `exact/lower_bound/upper_bound/indeterminate`。
 2. **Through-focus MTFa curves**：按 Cornea × Platform 组织，MONO/EDOF 成对显示；Base/Pupil 分层。
 3. **Trade-off plots**：
    - x = `Delta DOF50`
    - y = `Delta mtfa_at_zero_d`
    - 第二张 y = `Delta tf_mtfa_mean`
+   - 非 exact DOF50 使用方向适当的 bound marker/annotation；`indeterminate` 不作为精确 x 值排序依据
    - `Delta distance_peak_mtfa` 作为补充图，peak-censored 点使用独立 marker/annotation。
 4. **Pupil sensitivity plot**：显示 EPD3→EPD5 的 paired effect 变化。
 5. **Base-eye sensitivity plot**：显示 LB→ATC 的 matched interaction。
@@ -475,19 +540,22 @@ docs/evidence/task012/figures/
 1. exact 72-config completeness；
 2. exact 36-pair completeness；
 3. exact 1080 through-focus rows / 15 rows per config；
-4. factor parsing 与允许取值；
-5. 每 pair exactly one MONO + one EDOF；
-6. no duplicate config/pair result；
-7. no accidental EPD3/EPD5 mixing；
-8. no accidental LB/ATC mixing；
-9. paired delta reconstruction 与正式 CSV 一致；
-10. censor propagation 正确；
-11. `mtfa_at_zero_d` 从 through-focus row 可重建；
-12. `tf_mtfa_mean` 从 through-focus data 可重建；
-13. interaction/difference-in-differences 数学 oracle；
-14. pupil/base sensitivity 数学 oracle；
-15. upstream evidence SHA mismatch 必须 fail-closed；
-16. 输出 evidence 不泄漏本机 absolute path。
+4. 显式 factor-column validation 与允许取值；
+5. platform raw ID→reporting label、pupil_mm→EPD label 映射正确；
+6. 因素不得从 `config_id`/`pair_key` 字符串拆分得到；
+7. 每 pair exactly one MONO + one EDOF；
+8. no duplicate config/pair result；
+9. no accidental EPD3/EPD5 mixing；
+10. no accidental LB/ATC mixing；
+11. paired delta reconstruction 与正式 CSV 一致；
+12. config/pair censor propagation 正确；
+13. `dof50_effect_status` 四种状态数学 oracle；
+14. `mtfa_at_zero_d` 从 through-focus row 可重建；
+15. `tf_mtfa_mean` 从 through-focus data 可重建；
+16. interaction/difference-in-differences 数学 oracle；
+17. pupil/base sensitivity 数学 oracle；
+18. upstream evidence SHA mismatch 必须 fail-closed；
+19. 输出 evidence 不泄漏本机 absolute path。
 
 所有这些测试必须可以在无 OpticStudio 环境下执行。
 
@@ -499,12 +567,12 @@ docs/evidence/task012/figures/
 
 1. 平台稳定主效应：是否存在跨角膜、瞳孔和基础眼相对稳定的延焦—质量特征；
 2. Cornea × Platform interaction：是否存在 cornea-specific coupling；
-3. B0 × WFS：是否有相对于其他平台的特异 interaction，而不仅是绝对 DOF50 较大；
-4. C0 × RAD：是否存在稳定的相对适配信号；
-5. HOA：是否表现为较强延焦与较高距离/平均质量代价的质量再分配；
+3. B0 × WFS-like：是否有相对于其他平台的特异 interaction，而不仅是绝对 DOF50 较大；
+4. C0 × RAD-like：是否存在稳定的相对适配信号；
+5. HOA-like：是否表现为较强延焦与较高距离/平均质量代价的质量再分配；
 6. Pupil：EPD5 是否改变效应大小或平台排序；
 7. Base eye：LB/ATC 是否改变 interaction 方向或排序；
-8. Censoring：哪些结论只能给方向性或下限解释。
+8. Censoring：哪些结论是 exact，哪些只能给 lower/upper bound 或 indeterminate 解释。
 
 必须区分：
 
@@ -527,7 +595,8 @@ TASK-012 中以下情况必须停止并返回 Web review：
 - paired delta 不能从 config summary 重建；
 - through-focus summary 不能按冻结定义重建；
 - censor flags 无法无歧义传播；
-- 因素解析导致 Base/Pupil 混配；
+- 显式因素列缺失、出现未知值或导致 Base/Pupil 混配；
+- 分析实现需要从 `config_id`/`pair_key` 字符串猜测因素才能继续；
 - 需要改变 TASK-005～009 scientific/method locks 才能继续；
 - 需要改变预注册 peak/DOF focus windows 才能得到希望的结果；
 - 分析代码为了得到特定结论而改变 outcome 或 interaction 定义。
