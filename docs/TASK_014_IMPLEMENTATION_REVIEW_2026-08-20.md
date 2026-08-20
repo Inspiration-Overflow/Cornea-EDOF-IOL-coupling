@@ -359,6 +359,12 @@ uv lock --check = PASS
 
 此前 run #146 的唯一失败原因是2个 Ruff import-order formatting errors；229 tests、compileall 和 lock 已通过。随后仅修 import formatting，科学逻辑未改变。
 
+RMD Phase-C 状态同步：
+
+```text
+docs/RMD_TASK014_PHASE_C_ADDENDUM_2026-08-20.md
+```
+
 ---
 
 ## 11. 当前尚未产生的事实
