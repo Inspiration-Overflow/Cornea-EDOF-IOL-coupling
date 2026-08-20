@@ -1,17 +1,19 @@
 {
-  "version": 11,
-  "as_of": "2026-08-19",
-  "phase": "task011-run72-complete_task012-analysis-plan-frozen",
+  "version": 12,
+  "as_of": "2026-08-20",
+  "phase": "task012-complete-web-reviewed_ready-for-paper-results-discussion",
   "project_schema_version": 2,
   "active_branch": "feat/task-011-run72",
   "offline_unit_tests": {
     "web_ci_status": "PASS",
-    "web_ci_source_head": "d03f29dd830d71068664811c1f4d0717a8bbbc43",
-    "web_ci_run_id": 32332799561,
-    "web_ci_pytest_passed": 203,
+    "web_ci_source_head": "330b59171e1dab2ea76d1425d56d8e5175d233ef",
+    "web_ci_run_id": 32345872258,
+    "web_ci_pytest_passed": 212,
     "web_ci_ruff": "PASS",
     "web_ci_compileall": "PASS",
     "web_ci_uv_lock": "PASS",
+    "task012_reconstruction_gate": "PASS",
+    "task012_result_review": "PASS_WITH_SCIENTIFIC_CAVEATS",
     "local_task009_status": "PASS",
     "local_task009_pytest_passed": 198,
     "local_task009_run_code_commit": "d80b3a1c33fce02deda50f5ce8ebc73326e5b946"
@@ -28,7 +30,7 @@
     "RMD-TASK-009": "complete_pair-MONO-MTFA_sampling-128_web-provenance-hardened",
     "RMD-TASK-010": "optional-gui-integration_not-analysis-prerequisite",
     "RMD-TASK-011": "complete_formal-run72_web-evidence-review-pass",
-    "RMD-TASK-012": "analysis-plan-frozen_ready-for-web-offline-implementation"
+    "RMD-TASK-012": "complete_offline-reconstruction_censor-aware-analysis_figures_result-review-pass"
   },
   "task008": {
     "status": "complete",
@@ -46,8 +48,6 @@
   "task009": {
     "status": "complete",
     "corrected_evidence_commit": "47f901dad36fb9d407826a6da8baceeef4c2edfd",
-    "corrected_evidence_json_sha256": "404502231e154ebae0813c6b52151961ad4278bef8cc4d29f412d21db7bc8d49",
-    "corrected_through_focus_csv_sha256": "e51e524ee1eb009a1e2ae8cd56cc0bc101aa3dda052fe14dfba585d583987006",
     "analysis_settings_id": "NOMINAL_MAIN_FFT_MTF_555_v2",
     "analysis_settings_sha256": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
     "active_mtf_acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
@@ -55,13 +55,8 @@
     "active_frequency_scale": "paired_residual_free_MONO_EFFL",
     "production_sampling": 128,
     "production_sampling_locked": true,
-    "run_environment_provenance_hardened": true,
-    "backend_provenance_fail_closed": true,
     "requires_more_opticstudio_sampling_validation": false,
-    "no_additional_representative_opticstudio_rerun_required": true,
-    "run72_web_clearance_id": "TASK009_RUN72_WEB_CLEARANCE_v1",
-    "run72_authorized": true,
-    "run72_started": true
+    "no_additional_representative_opticstudio_rerun_required": true
   },
   "task011": {
     "status": "complete-web-reviewed-pass",
@@ -80,41 +75,63 @@
     "acceptance_passed": true,
     "run72_complete": true,
     "web_independent_evidence_review": "PASS",
-    "evidence_json_sha256": "9044898ca71109269b1a35bd5f8701d682bad125e819c54afe50593341e0aa51",
-    "config_results_csv_sha256": "337628d95529a3711f36e7ea250ef435413d8f6aff11c25739e3c9b9ccc69dfa",
-    "through_focus_csv_sha256": "cb4ece26a0a5d3a931db52a5f3b7e3325a99cbe26c9e175abd12bec5b7ec79da",
-    "paired_deltas_csv_sha256": "03dfe506566f83f6868c72890c042389ed8d0cd370255967fd1ff3b1ca25fa62",
-    "repo_evidence_files": [
-      "docs/evidence/task011/TASK_011_RUN72_EVIDENCE.json",
-      "docs/evidence/task011/TASK_011_RUN72_CONFIG_RESULTS.csv",
-      "docs/evidence/task011/TASK_011_RUN72_THROUGH_FOCUS.csv",
-      "docs/evidence/task011/TASK_011_RUN72_PAIRED_DELTAS.csv"
-    ],
+    "repository_sha256": {
+      "TASK_011_RUN72_EVIDENCE.json": "d1b347cc221293fccd5a08679e8b6368788b22eecaa904f6b8f617a6296c50ee",
+      "TASK_011_RUN72_CONFIG_RESULTS.csv": "f51975b588bae3764806a7930fe6b49b0fc09f357d3ca9c11074fa20749cf615",
+      "TASK_011_RUN72_THROUGH_FOCUS.csv": "f2723a30e0629b6f0b27f8f4f73bc469f1ee7fee7fe3c62d2413c0d4a8eba2b6",
+      "TASK_011_RUN72_PAIRED_DELTAS.csv": "a6f0708e3339a6cec7b029f7d6675de291db4cea3162528d489189720c4598c5"
+    },
+    "recorded_producer_export_sha256": {
+      "TASK_011_RUN72_CONFIG_RESULTS.csv": "337628d95529a3711f36e7ea250ef435413d8f6aff11c25739e3c9b9ccc69dfa",
+      "TASK_011_RUN72_THROUGH_FOCUS.csv": "cb4ece26a0a5d3a931db52a5f3b7e3325a99cbe26c9e175abd12bec5b7ec79da",
+      "TASK_011_RUN72_PAIRED_DELTAS.csv": "03dfe506566f83f6868c72890c042389ed8d0cd370255967fd1ff3b1ca25fa62"
+    },
     "opticstudio_rerun_required": false
   },
   "task012": {
-    "status": "analysis-plan-frozen",
+    "status": "complete-review-pass",
     "analysis_plan": "docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md",
+    "results_review": "docs/TASK_012_RESULTS_REVIEW_2026-08-20.md",
     "source_of_truth_commit": "f28b3032136aa28f54abb5fe5129765a125d3926",
-    "primary_analysis_unit": "36 matched MONO-EDOF pairs",
-    "factorial_structure": "2 base x 3 cornea x 3 platform x 2 pupil",
-    "censor_aware": true,
-    "requires_pair_reconstruction_from_config_results": true,
-    "requires_through_focus_reconstruction_checks": true,
+    "analysis_code_commit": "330b59171e1dab2ea76d1425d56d8e5175d233ef",
+    "analysis_evidence_commit": "e92960b1f687ff844da07141f6e0aef50f32cea6",
+    "pair_count": 36,
+    "contrast_count": 1152,
+    "coupling_cell_count": 9,
+    "figure_count": 24,
+    "dof50_effect_status_counts": {
+      "exact": 31,
+      "lower_bound": 5,
+      "upper_bound": 0,
+      "indeterminate": 0
+    },
+    "peak_censored_pair_count": 8,
+    "reconstruction_gate_passed": true,
+    "censor_propagation_passed": true,
+    "factorial_contrasts_complete": true,
+    "coupling_matrix_complete": true,
+    "figures_complete": true,
+    "result_review": "PASS_WITH_SCIENTIFIC_CAVEATS",
     "inferential_p_values_default": false,
-    "opticstudio_required": false
+    "opticstudio_used": false,
+    "opticstudio_rerun_required": false,
+    "formal_artifacts": [
+      "docs/evidence/task012/TASK_012_ANALYSIS_EVIDENCE.json",
+      "docs/evidence/task012/TASK_012_PAIR_ANALYSIS.csv",
+      "docs/evidence/task012/TASK_012_INTERACTION_CONTRASTS.csv",
+      "docs/evidence/task012/TASK_012_COUPLING_MATRIX.csv",
+      "docs/evidence/task012/figures/"
+    ]
   },
   "science_gates_still_active": [],
-  "web_only_gates_still_active": [
-    "TASK-012 offline evidence reconstruction and unit-test gate",
-    "TASK-012 code review before scientific interpretation"
-  ],
+  "web_only_gates_still_active": [],
   "next_execution": {
-    "preferred": "TASK-012-pure-web-offline-analysis",
-    "gui_task010_required_before_analysis": false,
+    "preferred": "paper-level-results-and-discussion-from-frozen-task012-evidence",
+    "gui_task010_required_before_next_science_step": false,
     "repeat_task009_representatives": false,
     "repeat_task011_run72": false,
-    "on_analysis_validation_failure": "stop-interpretation-review-evidence-and-code-do-not-default-to-opticstudio-rerun"
+    "repeat_task012_analysis": false,
+    "on_new_inconsistency": "stop-interpretation-review-evidence-and-code-do-not-default-to-opticstudio-rerun"
   },
   "immutability": {
     "task005_to_task009_science_or_method_changed_by_task011_or_task012": false,
@@ -122,7 +139,7 @@
     "task008_lock_set_hash_changed": false,
     "task009_sampling_lock_changed": false,
     "task011_evidence_recomputed": false,
-    "run72_started": true,
+    "task012_changed_optical_acquisition": false,
     "run72_complete": true
   }
 }
