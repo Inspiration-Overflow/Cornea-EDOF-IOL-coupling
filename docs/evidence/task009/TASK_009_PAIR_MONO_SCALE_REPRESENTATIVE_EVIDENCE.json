@@ -1,0 +1,2538 @@
+{
+  "schema_version": 3,
+  "phase": "TASK-009-MTFA-GRID1-PAIR-MONO-SCALE-REPRESENTATIVE",
+  "evidence_only": true,
+  "formal_artifact": false,
+  "run72_started": false,
+  "code_commit": "d80b3a1c33fce02deda50f5ce8ebc73326e5b946",
+  "task008_evidence_sha256": "ab7dc67badb2f74e3c2868f8778bc10beb34f0ea1f8ba37c50c9e6c1d14d7e6d",
+  "prior_task009_evidence_sha256": "e12b558b2e07f07a19992262cc1866a6034512833fdebdf282872b7afb5e72e4",
+  "task008_manifest_hash": "29205cf1bd27848bb378fad956709b7cde4686ffd917b10351a992fc0d59ad49",
+  "task008_lock_set_hash": "b1dff4c05d2c817099c913c32d9eb8c0b1c9cfa3c9ca8a2022b20c6521e08923",
+  "analysis_settings": {
+    "settings_id": "NOMINAL_MAIN_FFT_MTF_555_v2",
+    "wavelength_nm": 555.0,
+    "pupils_mm": [
+      3.0,
+      5.0
+    ],
+    "defocus_start_d": 0.5,
+    "defocus_stop_d": -3.0,
+    "defocus_step_d": -0.25,
+    "fft_mtf_sampling": 128,
+    "fft_mtf_convergence_samplings": [
+      64,
+      128,
+      256
+    ],
+    "fft_mtf_use_polarization": false,
+    "mtf_frequency_step_cpd": 1.0,
+    "mtfa_max_cpd": 60.0,
+    "mtf_sample_frequencies_cpd": [
+      10.0,
+      20.0,
+      30.0,
+      40.0,
+      50.0,
+      60.0
+    ]
+  },
+  "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+  "mtf_acquisition_contract": {
+    "contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+    "production_operand": "MTFA",
+    "grid": 1,
+    "data_type": 0,
+    "wavelength_number": 1,
+    "field_number": 1,
+    "frequency_axis": "direct_0_to_60_cpd_via_paired_MONO_EFFL"
+  },
+  "mtf_acquisition_contract_hash": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+  "frequency_scale_mode": "paired_residual_free_MONO_EFFL",
+  "pair_angular_scale_references": {
+    "CAR_LB_AL2395_A0_WFS_EPD3": {
+      "pair_key": "CAR_LB_AL2395_A0_WFS_EPD3",
+      "mono_config_id": "CFG_LB_AL2395_A0_WFS_MONO_EPD3",
+      "reference_effl_mm": 16.502920718221272,
+      "mm_per_degree": 0.2880595526417795,
+      "model_sha256": "d8e96aa9b4000e40e3a3c1665f859fe296699be6af5535b9f063620929199bd1",
+      "entity_fingerprint": "1bff569fe6f70cb349ce379ddaed312bee6a4a1adf484e77ddad02d3c81a8438"
+    },
+    "CAR_ATC_M3_AL24477_B0_RAD_EPD5": {
+      "pair_key": "CAR_ATC_M3_AL24477_B0_RAD_EPD5",
+      "mono_config_id": "CFG_ATC_M3_AL24477_B0_RAD_MONO_EPD5",
+      "reference_effl_mm": 16.991651983952405,
+      "mm_per_degree": 0.29659038861756637,
+      "model_sha256": "fcd1d17677ba7b93f0ff3c36e9fa840103dc497f42e47b19012c28b8dff3d42f",
+      "entity_fingerprint": "b73a9d232e492743e9b5f6110fe1ca870d8a2ea6c3baec4d6f1cf9d49d290cd3"
+    },
+    "CAR_ATC_M3_AL24477_C0_HOA_EPD5": {
+      "pair_key": "CAR_ATC_M3_AL24477_C0_HOA_EPD5",
+      "mono_config_id": "CFG_ATC_M3_AL24477_C0_HOA_MONO_EPD5",
+      "reference_effl_mm": 17.155135985882993,
+      "mm_per_degree": 0.2994440124859896,
+      "model_sha256": "8b4e19760587dbbfd266e7f25340a80e30c90023d1a7842a63a23fe93b7ea24a",
+      "entity_fingerprint": "9dd04809f90fb78abb5d2119e9609f3e58846d47e3710ac601751a2eb99ee13e"
+    }
+  },
+  "hoa_settings": {
+    "settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+    "sampling": 1,
+    "wavelength_number": 1,
+    "field_number": 1,
+    "zernike_type": 1,
+    "epsilon": 0.0,
+    "vertex": 0,
+    "term_start": 7,
+    "term_stop": 28
+  },
+  "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2",
+  "representative_manifest_config_ids": [
+    "CFG_LB_AL2395_A0_WFS_MONO_EPD3",
+    "CFG_LB_AL2395_A0_WFS_EDOF_EPD3",
+    "CFG_ATC_M3_AL24477_B0_RAD_MONO_EPD5",
+    "CFG_ATC_M3_AL24477_B0_RAD_EDOF_EPD5",
+    "CFG_ATC_M3_AL24477_C0_HOA_MONO_EPD5",
+    "CFG_ATC_M3_AL24477_C0_HOA_EDOF_EPD5"
+  ],
+  "convergence": {
+    "CAR_LB_AL2395_A0_WFS_EPD3": {
+      "frozen_manifest_config_id": "CFG_LB_AL2395_A0_WFS_EDOF_EPD3",
+      "pair_reference": {
+        "pair_key": "CAR_LB_AL2395_A0_WFS_EPD3",
+        "mono_config_id": "CFG_LB_AL2395_A0_WFS_MONO_EPD3",
+        "reference_effl_mm": 16.502920718221272,
+        "mm_per_degree": 0.2880595526417795,
+        "model_sha256": "d8e96aa9b4000e40e3a3c1665f859fe296699be6af5535b9f063620929199bd1",
+        "entity_fingerprint": "1bff569fe6f70cb349ce379ddaed312bee6a4a1adf484e77ddad02d3c81a8438"
+      },
+      "sampling_results": {
+        "64": {
+          "config_id": "CFG_LB_AL2395_A0_WFS_EDOF_EPD3",
+          "pair_key": "CAR_LB_AL2395_A0_WFS_EPD3",
+          "state": "EDOF",
+          "pupil_mm": 3.0,
+          "distance_peak_retina_d": 0.0,
+          "distance_peak_mtfa": 0.42026774155401486,
+          "mtfa_at_zero_d": 0.42026774155401486,
+          "dof50_far_d": 0.452584146855129,
+          "dof50_near_d": -0.37899460525694606,
+          "dof50_width_d": 0.831578752112075,
+          "tf_mtfa_mean": 0.1370067045626598,
+          "c40_um": 0.04669896132553414,
+          "c60_um": -0.017255016453391267,
+          "hoa_rms_um": 0.04978493837882798,
+          "model_hash": "d38cb8a53e4a75dc2f9220238cf42bf323ac09b0a8b1aea5ac58dcbed35fac62",
+          "entity_fingerprint": "4b4e2be42ca1471a466e41bd81c11f46f01e7692cecd13648a6fc942155d90f7",
+          "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "128": {
+          "config_id": "CFG_LB_AL2395_A0_WFS_EDOF_EPD3",
+          "pair_key": "CAR_LB_AL2395_A0_WFS_EPD3",
+          "state": "EDOF",
+          "pupil_mm": 3.0,
+          "distance_peak_retina_d": 0.0,
+          "distance_peak_mtfa": 0.41990857465983306,
+          "mtfa_at_zero_d": 0.41990857465983306,
+          "dof50_far_d": 0.4515692709293937,
+          "dof50_near_d": -0.38547127006742443,
+          "dof50_width_d": 0.8370405409968181,
+          "tf_mtfa_mean": 0.1371904069510451,
+          "c40_um": 0.04669896132553414,
+          "c60_um": -0.017255016453391267,
+          "hoa_rms_um": 0.04978493837882798,
+          "model_hash": "d38cb8a53e4a75dc2f9220238cf42bf323ac09b0a8b1aea5ac58dcbed35fac62",
+          "entity_fingerprint": "4b4e2be42ca1471a466e41bd81c11f46f01e7692cecd13648a6fc942155d90f7",
+          "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "256": {
+          "config_id": "CFG_LB_AL2395_A0_WFS_EDOF_EPD3",
+          "pair_key": "CAR_LB_AL2395_A0_WFS_EPD3",
+          "state": "EDOF",
+          "pupil_mm": 3.0,
+          "distance_peak_retina_d": 0.0,
+          "distance_peak_mtfa": 0.42005987442321835,
+          "mtfa_at_zero_d": 0.42005987442321835,
+          "dof50_far_d": 0.4521176274979379,
+          "dof50_near_d": -0.38696050342045274,
+          "dof50_width_d": 0.8390781309183906,
+          "tf_mtfa_mean": 0.13736462786780776,
+          "c40_um": 0.04669896132553414,
+          "c60_um": -0.017255016453391267,
+          "hoa_rms_um": 0.04978493837882798,
+          "model_hash": "d38cb8a53e4a75dc2f9220238cf42bf323ac09b0a8b1aea5ac58dcbed35fac62",
+          "entity_fingerprint": "4b4e2be42ca1471a466e41bd81c11f46f01e7692cecd13648a6fc942155d90f7",
+          "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        }
+      },
+      "sampling_diagnostics": {
+        "64": {
+          "sampling": 64,
+          "pair_key": "CAR_LB_AL2395_A0_WFS_EPD3",
+          "pair_reference_effl_mm": 16.502920718221272,
+          "pair_mm_per_degree": 0.2880595526417795,
+          "state_diagnostic_effl_mm": 16.50658554155713,
+          "state_diagnostic_mm_per_degree": 0.2881235223710573,
+          "state_to_pair_effl_ratio": 1.0002220711956649,
+          "target_frequencies_cycles_per_mm": [
+            0.0,
+            3.4715043845241405,
+            6.943008769048281,
+            10.414513153572422,
+            13.886017538096562,
+            17.357521922620702,
+            20.829026307144844,
+            24.300530691668982,
+            27.772035076193124,
+            31.243539460717262,
+            34.715043845241404,
+            38.18654822976554,
+            41.65805261428969,
+            45.129556998813825,
+            48.601061383337964,
+            52.0725657678621,
+            55.54407015238625,
+            59.015574536910385,
+            62.487078921434524,
+            65.95858330595867,
+            69.43008769048281,
+            72.90159207500695,
+            76.37309645953108,
+            79.84460084405522,
+            83.31610522857937,
+            86.78760961310351,
+            90.25911399762765,
+            93.73061838215179,
+            97.20212276667593,
+            100.67362715120007,
+            104.1451315357242,
+            107.61663592024836,
+            111.0881403047725,
+            114.55964468929663,
+            118.03114907382077,
+            121.50265345834491,
+            124.97415784286905,
+            128.4456622273932,
+            131.91716661191734,
+            135.38867099644148,
+            138.86017538096561,
+            142.33167976548975,
+            145.8031841500139,
+            149.27468853453803,
+            152.74619291906217,
+            156.2176973035863,
+            159.68920168811044,
+            163.16070607263458,
+            166.63221045715875,
+            170.1037148416829,
+            173.57521922620703,
+            177.04672361073116,
+            180.5182279952553,
+            183.98973237977944,
+            187.46123676430358,
+            190.93274114882772,
+            194.40424553335185,
+            197.875749917876,
+            201.34725430240013,
+            204.81875868692427,
+            208.2902630714484
+          ],
+          "mtf_runtime": {
+            "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+            "acquisition_contract_hash": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+            "production_operand": "MTFA",
+            "grid": 1,
+            "data_type": 0,
+            "sampling_grid_size": 64,
+            "sampling_index": 2,
+            "parameter_headers": [
+              [
+                2,
+                "Samp"
+              ],
+              [
+                3,
+                "Wave"
+              ],
+              [
+                4,
+                "Field"
+              ],
+              [
+                5,
+                "Freq"
+              ],
+              [
+                6,
+                "Grid"
+              ],
+              [
+                7,
+                "Data Type"
+              ]
+            ],
+            "frequency_min_cycles_per_mm": 0.0,
+            "frequency_max_cycles_per_mm": 208.2902630714484,
+            "frequency_count": 61,
+            "cpd_min": 0.0,
+            "cpd_max": 60.0,
+            "cpd_count": 61,
+            "frequency_scale_mode": "paired_MONO_EFFL"
+          },
+          "footprint_failures": [],
+          "entity_before": {
+            "fingerprint": "4b4e2be42ca1471a466e41bd81c11f46f01e7692cecd13648a6fc942155d90f7",
+            "retina_position_mm": 23.95,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 25.476649332747392,
+            "radius_ant_mm": 9.69175146913979,
+            "radius_post_mm": -9.69175146913979,
+            "q_ant": -4.0,
+            "q_post": 0.0
+          },
+          "entity_after": {
+            "fingerprint": "4b4e2be42ca1471a466e41bd81c11f46f01e7692cecd13648a6fc942155d90f7",
+            "retina_position_mm": 23.95,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 25.476649332747392,
+            "radius_ant_mm": 9.69175146913979,
+            "radius_post_mm": -9.69175146913979,
+            "q_ant": -4.0,
+            "q_post": 0.0
+          },
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "128": {
+          "sampling": 128,
+          "pair_key": "CAR_LB_AL2395_A0_WFS_EPD3",
+          "pair_reference_effl_mm": 16.502920718221272,
+          "pair_mm_per_degree": 0.2880595526417795,
+          "state_diagnostic_effl_mm": 16.50658554155713,
+          "state_diagnostic_mm_per_degree": 0.2881235223710573,
+          "state_to_pair_effl_ratio": 1.0002220711956649,
+          "target_frequencies_cycles_per_mm": [
+            0.0,
+            3.4715043845241405,
+            6.943008769048281,
+            10.414513153572422,
+            13.886017538096562,
+            17.357521922620702,
+            20.829026307144844,
+            24.300530691668982,
+            27.772035076193124,
+            31.243539460717262,
+            34.715043845241404,
+            38.18654822976554,
+            41.65805261428969,
+            45.129556998813825,
+            48.601061383337964,
+            52.0725657678621,
+            55.54407015238625,
+            59.015574536910385,
+            62.487078921434524,
+            65.95858330595867,
+            69.43008769048281,
+            72.90159207500695,
+            76.37309645953108,
+            79.84460084405522,
+            83.31610522857937,
+            86.78760961310351,
+            90.25911399762765,
+            93.73061838215179,
+            97.20212276667593,
+            100.67362715120007,
+            104.1451315357242,
+            107.61663592024836,
+            111.0881403047725,
+            114.55964468929663,
+            118.03114907382077,
+            121.50265345834491,
+            124.97415784286905,
+            128.4456622273932,
+            131.91716661191734,
+            135.38867099644148,
+            138.86017538096561,
+            142.33167976548975,
+            145.8031841500139,
+            149.27468853453803,
+            152.74619291906217,
+            156.2176973035863,
+            159.68920168811044,
+            163.16070607263458,
+            166.63221045715875,
+            170.1037148416829,
+            173.57521922620703,
+            177.04672361073116,
+            180.5182279952553,
+            183.98973237977944,
+            187.46123676430358,
+            190.93274114882772,
+            194.40424553335185,
+            197.875749917876,
+            201.34725430240013,
+            204.81875868692427,
+            208.2902630714484
+          ],
+          "mtf_runtime": {
+            "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+            "acquisition_contract_hash": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+            "production_operand": "MTFA",
+            "grid": 1,
+            "data_type": 0,
+            "sampling_grid_size": 128,
+            "sampling_index": 3,
+            "parameter_headers": [
+              [
+                2,
+                "Samp"
+              ],
+              [
+                3,
+                "Wave"
+              ],
+              [
+                4,
+                "Field"
+              ],
+              [
+                5,
+                "Freq"
+              ],
+              [
+                6,
+                "Grid"
+              ],
+              [
+                7,
+                "Data Type"
+              ]
+            ],
+            "frequency_min_cycles_per_mm": 0.0,
+            "frequency_max_cycles_per_mm": 208.2902630714484,
+            "frequency_count": 61,
+            "cpd_min": 0.0,
+            "cpd_max": 60.0,
+            "cpd_count": 61,
+            "frequency_scale_mode": "paired_MONO_EFFL"
+          },
+          "footprint_failures": [],
+          "entity_before": {
+            "fingerprint": "4b4e2be42ca1471a466e41bd81c11f46f01e7692cecd13648a6fc942155d90f7",
+            "retina_position_mm": 23.95,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 25.476649332747392,
+            "radius_ant_mm": 9.69175146913979,
+            "radius_post_mm": -9.69175146913979,
+            "q_ant": -4.0,
+            "q_post": 0.0
+          },
+          "entity_after": {
+            "fingerprint": "4b4e2be42ca1471a466e41bd81c11f46f01e7692cecd13648a6fc942155d90f7",
+            "retina_position_mm": 23.95,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 25.476649332747392,
+            "radius_ant_mm": 9.69175146913979,
+            "radius_post_mm": -9.69175146913979,
+            "q_ant": -4.0,
+            "q_post": 0.0
+          },
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "256": {
+          "sampling": 256,
+          "pair_key": "CAR_LB_AL2395_A0_WFS_EPD3",
+          "pair_reference_effl_mm": 16.502920718221272,
+          "pair_mm_per_degree": 0.2880595526417795,
+          "state_diagnostic_effl_mm": 16.50658554155713,
+          "state_diagnostic_mm_per_degree": 0.2881235223710573,
+          "state_to_pair_effl_ratio": 1.0002220711956649,
+          "target_frequencies_cycles_per_mm": [
+            0.0,
+            3.4715043845241405,
+            6.943008769048281,
+            10.414513153572422,
+            13.886017538096562,
+            17.357521922620702,
+            20.829026307144844,
+            24.300530691668982,
+            27.772035076193124,
+            31.243539460717262,
+            34.715043845241404,
+            38.18654822976554,
+            41.65805261428969,
+            45.129556998813825,
+            48.601061383337964,
+            52.0725657678621,
+            55.54407015238625,
+            59.015574536910385,
+            62.487078921434524,
+            65.95858330595867,
+            69.43008769048281,
+            72.90159207500695,
+            76.37309645953108,
+            79.84460084405522,
+            83.31610522857937,
+            86.78760961310351,
+            90.25911399762765,
+            93.73061838215179,
+            97.20212276667593,
+            100.67362715120007,
+            104.1451315357242,
+            107.61663592024836,
+            111.0881403047725,
+            114.55964468929663,
+            118.03114907382077,
+            121.50265345834491,
+            124.97415784286905,
+            128.4456622273932,
+            131.91716661191734,
+            135.38867099644148,
+            138.86017538096561,
+            142.33167976548975,
+            145.8031841500139,
+            149.27468853453803,
+            152.74619291906217,
+            156.2176973035863,
+            159.68920168811044,
+            163.16070607263458,
+            166.63221045715875,
+            170.1037148416829,
+            173.57521922620703,
+            177.04672361073116,
+            180.5182279952553,
+            183.98973237977944,
+            187.46123676430358,
+            190.93274114882772,
+            194.40424553335185,
+            197.875749917876,
+            201.34725430240013,
+            204.81875868692427,
+            208.2902630714484
+          ],
+          "mtf_runtime": {
+            "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+            "acquisition_contract_hash": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+            "production_operand": "MTFA",
+            "grid": 1,
+            "data_type": 0,
+            "sampling_grid_size": 256,
+            "sampling_index": 4,
+            "parameter_headers": [
+              [
+                2,
+                "Samp"
+              ],
+              [
+                3,
+                "Wave"
+              ],
+              [
+                4,
+                "Field"
+              ],
+              [
+                5,
+                "Freq"
+              ],
+              [
+                6,
+                "Grid"
+              ],
+              [
+                7,
+                "Data Type"
+              ]
+            ],
+            "frequency_min_cycles_per_mm": 0.0,
+            "frequency_max_cycles_per_mm": 208.2902630714484,
+            "frequency_count": 61,
+            "cpd_min": 0.0,
+            "cpd_max": 60.0,
+            "cpd_count": 61,
+            "frequency_scale_mode": "paired_MONO_EFFL"
+          },
+          "footprint_failures": [],
+          "entity_before": {
+            "fingerprint": "4b4e2be42ca1471a466e41bd81c11f46f01e7692cecd13648a6fc942155d90f7",
+            "retina_position_mm": 23.95,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 25.476649332747392,
+            "radius_ant_mm": 9.69175146913979,
+            "radius_post_mm": -9.69175146913979,
+            "q_ant": -4.0,
+            "q_post": 0.0
+          },
+          "entity_after": {
+            "fingerprint": "4b4e2be42ca1471a466e41bd81c11f46f01e7692cecd13648a6fc942155d90f7",
+            "retina_position_mm": 23.95,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 25.476649332747392,
+            "radius_ant_mm": 9.69175146913979,
+            "radius_post_mm": -9.69175146913979,
+            "q_ant": -4.0,
+            "q_post": 0.0
+          },
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        }
+      },
+      "repeat_128": {
+        "config_id": "CFG_LB_AL2395_A0_WFS_EDOF_EPD3",
+        "pair_key": "CAR_LB_AL2395_A0_WFS_EPD3",
+        "state": "EDOF",
+        "pupil_mm": 3.0,
+        "distance_peak_retina_d": 0.0,
+        "distance_peak_mtfa": 0.41990857465983306,
+        "mtfa_at_zero_d": 0.41990857465983306,
+        "dof50_far_d": 0.4515692709293937,
+        "dof50_near_d": -0.38547127006742443,
+        "dof50_width_d": 0.8370405409968181,
+        "tf_mtfa_mean": 0.1371904069510451,
+        "c40_um": 0.04669896132553414,
+        "c60_um": -0.017255016453391267,
+        "hoa_rms_um": 0.04978493837882798,
+        "model_hash": "d38cb8a53e4a75dc2f9220238cf42bf323ac09b0a8b1aea5ac58dcbed35fac62",
+        "entity_fingerprint": "4b4e2be42ca1471a466e41bd81c11f46f01e7692cecd13648a6fc942155d90f7",
+        "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+        "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+        "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+      },
+      "repeat_128_diagnostics": {
+        "sampling": 128,
+        "pair_key": "CAR_LB_AL2395_A0_WFS_EPD3",
+        "pair_reference_effl_mm": 16.502920718221272,
+        "pair_mm_per_degree": 0.2880595526417795,
+        "state_diagnostic_effl_mm": 16.50658554155713,
+        "state_diagnostic_mm_per_degree": 0.2881235223710573,
+        "state_to_pair_effl_ratio": 1.0002220711956649,
+        "target_frequencies_cycles_per_mm": [
+          0.0,
+          3.4715043845241405,
+          6.943008769048281,
+          10.414513153572422,
+          13.886017538096562,
+          17.357521922620702,
+          20.829026307144844,
+          24.300530691668982,
+          27.772035076193124,
+          31.243539460717262,
+          34.715043845241404,
+          38.18654822976554,
+          41.65805261428969,
+          45.129556998813825,
+          48.601061383337964,
+          52.0725657678621,
+          55.54407015238625,
+          59.015574536910385,
+          62.487078921434524,
+          65.95858330595867,
+          69.43008769048281,
+          72.90159207500695,
+          76.37309645953108,
+          79.84460084405522,
+          83.31610522857937,
+          86.78760961310351,
+          90.25911399762765,
+          93.73061838215179,
+          97.20212276667593,
+          100.67362715120007,
+          104.1451315357242,
+          107.61663592024836,
+          111.0881403047725,
+          114.55964468929663,
+          118.03114907382077,
+          121.50265345834491,
+          124.97415784286905,
+          128.4456622273932,
+          131.91716661191734,
+          135.38867099644148,
+          138.86017538096561,
+          142.33167976548975,
+          145.8031841500139,
+          149.27468853453803,
+          152.74619291906217,
+          156.2176973035863,
+          159.68920168811044,
+          163.16070607263458,
+          166.63221045715875,
+          170.1037148416829,
+          173.57521922620703,
+          177.04672361073116,
+          180.5182279952553,
+          183.98973237977944,
+          187.46123676430358,
+          190.93274114882772,
+          194.40424553335185,
+          197.875749917876,
+          201.34725430240013,
+          204.81875868692427,
+          208.2902630714484
+        ],
+        "mtf_runtime": {
+          "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+          "acquisition_contract_hash": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+          "production_operand": "MTFA",
+          "grid": 1,
+          "data_type": 0,
+          "sampling_grid_size": 128,
+          "sampling_index": 3,
+          "parameter_headers": [
+            [
+              2,
+              "Samp"
+            ],
+            [
+              3,
+              "Wave"
+            ],
+            [
+              4,
+              "Field"
+            ],
+            [
+              5,
+              "Freq"
+            ],
+            [
+              6,
+              "Grid"
+            ],
+            [
+              7,
+              "Data Type"
+            ]
+          ],
+          "frequency_min_cycles_per_mm": 0.0,
+          "frequency_max_cycles_per_mm": 208.2902630714484,
+          "frequency_count": 61,
+          "cpd_min": 0.0,
+          "cpd_max": 60.0,
+          "cpd_count": 61,
+          "frequency_scale_mode": "paired_MONO_EFFL"
+        },
+        "footprint_failures": [],
+        "entity_before": {
+          "fingerprint": "4b4e2be42ca1471a466e41bd81c11f46f01e7692cecd13648a6fc942155d90f7",
+          "retina_position_mm": 23.95,
+          "iol_position_mm": 4.5,
+          "elp_mm": 4.5,
+          "carrier_power_d": 25.476649332747392,
+          "radius_ant_mm": 9.69175146913979,
+          "radius_post_mm": -9.69175146913979,
+          "q_ant": -4.0,
+          "q_post": 0.0
+        },
+        "entity_after": {
+          "fingerprint": "4b4e2be42ca1471a466e41bd81c11f46f01e7692cecd13648a6fc942155d90f7",
+          "retina_position_mm": 23.95,
+          "iol_position_mm": 4.5,
+          "elp_mm": 4.5,
+          "carrier_power_d": 25.476649332747392,
+          "radius_ant_mm": 9.69175146913979,
+          "radius_post_mm": -9.69175146913979,
+          "q_ant": -4.0,
+          "q_post": 0.0
+        },
+        "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+        "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+      },
+      "convergence_gate": {
+        "distance_peak_mtfa_relative_change_128_to_256": 0.00036018618439345544,
+        "tf_mtfa_mean_relative_change_128_to_256": 0.0012683098951087263,
+        "distance_peak_shift_d_128_to_256": 0.0,
+        "dof50_width_change_d_128_to_256": 0.002037589921572436,
+        "passed": true
+      },
+      "repeatability_gate": {
+        "distance_peak_mtfa_relative_change": 0.0,
+        "tf_mtfa_mean_relative_change": 0.0,
+        "c40_abs_delta_um": 0.0,
+        "c60_abs_delta_um": 0.0,
+        "same_distance_peak_grid_sample": true,
+        "passed": true
+      }
+    },
+    "CAR_ATC_M3_AL24477_B0_RAD_EPD5": {
+      "frozen_manifest_config_id": "CFG_ATC_M3_AL24477_B0_RAD_EDOF_EPD5",
+      "pair_reference": {
+        "pair_key": "CAR_ATC_M3_AL24477_B0_RAD_EPD5",
+        "mono_config_id": "CFG_ATC_M3_AL24477_B0_RAD_MONO_EPD5",
+        "reference_effl_mm": 16.991651983952405,
+        "mm_per_degree": 0.29659038861756637,
+        "model_sha256": "fcd1d17677ba7b93f0ff3c36e9fa840103dc497f42e47b19012c28b8dff3d42f",
+        "entity_fingerprint": "b73a9d232e492743e9b5f6110fe1ca870d8a2ea6c3baec4d6f1cf9d49d290cd3"
+      },
+      "sampling_results": {
+        "64": {
+          "config_id": "CFG_ATC_M3_AL24477_B0_RAD_EDOF_EPD5",
+          "pair_key": "CAR_ATC_M3_AL24477_B0_RAD_EPD5",
+          "state": "EDOF",
+          "pupil_mm": 5.0,
+          "distance_peak_retina_d": -0.5,
+          "distance_peak_mtfa": 0.19807272457040204,
+          "mtfa_at_zero_d": 0.17473862566250897,
+          "dof50_far_d": 0.21294361518615768,
+          "dof50_near_d": -1.2031178848273434,
+          "dof50_width_d": 1.416061500013501,
+          "tf_mtfa_mean": 0.09965865092009281,
+          "c40_um": 0.04632655209041505,
+          "c60_um": 0.06896580298326777,
+          "hoa_rms_um": 0.083101818273251,
+          "model_hash": "9c612dd6d3ee9a79f06044a0751688d30b7bc42d4edf072d7521ebd31eac79d4",
+          "entity_fingerprint": "f615ecc7727ae6360212493053286e383f984b6f536d65883bd9a96a395de53c",
+          "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "128": {
+          "config_id": "CFG_ATC_M3_AL24477_B0_RAD_EDOF_EPD5",
+          "pair_key": "CAR_ATC_M3_AL24477_B0_RAD_EPD5",
+          "state": "EDOF",
+          "pupil_mm": 5.0,
+          "distance_peak_retina_d": -0.5,
+          "distance_peak_mtfa": 0.19382965154524656,
+          "mtfa_at_zero_d": 0.17823332905645584,
+          "dof50_far_d": 0.2257518584593609,
+          "dof50_near_d": -1.2187836447345193,
+          "dof50_width_d": 1.4445355031938802,
+          "tf_mtfa_mean": 0.10314671047895518,
+          "c40_um": 0.04632655209041505,
+          "c60_um": 0.06896580298326777,
+          "hoa_rms_um": 0.083101818273251,
+          "model_hash": "9c612dd6d3ee9a79f06044a0751688d30b7bc42d4edf072d7521ebd31eac79d4",
+          "entity_fingerprint": "f615ecc7727ae6360212493053286e383f984b6f536d65883bd9a96a395de53c",
+          "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "256": {
+          "config_id": "CFG_ATC_M3_AL24477_B0_RAD_EDOF_EPD5",
+          "pair_key": "CAR_ATC_M3_AL24477_B0_RAD_EPD5",
+          "state": "EDOF",
+          "pupil_mm": 5.0,
+          "distance_peak_retina_d": -0.5,
+          "distance_peak_mtfa": 0.19295671574128032,
+          "mtfa_at_zero_d": 0.1794912264816568,
+          "dof50_far_d": 0.22921270767065283,
+          "dof50_near_d": -1.2226723739281806,
+          "dof50_width_d": 1.4518850815988333,
+          "tf_mtfa_mean": 0.10373570894673458,
+          "c40_um": 0.04632655209041505,
+          "c60_um": 0.06896580298326777,
+          "hoa_rms_um": 0.083101818273251,
+          "model_hash": "9c612dd6d3ee9a79f06044a0751688d30b7bc42d4edf072d7521ebd31eac79d4",
+          "entity_fingerprint": "f615ecc7727ae6360212493053286e383f984b6f536d65883bd9a96a395de53c",
+          "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        }
+      },
+      "sampling_diagnostics": {
+        "64": {
+          "sampling": 64,
+          "pair_key": "CAR_ATC_M3_AL24477_B0_RAD_EPD5",
+          "pair_reference_effl_mm": 16.991651983952405,
+          "pair_mm_per_degree": 0.29659038861756637,
+          "state_diagnostic_effl_mm": 17.197218726256647,
+          "state_diagnostic_mm_per_degree": 0.3001785694515691,
+          "state_to_pair_effl_ratio": 1.0120981022032693,
+          "target_frequencies_cycles_per_mm": [
+            0.0,
+            3.3716534263334936,
+            6.743306852666987,
+            10.11496027900048,
+            13.486613705333975,
+            16.858267131667468,
+            20.22992055800096,
+            23.601573984334454,
+            26.97322741066795,
+            30.34488083700144,
+            33.716534263334935,
+            37.08818768966843,
+            40.45984111600192,
+            43.83149454233541,
+            47.20314796866891,
+            50.5748013950024,
+            53.9464548213359,
+            57.318108247669386,
+            60.68976167400288,
+            64.06141510033638,
+            67.43306852666987,
+            70.80472195300337,
+            74.17637537933686,
+            77.54802880567036,
+            80.91968223200384,
+            84.29133565833733,
+            87.66298908467083,
+            91.03464251100432,
+            94.40629593733782,
+            97.77794936367131,
+            101.1496027900048,
+            104.5212562163383,
+            107.8929096426718,
+            111.26456306900528,
+            114.63621649533877,
+            118.00786992167227,
+            121.37952334800576,
+            124.75117677433926,
+            128.12283020067275,
+            131.49448362700625,
+            134.86613705333974,
+            138.23779047967324,
+            141.60944390600673,
+            144.98109733234023,
+            148.35275075867372,
+            151.72440418500722,
+            155.0960576113407,
+            158.46771103767418,
+            161.83936446400767,
+            165.21101789034117,
+            168.58267131667466,
+            171.95432474300816,
+            175.32597816934165,
+            178.69763159567515,
+            182.06928502200864,
+            185.44093844834214,
+            188.81259187467563,
+            192.18424530100913,
+            195.55589872734262,
+            198.92755215367612,
+            202.2992055800096
+          ],
+          "mtf_runtime": {
+            "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+            "acquisition_contract_hash": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+            "production_operand": "MTFA",
+            "grid": 1,
+            "data_type": 0,
+            "sampling_grid_size": 64,
+            "sampling_index": 2,
+            "parameter_headers": [
+              [
+                2,
+                "Samp"
+              ],
+              [
+                3,
+                "Wave"
+              ],
+              [
+                4,
+                "Field"
+              ],
+              [
+                5,
+                "Freq"
+              ],
+              [
+                6,
+                "Grid"
+              ],
+              [
+                7,
+                "Data Type"
+              ]
+            ],
+            "frequency_min_cycles_per_mm": 0.0,
+            "frequency_max_cycles_per_mm": 202.2992055800096,
+            "frequency_count": 61,
+            "cpd_min": 0.0,
+            "cpd_max": 60.0,
+            "cpd_count": 61,
+            "frequency_scale_mode": "paired_MONO_EFFL"
+          },
+          "footprint_failures": [],
+          "entity_before": {
+            "fingerprint": "f615ecc7727ae6360212493053286e383f984b6f536d65883bd9a96a395de53c",
+            "retina_position_mm": 24.477,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 23.39616326328968,
+            "radius_ant_mm": 10.5573913555963,
+            "radius_post_mm": -10.5573913555963,
+            "q_ant": -8.0,
+            "q_post": 0.0
+          },
+          "entity_after": {
+            "fingerprint": "f615ecc7727ae6360212493053286e383f984b6f536d65883bd9a96a395de53c",
+            "retina_position_mm": 24.477,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 23.39616326328968,
+            "radius_ant_mm": 10.5573913555963,
+            "radius_post_mm": -10.5573913555963,
+            "q_ant": -8.0,
+            "q_post": 0.0
+          },
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "128": {
+          "sampling": 128,
+          "pair_key": "CAR_ATC_M3_AL24477_B0_RAD_EPD5",
+          "pair_reference_effl_mm": 16.991651983952405,
+          "pair_mm_per_degree": 0.29659038861756637,
+          "state_diagnostic_effl_mm": 17.197218726256647,
+          "state_diagnostic_mm_per_degree": 0.3001785694515691,
+          "state_to_pair_effl_ratio": 1.0120981022032693,
+          "target_frequencies_cycles_per_mm": [
+            0.0,
+            3.3716534263334936,
+            6.743306852666987,
+            10.11496027900048,
+            13.486613705333975,
+            16.858267131667468,
+            20.22992055800096,
+            23.601573984334454,
+            26.97322741066795,
+            30.34488083700144,
+            33.716534263334935,
+            37.08818768966843,
+            40.45984111600192,
+            43.83149454233541,
+            47.20314796866891,
+            50.5748013950024,
+            53.9464548213359,
+            57.318108247669386,
+            60.68976167400288,
+            64.06141510033638,
+            67.43306852666987,
+            70.80472195300337,
+            74.17637537933686,
+            77.54802880567036,
+            80.91968223200384,
+            84.29133565833733,
+            87.66298908467083,
+            91.03464251100432,
+            94.40629593733782,
+            97.77794936367131,
+            101.1496027900048,
+            104.5212562163383,
+            107.8929096426718,
+            111.26456306900528,
+            114.63621649533877,
+            118.00786992167227,
+            121.37952334800576,
+            124.75117677433926,
+            128.12283020067275,
+            131.49448362700625,
+            134.86613705333974,
+            138.23779047967324,
+            141.60944390600673,
+            144.98109733234023,
+            148.35275075867372,
+            151.72440418500722,
+            155.0960576113407,
+            158.46771103767418,
+            161.83936446400767,
+            165.21101789034117,
+            168.58267131667466,
+            171.95432474300816,
+            175.32597816934165,
+            178.69763159567515,
+            182.06928502200864,
+            185.44093844834214,
+            188.81259187467563,
+            192.18424530100913,
+            195.55589872734262,
+            198.92755215367612,
+            202.2992055800096
+          ],
+          "mtf_runtime": {
+            "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+            "acquisition_contract_hash": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+            "production_operand": "MTFA",
+            "grid": 1,
+            "data_type": 0,
+            "sampling_grid_size": 128,
+            "sampling_index": 3,
+            "parameter_headers": [
+              [
+                2,
+                "Samp"
+              ],
+              [
+                3,
+                "Wave"
+              ],
+              [
+                4,
+                "Field"
+              ],
+              [
+                5,
+                "Freq"
+              ],
+              [
+                6,
+                "Grid"
+              ],
+              [
+                7,
+                "Data Type"
+              ]
+            ],
+            "frequency_min_cycles_per_mm": 0.0,
+            "frequency_max_cycles_per_mm": 202.2992055800096,
+            "frequency_count": 61,
+            "cpd_min": 0.0,
+            "cpd_max": 60.0,
+            "cpd_count": 61,
+            "frequency_scale_mode": "paired_MONO_EFFL"
+          },
+          "footprint_failures": [],
+          "entity_before": {
+            "fingerprint": "f615ecc7727ae6360212493053286e383f984b6f536d65883bd9a96a395de53c",
+            "retina_position_mm": 24.477,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 23.39616326328968,
+            "radius_ant_mm": 10.5573913555963,
+            "radius_post_mm": -10.5573913555963,
+            "q_ant": -8.0,
+            "q_post": 0.0
+          },
+          "entity_after": {
+            "fingerprint": "f615ecc7727ae6360212493053286e383f984b6f536d65883bd9a96a395de53c",
+            "retina_position_mm": 24.477,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 23.39616326328968,
+            "radius_ant_mm": 10.5573913555963,
+            "radius_post_mm": -10.5573913555963,
+            "q_ant": -8.0,
+            "q_post": 0.0
+          },
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "256": {
+          "sampling": 256,
+          "pair_key": "CAR_ATC_M3_AL24477_B0_RAD_EPD5",
+          "pair_reference_effl_mm": 16.991651983952405,
+          "pair_mm_per_degree": 0.29659038861756637,
+          "state_diagnostic_effl_mm": 17.197218726256647,
+          "state_diagnostic_mm_per_degree": 0.3001785694515691,
+          "state_to_pair_effl_ratio": 1.0120981022032693,
+          "target_frequencies_cycles_per_mm": [
+            0.0,
+            3.3716534263334936,
+            6.743306852666987,
+            10.11496027900048,
+            13.486613705333975,
+            16.858267131667468,
+            20.22992055800096,
+            23.601573984334454,
+            26.97322741066795,
+            30.34488083700144,
+            33.716534263334935,
+            37.08818768966843,
+            40.45984111600192,
+            43.83149454233541,
+            47.20314796866891,
+            50.5748013950024,
+            53.9464548213359,
+            57.318108247669386,
+            60.68976167400288,
+            64.06141510033638,
+            67.43306852666987,
+            70.80472195300337,
+            74.17637537933686,
+            77.54802880567036,
+            80.91968223200384,
+            84.29133565833733,
+            87.66298908467083,
+            91.03464251100432,
+            94.40629593733782,
+            97.77794936367131,
+            101.1496027900048,
+            104.5212562163383,
+            107.8929096426718,
+            111.26456306900528,
+            114.63621649533877,
+            118.00786992167227,
+            121.37952334800576,
+            124.75117677433926,
+            128.12283020067275,
+            131.49448362700625,
+            134.86613705333974,
+            138.23779047967324,
+            141.60944390600673,
+            144.98109733234023,
+            148.35275075867372,
+            151.72440418500722,
+            155.0960576113407,
+            158.46771103767418,
+            161.83936446400767,
+            165.21101789034117,
+            168.58267131667466,
+            171.95432474300816,
+            175.32597816934165,
+            178.69763159567515,
+            182.06928502200864,
+            185.44093844834214,
+            188.81259187467563,
+            192.18424530100913,
+            195.55589872734262,
+            198.92755215367612,
+            202.2992055800096
+          ],
+          "mtf_runtime": {
+            "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+            "acquisition_contract_hash": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+            "production_operand": "MTFA",
+            "grid": 1,
+            "data_type": 0,
+            "sampling_grid_size": 256,
+            "sampling_index": 4,
+            "parameter_headers": [
+              [
+                2,
+                "Samp"
+              ],
+              [
+                3,
+                "Wave"
+              ],
+              [
+                4,
+                "Field"
+              ],
+              [
+                5,
+                "Freq"
+              ],
+              [
+                6,
+                "Grid"
+              ],
+              [
+                7,
+                "Data Type"
+              ]
+            ],
+            "frequency_min_cycles_per_mm": 0.0,
+            "frequency_max_cycles_per_mm": 202.2992055800096,
+            "frequency_count": 61,
+            "cpd_min": 0.0,
+            "cpd_max": 60.0,
+            "cpd_count": 61,
+            "frequency_scale_mode": "paired_MONO_EFFL"
+          },
+          "footprint_failures": [],
+          "entity_before": {
+            "fingerprint": "f615ecc7727ae6360212493053286e383f984b6f536d65883bd9a96a395de53c",
+            "retina_position_mm": 24.477,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 23.39616326328968,
+            "radius_ant_mm": 10.5573913555963,
+            "radius_post_mm": -10.5573913555963,
+            "q_ant": -8.0,
+            "q_post": 0.0
+          },
+          "entity_after": {
+            "fingerprint": "f615ecc7727ae6360212493053286e383f984b6f536d65883bd9a96a395de53c",
+            "retina_position_mm": 24.477,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 23.39616326328968,
+            "radius_ant_mm": 10.5573913555963,
+            "radius_post_mm": -10.5573913555963,
+            "q_ant": -8.0,
+            "q_post": 0.0
+          },
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        }
+      },
+      "repeat_128": {
+        "config_id": "CFG_ATC_M3_AL24477_B0_RAD_EDOF_EPD5",
+        "pair_key": "CAR_ATC_M3_AL24477_B0_RAD_EPD5",
+        "state": "EDOF",
+        "pupil_mm": 5.0,
+        "distance_peak_retina_d": -0.5,
+        "distance_peak_mtfa": 0.19382965154524656,
+        "mtfa_at_zero_d": 0.17823332905645584,
+        "dof50_far_d": 0.2257518584593609,
+        "dof50_near_d": -1.2187836447345193,
+        "dof50_width_d": 1.4445355031938802,
+        "tf_mtfa_mean": 0.10314671047895518,
+        "c40_um": 0.04632655209041505,
+        "c60_um": 0.06896580298326777,
+        "hoa_rms_um": 0.083101818273251,
+        "model_hash": "9c612dd6d3ee9a79f06044a0751688d30b7bc42d4edf072d7521ebd31eac79d4",
+        "entity_fingerprint": "f615ecc7727ae6360212493053286e383f984b6f536d65883bd9a96a395de53c",
+        "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+        "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+        "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+      },
+      "repeat_128_diagnostics": {
+        "sampling": 128,
+        "pair_key": "CAR_ATC_M3_AL24477_B0_RAD_EPD5",
+        "pair_reference_effl_mm": 16.991651983952405,
+        "pair_mm_per_degree": 0.29659038861756637,
+        "state_diagnostic_effl_mm": 17.197218726256647,
+        "state_diagnostic_mm_per_degree": 0.3001785694515691,
+        "state_to_pair_effl_ratio": 1.0120981022032693,
+        "target_frequencies_cycles_per_mm": [
+          0.0,
+          3.3716534263334936,
+          6.743306852666987,
+          10.11496027900048,
+          13.486613705333975,
+          16.858267131667468,
+          20.22992055800096,
+          23.601573984334454,
+          26.97322741066795,
+          30.34488083700144,
+          33.716534263334935,
+          37.08818768966843,
+          40.45984111600192,
+          43.83149454233541,
+          47.20314796866891,
+          50.5748013950024,
+          53.9464548213359,
+          57.318108247669386,
+          60.68976167400288,
+          64.06141510033638,
+          67.43306852666987,
+          70.80472195300337,
+          74.17637537933686,
+          77.54802880567036,
+          80.91968223200384,
+          84.29133565833733,
+          87.66298908467083,
+          91.03464251100432,
+          94.40629593733782,
+          97.77794936367131,
+          101.1496027900048,
+          104.5212562163383,
+          107.8929096426718,
+          111.26456306900528,
+          114.63621649533877,
+          118.00786992167227,
+          121.37952334800576,
+          124.75117677433926,
+          128.12283020067275,
+          131.49448362700625,
+          134.86613705333974,
+          138.23779047967324,
+          141.60944390600673,
+          144.98109733234023,
+          148.35275075867372,
+          151.72440418500722,
+          155.0960576113407,
+          158.46771103767418,
+          161.83936446400767,
+          165.21101789034117,
+          168.58267131667466,
+          171.95432474300816,
+          175.32597816934165,
+          178.69763159567515,
+          182.06928502200864,
+          185.44093844834214,
+          188.81259187467563,
+          192.18424530100913,
+          195.55589872734262,
+          198.92755215367612,
+          202.2992055800096
+        ],
+        "mtf_runtime": {
+          "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+          "acquisition_contract_hash": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+          "production_operand": "MTFA",
+          "grid": 1,
+          "data_type": 0,
+          "sampling_grid_size": 128,
+          "sampling_index": 3,
+          "parameter_headers": [
+            [
+              2,
+              "Samp"
+            ],
+            [
+              3,
+              "Wave"
+            ],
+            [
+              4,
+              "Field"
+            ],
+            [
+              5,
+              "Freq"
+            ],
+            [
+              6,
+              "Grid"
+            ],
+            [
+              7,
+              "Data Type"
+            ]
+          ],
+          "frequency_min_cycles_per_mm": 0.0,
+          "frequency_max_cycles_per_mm": 202.2992055800096,
+          "frequency_count": 61,
+          "cpd_min": 0.0,
+          "cpd_max": 60.0,
+          "cpd_count": 61,
+          "frequency_scale_mode": "paired_MONO_EFFL"
+        },
+        "footprint_failures": [],
+        "entity_before": {
+          "fingerprint": "f615ecc7727ae6360212493053286e383f984b6f536d65883bd9a96a395de53c",
+          "retina_position_mm": 24.477,
+          "iol_position_mm": 4.5,
+          "elp_mm": 4.5,
+          "carrier_power_d": 23.39616326328968,
+          "radius_ant_mm": 10.5573913555963,
+          "radius_post_mm": -10.5573913555963,
+          "q_ant": -8.0,
+          "q_post": 0.0
+        },
+        "entity_after": {
+          "fingerprint": "f615ecc7727ae6360212493053286e383f984b6f536d65883bd9a96a395de53c",
+          "retina_position_mm": 24.477,
+          "iol_position_mm": 4.5,
+          "elp_mm": 4.5,
+          "carrier_power_d": 23.39616326328968,
+          "radius_ant_mm": 10.5573913555963,
+          "radius_post_mm": -10.5573913555963,
+          "q_ant": -8.0,
+          "q_post": 0.0
+        },
+        "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+        "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+      },
+      "convergence_gate": {
+        "distance_peak_mtfa_relative_change_128_to_256": 0.00450362365616941,
+        "tf_mtfa_mean_relative_change_128_to_256": 0.005677875764861513,
+        "distance_peak_shift_d_128_to_256": 0.0,
+        "dof50_width_change_d_128_to_256": 0.007349578404953094,
+        "passed": true
+      },
+      "repeatability_gate": {
+        "distance_peak_mtfa_relative_change": 0.0,
+        "tf_mtfa_mean_relative_change": 0.0,
+        "c40_abs_delta_um": 0.0,
+        "c60_abs_delta_um": 0.0,
+        "same_distance_peak_grid_sample": true,
+        "passed": true
+      }
+    },
+    "CAR_ATC_M3_AL24477_C0_HOA_EPD5": {
+      "frozen_manifest_config_id": "CFG_ATC_M3_AL24477_C0_HOA_EDOF_EPD5",
+      "pair_reference": {
+        "pair_key": "CAR_ATC_M3_AL24477_C0_HOA_EPD5",
+        "mono_config_id": "CFG_ATC_M3_AL24477_C0_HOA_MONO_EPD5",
+        "reference_effl_mm": 17.155135985882993,
+        "mm_per_degree": 0.2994440124859896,
+        "model_sha256": "8b4e19760587dbbfd266e7f25340a80e30c90023d1a7842a63a23fe93b7ea24a",
+        "entity_fingerprint": "9dd04809f90fb78abb5d2119e9609f3e58846d47e3710ac601751a2eb99ee13e"
+      },
+      "sampling_results": {
+        "64": {
+          "config_id": "CFG_ATC_M3_AL24477_C0_HOA_EDOF_EPD5",
+          "pair_key": "CAR_ATC_M3_AL24477_C0_HOA_EPD5",
+          "state": "EDOF",
+          "pupil_mm": 5.0,
+          "distance_peak_retina_d": -0.25,
+          "distance_peak_mtfa": 0.1641189329357718,
+          "mtfa_at_zero_d": 0.09836529082017707,
+          "dof50_far_d": 0.39820390592426125,
+          "dof50_near_d": -0.48616542436205407,
+          "dof50_width_d": 0.8843693302863154,
+          "tf_mtfa_mean": 0.056785292617579565,
+          "c40_um": -0.19548188103807035,
+          "c60_um": -0.03160275647415774,
+          "hoa_rms_um": 0.1981528453859365,
+          "model_hash": "8b88b22a87988265227fc13979111b0725102c82db9b6704ce29dab7c77cfdbf",
+          "entity_fingerprint": "ee0b77e37b5b84eaf678c0811361e227e5d3205a0cd742bd95558c1124cd9023",
+          "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "128": {
+          "config_id": "CFG_ATC_M3_AL24477_C0_HOA_EDOF_EPD5",
+          "pair_key": "CAR_ATC_M3_AL24477_C0_HOA_EPD5",
+          "state": "EDOF",
+          "pupil_mm": 5.0,
+          "distance_peak_retina_d": -0.25,
+          "distance_peak_mtfa": 0.1561077944871194,
+          "mtfa_at_zero_d": 0.10195409601569046,
+          "dof50_far_d": 0.5,
+          "dof50_near_d": -0.4922987917293802,
+          "dof50_width_d": 0.9922987917293802,
+          "tf_mtfa_mean": 0.053621677680421406,
+          "c40_um": -0.19548188103807035,
+          "c60_um": -0.03160275647415774,
+          "hoa_rms_um": 0.1981528453859365,
+          "model_hash": "8b88b22a87988265227fc13979111b0725102c82db9b6704ce29dab7c77cfdbf",
+          "entity_fingerprint": "ee0b77e37b5b84eaf678c0811361e227e5d3205a0cd742bd95558c1124cd9023",
+          "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "256": {
+          "config_id": "CFG_ATC_M3_AL24477_C0_HOA_EDOF_EPD5",
+          "pair_key": "CAR_ATC_M3_AL24477_C0_HOA_EPD5",
+          "state": "EDOF",
+          "pupil_mm": 5.0,
+          "distance_peak_retina_d": -0.25,
+          "distance_peak_mtfa": 0.1533536127231527,
+          "mtfa_at_zero_d": 0.10247849119269353,
+          "dof50_far_d": 0.5,
+          "dof50_near_d": -0.49225480200823835,
+          "dof50_width_d": 0.9922548020082383,
+          "tf_mtfa_mean": 0.05390200828380707,
+          "c40_um": -0.19548188103807035,
+          "c60_um": -0.03160275647415774,
+          "hoa_rms_um": 0.1981528453859365,
+          "model_hash": "8b88b22a87988265227fc13979111b0725102c82db9b6704ce29dab7c77cfdbf",
+          "entity_fingerprint": "ee0b77e37b5b84eaf678c0811361e227e5d3205a0cd742bd95558c1124cd9023",
+          "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        }
+      },
+      "sampling_diagnostics": {
+        "64": {
+          "sampling": 64,
+          "pair_key": "CAR_ATC_M3_AL24477_C0_HOA_EPD5",
+          "pair_reference_effl_mm": 17.155135985882993,
+          "pair_mm_per_degree": 0.2994440124859896,
+          "state_diagnostic_effl_mm": 9.633329064114418,
+          "state_diagnostic_mm_per_degree": 0.16815038428900272,
+          "state_to_pair_effl_ratio": 0.5615419820654124,
+          "target_frequencies_cycles_per_mm": [
+            0.0,
+            3.3395224426028154,
+            6.679044885205631,
+            10.018567327808446,
+            13.358089770411262,
+            16.697612213014075,
+            20.037134655616892,
+            23.376657098219706,
+            26.716179540822523,
+            30.055701983425337,
+            33.39522442602815,
+            36.73474686863097,
+            40.074269311233785,
+            43.4137917538366,
+            46.75331419643941,
+            50.09283663904223,
+            53.432359081645046,
+            56.77188152424786,
+            60.11140396685067,
+            63.450926409453494,
+            66.7904488520563,
+            70.12997129465913,
+            73.46949373726194,
+            76.80901617986476,
+            80.14853862246757,
+            83.48806106507038,
+            86.8275835076732,
+            90.16710595027601,
+            93.50662839287882,
+            96.84615083548165,
+            100.18567327808447,
+            103.52519572068728,
+            106.86471816329009,
+            110.2042406058929,
+            113.54376304849572,
+            116.88328549109853,
+            120.22280793370135,
+            123.56233037630417,
+            126.90185281890699,
+            130.2413752615098,
+            133.5808977041126,
+            136.92042014671543,
+            140.25994258931826,
+            143.59946503192106,
+            146.93898747452388,
+            150.27850991712668,
+            153.6180323597295,
+            156.9575548023323,
+            160.29707724493514,
+            163.63659968753797,
+            166.97612213014077,
+            170.3156445727436,
+            173.6551670153464,
+            176.99468945794922,
+            180.33421190055202,
+            183.67373434315485,
+            187.01325678575765,
+            190.35277922836048,
+            193.6923016709633,
+            197.0318241135661,
+            200.37134655616893
+          ],
+          "mtf_runtime": {
+            "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+            "acquisition_contract_hash": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+            "production_operand": "MTFA",
+            "grid": 1,
+            "data_type": 0,
+            "sampling_grid_size": 64,
+            "sampling_index": 2,
+            "parameter_headers": [
+              [
+                2,
+                "Samp"
+              ],
+              [
+                3,
+                "Wave"
+              ],
+              [
+                4,
+                "Field"
+              ],
+              [
+                5,
+                "Freq"
+              ],
+              [
+                6,
+                "Grid"
+              ],
+              [
+                7,
+                "Data Type"
+              ]
+            ],
+            "frequency_min_cycles_per_mm": 0.0,
+            "frequency_max_cycles_per_mm": 200.37134655616893,
+            "frequency_count": 61,
+            "cpd_min": 0.0,
+            "cpd_max": 60.0,
+            "cpd_count": 61,
+            "frequency_scale_mode": "paired_MONO_EFFL"
+          },
+          "footprint_failures": [],
+          "entity_before": {
+            "fingerprint": "ee0b77e37b5b84eaf678c0811361e227e5d3205a0cd742bd95558c1124cd9023",
+            "retina_position_mm": 24.477,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 20.814928860453236,
+            "radius_ant_mm": 11.8719072684107,
+            "radius_post_mm": -11.8719072684107,
+            "q_ant": 0.0,
+            "q_post": 0.0
+          },
+          "entity_after": {
+            "fingerprint": "ee0b77e37b5b84eaf678c0811361e227e5d3205a0cd742bd95558c1124cd9023",
+            "retina_position_mm": 24.477,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 20.814928860453236,
+            "radius_ant_mm": 11.8719072684107,
+            "radius_post_mm": -11.8719072684107,
+            "q_ant": 0.0,
+            "q_post": 0.0
+          },
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "128": {
+          "sampling": 128,
+          "pair_key": "CAR_ATC_M3_AL24477_C0_HOA_EPD5",
+          "pair_reference_effl_mm": 17.155135985882993,
+          "pair_mm_per_degree": 0.2994440124859896,
+          "state_diagnostic_effl_mm": 9.633329064114418,
+          "state_diagnostic_mm_per_degree": 0.16815038428900272,
+          "state_to_pair_effl_ratio": 0.5615419820654124,
+          "target_frequencies_cycles_per_mm": [
+            0.0,
+            3.3395224426028154,
+            6.679044885205631,
+            10.018567327808446,
+            13.358089770411262,
+            16.697612213014075,
+            20.037134655616892,
+            23.376657098219706,
+            26.716179540822523,
+            30.055701983425337,
+            33.39522442602815,
+            36.73474686863097,
+            40.074269311233785,
+            43.4137917538366,
+            46.75331419643941,
+            50.09283663904223,
+            53.432359081645046,
+            56.77188152424786,
+            60.11140396685067,
+            63.450926409453494,
+            66.7904488520563,
+            70.12997129465913,
+            73.46949373726194,
+            76.80901617986476,
+            80.14853862246757,
+            83.48806106507038,
+            86.8275835076732,
+            90.16710595027601,
+            93.50662839287882,
+            96.84615083548165,
+            100.18567327808447,
+            103.52519572068728,
+            106.86471816329009,
+            110.2042406058929,
+            113.54376304849572,
+            116.88328549109853,
+            120.22280793370135,
+            123.56233037630417,
+            126.90185281890699,
+            130.2413752615098,
+            133.5808977041126,
+            136.92042014671543,
+            140.25994258931826,
+            143.59946503192106,
+            146.93898747452388,
+            150.27850991712668,
+            153.6180323597295,
+            156.9575548023323,
+            160.29707724493514,
+            163.63659968753797,
+            166.97612213014077,
+            170.3156445727436,
+            173.6551670153464,
+            176.99468945794922,
+            180.33421190055202,
+            183.67373434315485,
+            187.01325678575765,
+            190.35277922836048,
+            193.6923016709633,
+            197.0318241135661,
+            200.37134655616893
+          ],
+          "mtf_runtime": {
+            "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+            "acquisition_contract_hash": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+            "production_operand": "MTFA",
+            "grid": 1,
+            "data_type": 0,
+            "sampling_grid_size": 128,
+            "sampling_index": 3,
+            "parameter_headers": [
+              [
+                2,
+                "Samp"
+              ],
+              [
+                3,
+                "Wave"
+              ],
+              [
+                4,
+                "Field"
+              ],
+              [
+                5,
+                "Freq"
+              ],
+              [
+                6,
+                "Grid"
+              ],
+              [
+                7,
+                "Data Type"
+              ]
+            ],
+            "frequency_min_cycles_per_mm": 0.0,
+            "frequency_max_cycles_per_mm": 200.37134655616893,
+            "frequency_count": 61,
+            "cpd_min": 0.0,
+            "cpd_max": 60.0,
+            "cpd_count": 61,
+            "frequency_scale_mode": "paired_MONO_EFFL"
+          },
+          "footprint_failures": [],
+          "entity_before": {
+            "fingerprint": "ee0b77e37b5b84eaf678c0811361e227e5d3205a0cd742bd95558c1124cd9023",
+            "retina_position_mm": 24.477,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 20.814928860453236,
+            "radius_ant_mm": 11.8719072684107,
+            "radius_post_mm": -11.8719072684107,
+            "q_ant": 0.0,
+            "q_post": 0.0
+          },
+          "entity_after": {
+            "fingerprint": "ee0b77e37b5b84eaf678c0811361e227e5d3205a0cd742bd95558c1124cd9023",
+            "retina_position_mm": 24.477,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 20.814928860453236,
+            "radius_ant_mm": 11.8719072684107,
+            "radius_post_mm": -11.8719072684107,
+            "q_ant": 0.0,
+            "q_post": 0.0
+          },
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "256": {
+          "sampling": 256,
+          "pair_key": "CAR_ATC_M3_AL24477_C0_HOA_EPD5",
+          "pair_reference_effl_mm": 17.155135985882993,
+          "pair_mm_per_degree": 0.2994440124859896,
+          "state_diagnostic_effl_mm": 9.633329064114418,
+          "state_diagnostic_mm_per_degree": 0.16815038428900272,
+          "state_to_pair_effl_ratio": 0.5615419820654124,
+          "target_frequencies_cycles_per_mm": [
+            0.0,
+            3.3395224426028154,
+            6.679044885205631,
+            10.018567327808446,
+            13.358089770411262,
+            16.697612213014075,
+            20.037134655616892,
+            23.376657098219706,
+            26.716179540822523,
+            30.055701983425337,
+            33.39522442602815,
+            36.73474686863097,
+            40.074269311233785,
+            43.4137917538366,
+            46.75331419643941,
+            50.09283663904223,
+            53.432359081645046,
+            56.77188152424786,
+            60.11140396685067,
+            63.450926409453494,
+            66.7904488520563,
+            70.12997129465913,
+            73.46949373726194,
+            76.80901617986476,
+            80.14853862246757,
+            83.48806106507038,
+            86.8275835076732,
+            90.16710595027601,
+            93.50662839287882,
+            96.84615083548165,
+            100.18567327808447,
+            103.52519572068728,
+            106.86471816329009,
+            110.2042406058929,
+            113.54376304849572,
+            116.88328549109853,
+            120.22280793370135,
+            123.56233037630417,
+            126.90185281890699,
+            130.2413752615098,
+            133.5808977041126,
+            136.92042014671543,
+            140.25994258931826,
+            143.59946503192106,
+            146.93898747452388,
+            150.27850991712668,
+            153.6180323597295,
+            156.9575548023323,
+            160.29707724493514,
+            163.63659968753797,
+            166.97612213014077,
+            170.3156445727436,
+            173.6551670153464,
+            176.99468945794922,
+            180.33421190055202,
+            183.67373434315485,
+            187.01325678575765,
+            190.35277922836048,
+            193.6923016709633,
+            197.0318241135661,
+            200.37134655616893
+          ],
+          "mtf_runtime": {
+            "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+            "acquisition_contract_hash": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+            "production_operand": "MTFA",
+            "grid": 1,
+            "data_type": 0,
+            "sampling_grid_size": 256,
+            "sampling_index": 4,
+            "parameter_headers": [
+              [
+                2,
+                "Samp"
+              ],
+              [
+                3,
+                "Wave"
+              ],
+              [
+                4,
+                "Field"
+              ],
+              [
+                5,
+                "Freq"
+              ],
+              [
+                6,
+                "Grid"
+              ],
+              [
+                7,
+                "Data Type"
+              ]
+            ],
+            "frequency_min_cycles_per_mm": 0.0,
+            "frequency_max_cycles_per_mm": 200.37134655616893,
+            "frequency_count": 61,
+            "cpd_min": 0.0,
+            "cpd_max": 60.0,
+            "cpd_count": 61,
+            "frequency_scale_mode": "paired_MONO_EFFL"
+          },
+          "footprint_failures": [],
+          "entity_before": {
+            "fingerprint": "ee0b77e37b5b84eaf678c0811361e227e5d3205a0cd742bd95558c1124cd9023",
+            "retina_position_mm": 24.477,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 20.814928860453236,
+            "radius_ant_mm": 11.8719072684107,
+            "radius_post_mm": -11.8719072684107,
+            "q_ant": 0.0,
+            "q_post": 0.0
+          },
+          "entity_after": {
+            "fingerprint": "ee0b77e37b5b84eaf678c0811361e227e5d3205a0cd742bd95558c1124cd9023",
+            "retina_position_mm": 24.477,
+            "iol_position_mm": 4.5,
+            "elp_mm": 4.5,
+            "carrier_power_d": 20.814928860453236,
+            "radius_ant_mm": 11.8719072684107,
+            "radius_post_mm": -11.8719072684107,
+            "q_ant": 0.0,
+            "q_post": 0.0
+          },
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        }
+      },
+      "repeat_128": {
+        "config_id": "CFG_ATC_M3_AL24477_C0_HOA_EDOF_EPD5",
+        "pair_key": "CAR_ATC_M3_AL24477_C0_HOA_EPD5",
+        "state": "EDOF",
+        "pupil_mm": 5.0,
+        "distance_peak_retina_d": -0.25,
+        "distance_peak_mtfa": 0.1561077944871194,
+        "mtfa_at_zero_d": 0.10195409601569046,
+        "dof50_far_d": 0.5,
+        "dof50_near_d": -0.4922987917293802,
+        "dof50_width_d": 0.9922987917293802,
+        "tf_mtfa_mean": 0.053621677680421406,
+        "c40_um": -0.19548188103807035,
+        "c60_um": -0.03160275647415774,
+        "hoa_rms_um": 0.1981528453859365,
+        "model_hash": "8b88b22a87988265227fc13979111b0725102c82db9b6704ce29dab7c77cfdbf",
+        "entity_fingerprint": "ee0b77e37b5b84eaf678c0811361e227e5d3205a0cd742bd95558c1124cd9023",
+        "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+        "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+        "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+      },
+      "repeat_128_diagnostics": {
+        "sampling": 128,
+        "pair_key": "CAR_ATC_M3_AL24477_C0_HOA_EPD5",
+        "pair_reference_effl_mm": 17.155135985882993,
+        "pair_mm_per_degree": 0.2994440124859896,
+        "state_diagnostic_effl_mm": 9.633329064114418,
+        "state_diagnostic_mm_per_degree": 0.16815038428900272,
+        "state_to_pair_effl_ratio": 0.5615419820654124,
+        "target_frequencies_cycles_per_mm": [
+          0.0,
+          3.3395224426028154,
+          6.679044885205631,
+          10.018567327808446,
+          13.358089770411262,
+          16.697612213014075,
+          20.037134655616892,
+          23.376657098219706,
+          26.716179540822523,
+          30.055701983425337,
+          33.39522442602815,
+          36.73474686863097,
+          40.074269311233785,
+          43.4137917538366,
+          46.75331419643941,
+          50.09283663904223,
+          53.432359081645046,
+          56.77188152424786,
+          60.11140396685067,
+          63.450926409453494,
+          66.7904488520563,
+          70.12997129465913,
+          73.46949373726194,
+          76.80901617986476,
+          80.14853862246757,
+          83.48806106507038,
+          86.8275835076732,
+          90.16710595027601,
+          93.50662839287882,
+          96.84615083548165,
+          100.18567327808447,
+          103.52519572068728,
+          106.86471816329009,
+          110.2042406058929,
+          113.54376304849572,
+          116.88328549109853,
+          120.22280793370135,
+          123.56233037630417,
+          126.90185281890699,
+          130.2413752615098,
+          133.5808977041126,
+          136.92042014671543,
+          140.25994258931826,
+          143.59946503192106,
+          146.93898747452388,
+          150.27850991712668,
+          153.6180323597295,
+          156.9575548023323,
+          160.29707724493514,
+          163.63659968753797,
+          166.97612213014077,
+          170.3156445727436,
+          173.6551670153464,
+          176.99468945794922,
+          180.33421190055202,
+          183.67373434315485,
+          187.01325678575765,
+          190.35277922836048,
+          193.6923016709633,
+          197.0318241135661,
+          200.37134655616893
+        ],
+        "mtf_runtime": {
+          "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+          "acquisition_contract_hash": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+          "production_operand": "MTFA",
+          "grid": 1,
+          "data_type": 0,
+          "sampling_grid_size": 128,
+          "sampling_index": 3,
+          "parameter_headers": [
+            [
+              2,
+              "Samp"
+            ],
+            [
+              3,
+              "Wave"
+            ],
+            [
+              4,
+              "Field"
+            ],
+            [
+              5,
+              "Freq"
+            ],
+            [
+              6,
+              "Grid"
+            ],
+            [
+              7,
+              "Data Type"
+            ]
+          ],
+          "frequency_min_cycles_per_mm": 0.0,
+          "frequency_max_cycles_per_mm": 200.37134655616893,
+          "frequency_count": 61,
+          "cpd_min": 0.0,
+          "cpd_max": 60.0,
+          "cpd_count": 61,
+          "frequency_scale_mode": "paired_MONO_EFFL"
+        },
+        "footprint_failures": [],
+        "entity_before": {
+          "fingerprint": "ee0b77e37b5b84eaf678c0811361e227e5d3205a0cd742bd95558c1124cd9023",
+          "retina_position_mm": 24.477,
+          "iol_position_mm": 4.5,
+          "elp_mm": 4.5,
+          "carrier_power_d": 20.814928860453236,
+          "radius_ant_mm": 11.8719072684107,
+          "radius_post_mm": -11.8719072684107,
+          "q_ant": 0.0,
+          "q_post": 0.0
+        },
+        "entity_after": {
+          "fingerprint": "ee0b77e37b5b84eaf678c0811361e227e5d3205a0cd742bd95558c1124cd9023",
+          "retina_position_mm": 24.477,
+          "iol_position_mm": 4.5,
+          "elp_mm": 4.5,
+          "carrier_power_d": 20.814928860453236,
+          "radius_ant_mm": 11.8719072684107,
+          "radius_post_mm": -11.8719072684107,
+          "q_ant": 0.0,
+          "q_post": 0.0
+        },
+        "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+        "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+      },
+      "convergence_gate": {
+        "distance_peak_mtfa_relative_change_128_to_256": 0.017642820289757794,
+        "tf_mtfa_mean_relative_change_128_to_256": 0.0052007450614762795,
+        "distance_peak_shift_d_128_to_256": 0.0,
+        "dof50_width_change_d_128_to_256": 4.398972114183497e-05,
+        "passed": true
+      },
+      "repeatability_gate": {
+        "distance_peak_mtfa_relative_change": 0.0,
+        "tf_mtfa_mean_relative_change": 0.0,
+        "c40_abs_delta_um": 0.0,
+        "c60_abs_delta_um": 0.0,
+        "same_distance_peak_grid_sample": true,
+        "passed": true
+      }
+    }
+  },
+  "integration": {
+    "run_id": "analysis-d94299c0575e451484f3a655b346d0e8",
+    "environment_ref": "environments/analysis-d94299c0575e451484f3a655b346d0e8.json",
+    "completed_config_ids": [
+      "CFG_LB_AL2395_A0_WFS_MONO_EPD3",
+      "CFG_LB_AL2395_A0_WFS_EDOF_EPD3",
+      "CFG_ATC_M3_AL24477_B0_RAD_MONO_EPD5",
+      "CFG_ATC_M3_AL24477_B0_RAD_EDOF_EPD5",
+      "CFG_ATC_M3_AL24477_C0_HOA_MONO_EPD5",
+      "CFG_ATC_M3_AL24477_C0_HOA_EDOF_EPD5"
+    ],
+    "failed": [],
+    "production_workflow_exercised": true,
+    "pair_fixed_angular_scale": true,
+    "passed": true,
+    "pairs": {
+      "CAR_LB_AL2395_A0_WFS_EPD3": {
+        "mono": {
+          "config_id": "CFG_LB_AL2395_A0_WFS_MONO_EPD3",
+          "pair_key": "CAR_LB_AL2395_A0_WFS_EPD3",
+          "state": "MONO",
+          "pupil_mm": 3.0,
+          "distance_peak_retina_d": 0.0,
+          "distance_peak_mtfa": 0.5951293217726991,
+          "mtfa_at_zero_d": 0.5951293217726991,
+          "dof50_far_d": 0.3206928786855322,
+          "dof50_near_d": -0.2777972026375839,
+          "dof50_width_d": 0.5984900813231161,
+          "tf_mtfa_mean": 0.1513380026634899,
+          "c40_um": 0.014599589121465256,
+          "c60_um": 0.00020553644743323982,
+          "hoa_rms_um": 0.014601035844995877,
+          "model_hash": "d8e96aa9b4000e40e3a3c1665f859fe296699be6af5535b9f063620929199bd1",
+          "entity_fingerprint": "1bff569fe6f70cb349ce379ddaed312bee6a4a1adf484e77ddad02d3c81a8438",
+          "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "edof": {
+          "config_id": "CFG_LB_AL2395_A0_WFS_EDOF_EPD3",
+          "pair_key": "CAR_LB_AL2395_A0_WFS_EPD3",
+          "state": "EDOF",
+          "pupil_mm": 3.0,
+          "distance_peak_retina_d": 0.0,
+          "distance_peak_mtfa": 0.41990857465983306,
+          "mtfa_at_zero_d": 0.41990857465983306,
+          "dof50_far_d": 0.4515692709293937,
+          "dof50_near_d": -0.38547127006742443,
+          "dof50_width_d": 0.8370405409968181,
+          "tf_mtfa_mean": 0.1371904069510451,
+          "c40_um": 0.04669896132553414,
+          "c60_um": -0.017255016453391267,
+          "hoa_rms_um": 0.04978493837882798,
+          "model_hash": "d38cb8a53e4a75dc2f9220238cf42bf323ac09b0a8b1aea5ac58dcbed35fac62",
+          "entity_fingerprint": "4b4e2be42ca1471a466e41bd81c11f46f01e7692cecd13648a6fc942155d90f7",
+          "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "paired_deltas": {
+          "distance_peak_retina_d": 0.0,
+          "distance_peak_mtfa": -0.175220747112866,
+          "mtfa_at_zero_d": -0.175220747112866,
+          "dof50_width_d": 0.23855045967370203,
+          "tf_mtfa_mean": -0.01414759571244481,
+          "c40_um": 0.03209937220406888,
+          "c60_um": -0.017460552900824506,
+          "hoa_rms_um": 0.0351839025338321
+        },
+        "delta_f_residual_d": 0.0
+      },
+      "CAR_ATC_M3_AL24477_B0_RAD_EPD5": {
+        "mono": {
+          "config_id": "CFG_ATC_M3_AL24477_B0_RAD_MONO_EPD5",
+          "pair_key": "CAR_ATC_M3_AL24477_B0_RAD_EPD5",
+          "state": "MONO",
+          "pupil_mm": 5.0,
+          "distance_peak_retina_d": -0.25,
+          "distance_peak_mtfa": 0.24001051956081906,
+          "mtfa_at_zero_d": 0.23655771140340845,
+          "dof50_far_d": 0.25871185165288735,
+          "dof50_near_d": -1.0494989080097499,
+          "dof50_width_d": 1.3082107596626371,
+          "tf_mtfa_mean": 0.11342586534139205,
+          "c40_um": 0.17508826136586608,
+          "c60_um": 0.005368746950670771,
+          "hoa_rms_um": 0.17517055402290424,
+          "model_hash": "fcd1d17677ba7b93f0ff3c36e9fa840103dc497f42e47b19012c28b8dff3d42f",
+          "entity_fingerprint": "b73a9d232e492743e9b5f6110fe1ca870d8a2ea6c3baec4d6f1cf9d49d290cd3",
+          "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "edof": {
+          "config_id": "CFG_ATC_M3_AL24477_B0_RAD_EDOF_EPD5",
+          "pair_key": "CAR_ATC_M3_AL24477_B0_RAD_EPD5",
+          "state": "EDOF",
+          "pupil_mm": 5.0,
+          "distance_peak_retina_d": -0.5,
+          "distance_peak_mtfa": 0.19382965154524656,
+          "mtfa_at_zero_d": 0.17823332905645584,
+          "dof50_far_d": 0.2257518584593609,
+          "dof50_near_d": -1.2187836447345193,
+          "dof50_width_d": 1.4445355031938802,
+          "tf_mtfa_mean": 0.10314671047895518,
+          "c40_um": 0.04632655209041505,
+          "c60_um": 0.06896580298326777,
+          "hoa_rms_um": 0.083101818273251,
+          "model_hash": "9c612dd6d3ee9a79f06044a0751688d30b7bc42d4edf072d7521ebd31eac79d4",
+          "entity_fingerprint": "f615ecc7727ae6360212493053286e383f984b6f536d65883bd9a96a395de53c",
+          "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "paired_deltas": {
+          "distance_peak_retina_d": -0.25,
+          "distance_peak_mtfa": -0.0461808680155725,
+          "mtfa_at_zero_d": -0.058324382346952613,
+          "dof50_width_d": 0.13632474353124313,
+          "tf_mtfa_mean": -0.01027915486243687,
+          "c40_um": -0.12876170927545103,
+          "c60_um": 0.063597056032597,
+          "hoa_rms_um": -0.09206873574965324
+        },
+        "delta_f_residual_d": -0.25
+      },
+      "CAR_ATC_M3_AL24477_C0_HOA_EPD5": {
+        "mono": {
+          "config_id": "CFG_ATC_M3_AL24477_C0_HOA_MONO_EPD5",
+          "pair_key": "CAR_ATC_M3_AL24477_C0_HOA_EPD5",
+          "state": "MONO",
+          "pupil_mm": 5.0,
+          "distance_peak_retina_d": 0.0,
+          "distance_peak_mtfa": 0.3128351101235227,
+          "mtfa_at_zero_d": 0.3128351101235227,
+          "dof50_far_d": 0.24869711896091756,
+          "dof50_near_d": -0.351501292068939,
+          "dof50_width_d": 0.6001984110298566,
+          "tf_mtfa_mean": 0.08273812732297083,
+          "c40_um": -0.19293700897077562,
+          "c60_um": -0.04763483909883864,
+          "hoa_rms_um": 0.19892468485333237,
+          "model_hash": "8b4e19760587dbbfd266e7f25340a80e30c90023d1a7842a63a23fe93b7ea24a",
+          "entity_fingerprint": "9dd04809f90fb78abb5d2119e9609f3e58846d47e3710ac601751a2eb99ee13e",
+          "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "edof": {
+          "config_id": "CFG_ATC_M3_AL24477_C0_HOA_EDOF_EPD5",
+          "pair_key": "CAR_ATC_M3_AL24477_C0_HOA_EPD5",
+          "state": "EDOF",
+          "pupil_mm": 5.0,
+          "distance_peak_retina_d": -0.25,
+          "distance_peak_mtfa": 0.1561077944871194,
+          "mtfa_at_zero_d": 0.10195409601569046,
+          "dof50_far_d": 0.5,
+          "dof50_near_d": -0.4922987917293802,
+          "dof50_width_d": 0.9922987917293802,
+          "tf_mtfa_mean": 0.053621677680421406,
+          "c40_um": -0.19548188103807035,
+          "c60_um": -0.03160275647415774,
+          "hoa_rms_um": 0.1981528453859365,
+          "model_hash": "8b88b22a87988265227fc13979111b0725102c82db9b6704ce29dab7c77cfdbf",
+          "entity_fingerprint": "ee0b77e37b5b84eaf678c0811361e227e5d3205a0cd742bd95558c1124cd9023",
+          "analysis_settings_hash": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+          "hoa_settings_id": "TASK009_MFE_ZERN_HOA_555_v1",
+          "hoa_settings_hash": "7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2"
+        },
+        "paired_deltas": {
+          "distance_peak_retina_d": -0.25,
+          "distance_peak_mtfa": -0.15672731563640332,
+          "mtfa_at_zero_d": -0.21088101410783228,
+          "dof50_width_d": 0.3921003806995236,
+          "tf_mtfa_mean": -0.02911644964254942,
+          "c40_um": -0.002544872067294729,
+          "c60_um": 0.0160320826246809,
+          "hoa_rms_um": -0.0007718394673958684
+        },
+        "delta_f_residual_d": -0.25
+      }
+    }
+  },
+  "crosschecks": {
+    "CAR_LB_AL2395_A0_WFS_EPD3": {
+      "defocus_retina_d": 0.0,
+      "cpd": [
+        20.0,
+        40.0,
+        60.0
+      ],
+      "cycles_per_mm": [
+        69.43008769048281,
+        138.86017538096561,
+        208.2902630714484
+      ],
+      "pair_reference_effl_mm": 16.502920718221272,
+      "pair_mm_per_degree": 0.2880595526417795,
+      "state_diagnostic_effl_mm": 16.50658554155713,
+      "production_mtfa": [
+        0.42615826713380295,
+        0.2532888607243273,
+        0.20428145222798272
+      ],
+      "repeat_mtfa_grid1": [
+        0.42615826713380295,
+        0.2532888607243273,
+        0.20428145222798272
+      ],
+      "mtft_grid1": [
+        0.4261582671338201,
+        0.25328886072433465,
+        0.20428145222798072
+      ],
+      "mtfs_grid1": [
+        0.4261582671337858,
+        0.25328886072432005,
+        0.20428145222798472
+      ],
+      "mean_mtft_mtfs": [
+        0.42615826713380295,
+        0.2532888607243273,
+        0.20428145222798272
+      ],
+      "production_vs_repeat_mtfa_abs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mtfa_vs_direction_average_abs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "parameter_headers": [
+        [
+          2,
+          "Samp"
+        ],
+        [
+          3,
+          "Wave"
+        ],
+        [
+          4,
+          "Field"
+        ],
+        [
+          5,
+          "Freq"
+        ],
+        [
+          6,
+          "Grid"
+        ],
+        [
+          7,
+          "Data Type"
+        ]
+      ],
+      "diagnostic_only_no_new_threshold": true
+    },
+    "CAR_ATC_M3_AL24477_B0_RAD_EPD5": {
+      "defocus_retina_d": 0.0,
+      "cpd": [
+        20.0,
+        40.0,
+        60.0
+      ],
+      "cycles_per_mm": [
+        67.43306852666987,
+        134.86613705333974,
+        202.2992055800096
+      ],
+      "pair_reference_effl_mm": 16.991651983952405,
+      "pair_mm_per_degree": 0.29659038861756637,
+      "state_diagnostic_effl_mm": 17.197218726256647,
+      "production_mtfa": [
+        0.12468742962769239,
+        0.13073497233691736,
+        0.061755371504253566
+      ],
+      "repeat_mtfa_grid1": [
+        0.12468742962769239,
+        0.13073497233691736,
+        0.061755371504253566
+      ],
+      "mtft_grid1": [
+        0.12468742962768126,
+        0.13073497233691098,
+        0.061755371504221675
+      ],
+      "mtfs_grid1": [
+        0.12468742962770352,
+        0.13073497233692374,
+        0.06175537150428546
+      ],
+      "mean_mtft_mtfs": [
+        0.12468742962769239,
+        0.13073497233691736,
+        0.061755371504253566
+      ],
+      "production_vs_repeat_mtfa_abs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mtfa_vs_direction_average_abs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "parameter_headers": [
+        [
+          2,
+          "Samp"
+        ],
+        [
+          3,
+          "Wave"
+        ],
+        [
+          4,
+          "Field"
+        ],
+        [
+          5,
+          "Freq"
+        ],
+        [
+          6,
+          "Grid"
+        ],
+        [
+          7,
+          "Data Type"
+        ]
+      ],
+      "diagnostic_only_no_new_threshold": true
+    },
+    "CAR_ATC_M3_AL24477_C0_HOA_EPD5": {
+      "defocus_retina_d": 0.0,
+      "cpd": [
+        20.0,
+        40.0,
+        60.0
+      ],
+      "cycles_per_mm": [
+        66.7904488520563,
+        133.5808977041126,
+        200.37134655616893
+      ],
+      "pair_reference_effl_mm": 17.155135985882993,
+      "pair_mm_per_degree": 0.2994440124859896,
+      "state_diagnostic_effl_mm": 9.633329064114418,
+      "production_mtfa": [
+        0.06700964105579976,
+        0.006338150821351361,
+        0.01025053012310602
+      ],
+      "repeat_mtfa_grid1": [
+        0.06700964105579976,
+        0.006338150821351361,
+        0.01025053012310602
+      ],
+      "mtft_grid1": [
+        0.06700964105584917,
+        0.006338150821376861,
+        0.010250530123156913
+      ],
+      "mtfs_grid1": [
+        0.06700964105575036,
+        0.00633815082132586,
+        0.010250530123055128
+      ],
+      "mean_mtft_mtfs": [
+        0.06700964105579976,
+        0.006338150821351361,
+        0.01025053012310602
+      ],
+      "production_vs_repeat_mtfa_abs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mtfa_vs_direction_average_abs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "parameter_headers": [
+        [
+          2,
+          "Samp"
+        ],
+        [
+          3,
+          "Wave"
+        ],
+        [
+          4,
+          "Field"
+        ],
+        [
+          5,
+          "Freq"
+        ],
+        [
+          6,
+          "Grid"
+        ],
+        [
+          7,
+          "Data Type"
+        ]
+      ],
+      "diagnostic_only_no_new_threshold": true
+    }
+  },
+  "all_convergence_passed": true,
+  "all_repeatability_passed": true,
+  "all_six_config_integration_passed": true,
+  "crosscheck_review_pending_web": true,
+  "production_sampling_candidate_passed": true,
+  "production_sampling_locked": false,
+  "sampling_escalation_256_active": false,
+  "next_gate": "Web review of corrected angular scale before sampling lock / Run72",
+  "local_report_sha256": "fad2824a86ce946c56b269959ed3cf7d4a244fa068a96bd2a0d55d037563d2e8"
+}
