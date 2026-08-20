@@ -17,7 +17,7 @@ from .residual_policy import RESIDUAL_VALIDATION_546_V1
 from .store import sha256_file
 from .zos import SequentialEditor, ZosSession
 
-# v2 restores the gate domain frozen by TASK-007 Web review.  v1 incorrectly
+# v2 restores the gate domain frozen by TASK-007 Web review. v1 incorrectly
 # promoted actual-eye aperture-limited SSAG Mode-0 low-order readback to a hard gate.
 VALIDATION_SCHEMA_VERSION = 2
 VALIDATION_PUPIL_MM = 5.0
@@ -106,11 +106,11 @@ def _numerical_gate_pass(
     mono_ray_health_passed: bool,
     edof_ray_health_passed: bool,
 ) -> bool:
-    """TASK-007 normative numerical gate for an exact carrier/residual pair.
+    """Return the TASK-007 normative numerical gate for an exact carrier/residual pair.
 
     Actual-eye SSAG Mode-0 piston/defocus is deliberately absent: TASK-007
     consolidated Web review froze that readback as diagnostic-only because it is
-    aperture-limited.  The low-order hard gate lives in STD_IOL_EYE_2024 EPD6.
+    aperture-limited. The low-order hard gate lives in STD_IOL_EYE_2024 EPD6.
     """
 
     return (
@@ -348,7 +348,11 @@ def ensure_frozen_residual_carrier_validation(
 
     candidate = _candidate(platform_id)
     validation_root_path = Path(validation_root).resolve()
-    root = validation_root_path / carrier_id / f"{carrier_sha[:12]}_{residual_sha256[:12]}"
+    root = (
+        validation_root_path
+        / carrier_id
+        / f"v{VALIDATION_SCHEMA_VERSION}_{carrier_sha[:12]}_{residual_sha256[:12]}"
+    )
     root.mkdir(parents=True, exist_ok=True)
     record_path = root / "VALIDATION.json"
     reusable = _load_reusable_validation(
