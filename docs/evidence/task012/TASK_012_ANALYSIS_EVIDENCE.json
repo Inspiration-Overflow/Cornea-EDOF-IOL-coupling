@@ -14,7 +14,7 @@
     "TASK_011_RUN72_THROUGH_FOCUS.csv": "cb4ece26a0a5d3a931db52a5f3b7e3325a99cbe26c9e175abd12bec5b7ec79da",
     "TASK_011_RUN72_PAIRED_DELTAS.csv": "03dfe506566f83f6868c72890c042389ed8d0cd370255967fd1ff3b1ca25fa62"
   },
-  "analysis_code_commit": "4957aed9b63d1e90fa8a4b0efafdbaff37d41564",
+  "analysis_code_commit": "330b59171e1dab2ea76d1425d56d8e5175d233ef",
   "analysis_plan_id": "TASK012_RUN72_ANALYSIS_PLAN_2026-08-19",
   "analysis_plan_path": "docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md",
   "analysis_plan_sha256": "c538348c84390e412bb51699fc36573e63544ce1c0a9aa1747541470a7c8281a",
@@ -35,7 +35,7 @@
     "TASK_012_PAIR_ANALYSIS.csv": "73f1b7b61e47b4245fafbe90a05502cebb648003fed4464c5ba6c2e369016b90",
     "TASK_012_INTERACTION_CONTRASTS.csv": "d30b938ee29b34810e3aba9940e64fd12a4eb4ac2807e439f279140f8e984981",
     "TASK_012_COUPLING_MATRIX.csv": "4de3b18ef6357a723a8ba6f91625af7d4ef24e25a467ab3498b2724b34606ded",
-    "figures/base_sensitivity_dof50.png": "03afa5e22776b0a3b0ef04d764abd2c531ffe39e3f3c27b7faf678b44cad7544",
+    "figures/base_sensitivity_dof50.png": "2eff2dafd56e7b91174bd338caf00ff9cbc75ed34d1a742b338f59d0eac02e8f",
     "figures/base_sensitivity_mtfa_zero.png": "60fdf772e34213eacf8c6291149c122ffdc5977d9f64eb87d537771f54e2192f",
     "figures/heatmap_delta_dof50_width_d_atc-m3-al24477_epd3.png": "4b7f8053825535543700b7d20159b0eb763369201fa202f1cbbde93e29531118",
     "figures/heatmap_delta_dof50_width_d_atc-m3-al24477_epd5.png": "4c0de2d7849eb63c01fc913c546f5952f3c6e2a2a3d46738efb0a0bf8aa7031e",
@@ -50,14 +50,14 @@
     "figures/heatmap_delta_tf_mtfa_mean_lb-al2395_epd3.png": "840ef8e8612f739d3ad7634b3e15990633f4419cbd060c56896ef3e769ec5187",
     "figures/heatmap_delta_tf_mtfa_mean_lb-al2395_epd5.png": "3c630a65e89e08b989890e8b698366c9245e26dd9f4db3dbd387335ae0ddb4bc",
     "figures/mechanism_delta_c40_c60.png": "7812c9ca139d511aead21cf0a79ff37f1dc243692616df2352636c3372761b2d",
-    "figures/pupil_sensitivity_dof50.png": "2b016d29fd15735528af4638b2abe7d5a924afd618bd21e3a7391426b1fa7af5",
+    "figures/pupil_sensitivity_dof50.png": "95538ce35e8a91f4179db8ff9717d87eb349e31b74b2582e5bb07e46adc3c0f5",
     "figures/pupil_sensitivity_mtfa_zero.png": "fb24c2cd612dfd36a255e481c64d335a51f45f0368c698a26956b991b2cd6350",
-    "figures/through_focus_atc-m3-al24477_epd3.png": "e95dad9eda6edbbd8a6a92f923836ed8b46d45dfa365ac027666777fe31d1fb6",
-    "figures/through_focus_atc-m3-al24477_epd5.png": "80c0cb540ddcb710d15b93880c71c670091cbf32e16fcdfbeb71452f1e336ac4",
-    "figures/through_focus_lb-al2395_epd3.png": "bf0b6985b5f52fec015bb6705053413b041287b70519915f469decb6c1ef5242",
-    "figures/through_focus_lb-al2395_epd5.png": "e91efabd2a8ea40a531540b9f59aec92c0b16ab4fe12384100f19ad9ed8c18f5",
-    "figures/tradeoff_dof50_vs_mtfa_zero.png": "06694fc9d7a54199da0449b8588eec43d9ebc672d88788b1e313ee3e4fa63834",
-    "figures/tradeoff_dof50_vs_tf_mean.png": "945371fbff8205817d639c7fb94f759db5904a5c1da17238bdfa037764b7e0a7",
-    "figures/tradeoff_dof50_vs_window_peak_mtfa.png": "e75ba2329cf764a11d5084aab336f3240e0647cc6efcf295b910c61b0090e722"
+    "figures/through_focus_atc-m3-al24477_epd3.png": "b47c422db6cc66f510252a1bced34fdc305780a980b94c9a49b61eda99eba107",
+    "figures/through_focus_atc-m3-al24477_epd5.png": "434497bd7327229093f52b0a1bfc9b25d338908a1e9eedeff716d65f0a26656e",
+    "figures/through_focus_lb-al2395_epd3.png": "f6c52291fe909638383ab573dfb672c48a6014ab364f6eaec8f4d68086c6b6e9",
+    "figures/through_focus_lb-al2395_epd5.png": "de7452921d60521ba8e398807e133c2e88b858cb7c61222891fd5583d72e653f",
+    "figures/tradeoff_dof50_vs_mtfa_zero.png": "740e5cc324e3d2fc74baddf0b3ac3d1f4b12bdfd39292a7de583c839d8617dd9",
+    "figures/tradeoff_dof50_vs_tf_mean.png": "66c106875e1268539dae1e65bc420f9abb982fba997a39e9b8b200d805e6900a",
+    "figures/tradeoff_dof50_vs_window_peak_mtfa.png": "f49296580a11684454ae1a46fe4d0f73393cb3fb5644eaf32bb0b7f84332ce16"
   }
 }
