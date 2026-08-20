@@ -1,14 +1,18 @@
 {
-  "version": 5,
+  "version": 6,
   "as_of": "2026-08-19",
-  "phase": "task009-paired-mono-angular-scale-correction_local-revalidation-pending",
+  "phase": "task009-paired-mono-angular-scale-correction_web-ci-green_local-revalidation-pending",
   "project_schema_version": 2,
   "active_branch": "feat/task-009-fft-mtf-main",
   "offline_unit_tests": {
-    "last_fully_validated_status": "PASS-at-task009-mtfa-grid1-run",
-    "last_fully_validated_passed": 193,
-    "last_fully_validated_commit": "e508a83f41a63bc74a4a4ae1fc1bf060f0de4ea9",
-    "current_web_scale_correction_requires_rerun": true
+    "web_ci_status": "PASS",
+    "web_ci_commit": "9924b991c803de38dd3364bf8f905a46e2ad53d5",
+    "web_ci_pytest_passed": 198,
+    "web_ci_ruff": "PASS",
+    "web_ci_compileall": "PASS",
+    "web_ci_uv_lock": "PASS",
+    "local_last_validated_passed": 193,
+    "local_last_validated_commit": "e508a83f41a63bc74a4a4ae1fc1bf060f0de4ea9"
   },
   "tasks": {
     "RMD-TASK-001": "complete",
@@ -19,7 +23,7 @@
     "RMD-TASK-006": "complete_B0.20-immutable-lock",
     "RMD-TASK-007": "complete_tdd999-cleared",
     "RMD-TASK-008": "complete_formal-18-carriers_3-residuals_72-configs",
-    "RMD-TASK-009": "MTFA-Grid1-production-chain-validated_angular-scale-correction-pending",
+    "RMD-TASK-009": "MTFA-Grid1-production-chain-validated_pair-scale-Web-CI-green_local-revalidation-pending",
     "RMD-TASK-010": "blocked-until-task009",
     "RMD-TASK-011": "blocked-until-formal-sampling-lock"
   },
@@ -44,7 +48,7 @@
     "tdd_999_cleared": true
   },
   "task009": {
-    "status": "paired-MONO-angular-scale-correction-frozen_local-revalidation-pending",
+    "status": "paired-MONO-angular-scale-correction-Web-CI-green_local-revalidation-pending",
     "mtfa_grid1_evidence_commit": "e508a83f41a63bc74a4a4ae1fc1bf060f0de4ea9",
     "mtfa_grid1_evidence_sha256": "e12b558b2e07f07a19992262cc1866a6034512833fdebdf282872b7afb5e72e4",
     "mtfa_grid1_api_validated": true,
@@ -66,15 +70,21 @@
     "active_mtf_acquisition_contract_sha256": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
     "active_frequency_scale": "paired residual-free MONO EFFL fixed across MONO+EDOF and all defocus planes",
     "sampling_escalation_256": "HOLD-until-corrected-128-to-256-evidence",
+    "active_script": "scripts/run_task_009_pair_mono_scale_representative.py",
+    "superseded_per_state_script_removed": true,
+    "web_ci_draft_pr": 25,
     "requires_opticstudio": true,
     "run72_started": false,
     "local_validation_pending": [
-      "implement paired-MONO scale contract",
       "record MONO-reference and EDOF-diagnostic EFFL for all three representative pairs",
       "rerun 64/128/256 convergence using paired-MONO scale",
       "rerun independent repeat128 using paired-MONO scale",
       "rerun six frozen configs through run_analysis_batch using paired-MONO scale",
       "repeat MTFA-vs-direction-average diagnostic on corrected frequency axis"
+    ],
+    "pre_run72_provenance_debt": [
+      "bind MTF acquisition/scale contract explicitly in formal RunEnvironment/ConfigResult provenance after corrected evidence review",
+      "replace legacy fft_mtf_* field names in final post-TASK009 settings version if a settings revision is required"
     ]
   },
   "science_gates_still_active": [
