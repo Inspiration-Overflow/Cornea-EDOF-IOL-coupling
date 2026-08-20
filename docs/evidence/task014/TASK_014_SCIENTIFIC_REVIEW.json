@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "phase": "TASK-014-WEB-SCIENTIFIC-REVIEW",
+  "evidence_only": true,
+  "formal_artifact": true,
+  "task_id": "TASK-014-VERTEX-CORRECTED-POSTOP-CORNEA",
+  "source_run_id": "task014-e270a185207543149c21da83202c4b73",
+  "source_acquisition_code_head": "38ad14a12a18b1a7a30d259cde644d360442f57b",
+  "source_bundle_sha256": "79096e4ad878d56255adb5d16050cd64025d865a3fdcf1943d626af98d44a7de",
+  "rx_contract_id": "TASK014_SPECTACLE_M3_VERTEX12_v1",
+  "spectacle_sphere_d": -3.0,
+  "vertex_distance_mm": 12.0,
+  "corneal_plane_treatment_d": -2.8957528957528957,
+  "source_repo_evidence_sha256": {
+    "TASK_014_CONFIG_RESULTS.csv": "722ae6d45d68014cdf9e14eb61502f43f9a9c205f1fd0c0257bcc98d950e7a16",
+    "TASK_014_EVIDENCE.json": "e3b8700fa42836ac849268375b23274c392975c2258fca54ceb223d310465274",
+    "TASK_014_MODEL_INDEX.csv": "5e2044d819a3a6b115e38d99dcd34b879d2c14871526797b8602c3b3083c18ed",
+    "TASK_014_PAIRED_DELTAS.csv": "6a07326dc713a54602f892dfa60d34cf31a2c83098cfb008e2e97e7c11e72017",
+    "TASK_014_THROUGH_FOCUS.csv": "b80fa48d80ce1466dd927e75190368e7144fbd2f652f0237b948380a70bb0fb6"
+  },
+  "archive_review": {
+    "configs": 72,
+    "failed": 0,
+    "through_focus_rows": 1080,
+    "matched_pairs": 36,
+    "model_index_records": 137,
+    "model_index_sha_matches": 137,
+    "model_index_sha_mismatches": 0,
+    "passed": true
+  },
+  "exact_carrier_validation": {
+    "schema_version": 2,
+    "count": 18,
+    "all_passed": true,
+    "normative_low_order_gate_domain": "STD_IOL_EYE_2024_EPD6_imported_residual_readback",
+    "actual_eye_low_order_role": "diagnostic_only_aperture_limited_mode0",
+    "out_of_coverage_carriers": [
+      "CAR_ATC_M3_AL24477_C0V12_WFS",
+      "CAR_ATC_M3_AL24477_C0V12_RAD",
+      "CAR_ATC_M3_AL24477_C0V12_HOA"
+    ],
+    "out_of_coverage_mechanism_review_passed": true
+  },
+  "mechanism_review": {
+    "base_eye_consistency": {
+      "edof_through_focus_curve_correlation_min": 0.9804326977504723,
+      "delta_edof_minus_mono_curve_correlation_min": 0.9081815436161079,
+      "interpretation": "No abrupt low-power mechanism discontinuity was observed across the two base eyes."
+    },
+    "epd3_wavefront_signatures": {
+      "WFS": "delta C4 positive and delta C6 negative across A0V12/B0V12/C0V12 and both base eyes",
+      "RAD": "dominant negative delta C6 with small positive delta C4 across A0V12/B0V12/C0V12 and both base eyes",
+      "HOA": "delta C4 negative and delta C6 positive across A0V12/B0V12/C0V12 and both base eyes"
+    },
+    "tradeoff": {
+      "delta_mtfa_at_zero_negative_pairs": 36,
+      "delta_tf_mtfa_mean_negative_pairs": 36,
+      "pair_count": 36,
+      "interpretation": "EDOF residuals redistribute through-focus quality rather than producing a free gain."
+    },
+    "dof50": {
+      "positive_delta_pairs_as_reported": 29,
+      "negative_delta_pairs_as_reported": 7,
+      "far_censored_count": 5,
+      "far_censored_pairs": [
+        "CAR_ATC_M3_AL24477_B0V12_WFS_EPD3",
+        "CAR_ATC_M3_AL24477_C0V12_HOA_EPD5",
+        "CAR_ATC_M3_AL24477_C0V12_RAD_EPD5",
+        "CAR_LB_AL2395_B0V12_WFS_EPD3",
+        "CAR_LB_AL2395_C0V12_RAD_EPD5"
+      ],
+      "near_censored_count": 0,
+      "interpretation": "Far-censored EDOF DOF50 values are lower bounds and must not be treated as exact widths."
+    },
+    "distance_peak": {
+      "peak_search_censored_count": 8,
+      "peak_search_censored_pairs": [
+        "CAR_ATC_M3_AL24477_A0V12_HOA_EPD5",
+        "CAR_ATC_M3_AL24477_B0V12_HOA_EPD5",
+        "CAR_ATC_M3_AL24477_B0V12_RAD_EPD5",
+        "CAR_ATC_M3_AL24477_B0V12_WFS_EPD5",
+        "CAR_LB_AL2395_A0V12_HOA_EPD5",
+        "CAR_LB_AL2395_B0V12_HOA_EPD5",
+        "CAR_LB_AL2395_B0V12_RAD_EPD5",
+        "CAR_LB_AL2395_B0V12_WFS_EPD5"
+      ],
+      "interpretation": "Boundary peaks at -0.50 D are censored locations, not exact peak estimates."
+    }
+  },
+  "scientific_caveats": [
+    "Five EDOF pairs have far-censored DOF50; their DOF50 is a lower bound within the frozen window.",
+    "Eight EDOF EPD5 pairs have distance-peak censoring at the frozen -0.50 D boundary.",
+    "Several uncensored EPD5 delta-DOF50 effects are near zero and can change sign between base eyes; these should not be overinterpreted as stable directional effects.",
+    "Absolute TASK-007/TASK-013/TASK-014 DOF50 or peak-shift values are not asserted to be numerically interchangeable; mechanism direction and wavefront signature are the comparison targets."
+  ],
+  "acquisition_acceptance": "PASS",
+  "exact_carrier_validation_status": "PASS",
+  "out_of_coverage_mechanism_review": "PASS",
+  "scientific_acceptance": "PASS_WITH_SCIENTIFIC_CAVEATS",
+  "requires_opticstudio_rerun": false,
+  "scientific_settings_changed": false,
+  "residual_payload_changed": false,
+  "next_step": "Archive the five original TASK-014 repo evidence files at their reviewed SHA-256 values, then perform offline 96-config integration of accepted TASK-013 N0 plus TASK-014 A0V12/B0V12/C0V12."
+}
