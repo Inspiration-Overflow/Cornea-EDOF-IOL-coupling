@@ -72,6 +72,12 @@ class ResidualPowerEnvelopeCheck:
     existing_max_power_d: float
     passed: bool
 
+    @property
+    def extension_validation_required(self) -> bool:
+        """Whether this exact carrier needs new power-specific residual evidence."""
+
+        return not self.passed
+
 
 def _platform_values() -> tuple[str, ...]:
     return tuple(str(value) for value in PlatformId)
@@ -294,6 +300,13 @@ def check_residual_power_envelopes(
     existing_carriers: Sequence[ProvisionalCarrier],
     native_carriers: Sequence[ProvisionalCarrier],
 ) -> tuple[ResidualPowerEnvelopeCheck, ...]:
+    """Classify whether each N0 carrier lies inside existing validation coverage.
+
+    `passed` means only that the carrier power is already covered by the historical
+    TASK-007/TASK-008 calibration envelope.  A false value is a trigger for new
+    exact-carrier residual validation, not a physical exclusion of the carrier.
+    """
+
     for carrier in native_carriers:
         validate_native_carrier(carrier)
     checks: list[ResidualPowerEnvelopeCheck] = []
@@ -334,19 +347,16 @@ def require_residual_power_envelopes(
     existing_carriers: Sequence[ProvisionalCarrier],
     native_carriers: Sequence[ProvisionalCarrier],
 ) -> tuple[ResidualPowerEnvelopeCheck, ...]:
-    checks = check_residual_power_envelopes(existing_carriers, native_carriers)
-    failures = tuple(check for check in checks if not check.passed)
-    if failures:
-        detail = ", ".join(
-            f"{item.carrier_id}={item.n0_power_d:.6g}D outside "
-            f"[{item.existing_min_power_d:.6g},{item.existing_max_power_d:.6g}]D"
-            for item in failures
-        )
-        raise Task013Error(
-            "N0 carrier lies outside frozen residual calibration power envelope; "
-            f"additional residual replay validation is required: {detail}"
-        )
-    return checks
+    """Backward-compatible name for the coverage classification.
+
+    Historically this function raised when a carrier was outside the prior envelope.
+    As of the 2026-08-20 power-extension addendum, an out-of-envelope carrier instead
+    requires exact-carrier frozen-residual validation before EDOF production.  The
+    production backend enforces that validation; this function therefore does not
+    raise solely because of power coverage.
+    """
+
+    return check_residual_power_envelopes(existing_carriers, native_carriers)
 
 
 def manifest_config_map(bundle: Task013ManifestBundle) -> Mapping[str, NominalConfig]:
