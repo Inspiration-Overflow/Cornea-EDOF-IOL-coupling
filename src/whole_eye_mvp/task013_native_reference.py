@@ -70,13 +70,13 @@ class ResidualPowerEnvelopeCheck:
     n0_power_d: float
     existing_min_power_d: float
     existing_max_power_d: float
-    passed: bool
+    within_existing_coverage: bool
 
     @property
     def extension_validation_required(self) -> bool:
         """Whether this exact carrier needs new power-specific residual evidence."""
 
-        return not self.passed
+        return not self.within_existing_coverage
 
 
 def _platform_values() -> tuple[str, ...]:
@@ -300,12 +300,7 @@ def check_residual_power_envelopes(
     existing_carriers: Sequence[ProvisionalCarrier],
     native_carriers: Sequence[ProvisionalCarrier],
 ) -> tuple[ResidualPowerEnvelopeCheck, ...]:
-    """Classify whether each N0 carrier lies inside existing validation coverage.
-
-    `passed` means only that the carrier power is already covered by the historical
-    TASK-007/TASK-008 calibration envelope.  A false value is a trigger for new
-    exact-carrier residual validation, not a physical exclusion of the carrier.
-    """
+    """Classify whether each N0 carrier lies inside existing validation coverage."""
 
     for carrier in native_carriers:
         validate_native_carrier(carrier)
@@ -337,7 +332,7 @@ def check_residual_power_envelopes(
                     n0_power_d=power,
                     existing_min_power_d=low,
                     existing_max_power_d=high,
-                    passed=low <= power <= high,
+                    within_existing_coverage=low <= power <= high,
                 )
             )
     return tuple(checks)
@@ -349,11 +344,9 @@ def require_residual_power_envelopes(
 ) -> tuple[ResidualPowerEnvelopeCheck, ...]:
     """Backward-compatible name for the coverage classification.
 
-    Historically this function raised when a carrier was outside the prior envelope.
-    As of the 2026-08-20 power-extension addendum, an out-of-envelope carrier instead
-    requires exact-carrier frozen-residual validation before EDOF production.  The
-    production backend enforces that validation; this function therefore does not
-    raise solely because of power coverage.
+    Out-of-envelope carrier powers require exact-carrier frozen-residual validation
+    before EDOF production; they are not terminal exclusions.  The production backend
+    enforces that replay validation.
     """
 
     return check_residual_power_envelopes(existing_carriers, native_carriers)
