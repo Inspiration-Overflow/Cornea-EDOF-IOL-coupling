@@ -14,6 +14,10 @@ from whole_eye_mvp.analysis import (
     summarize_mtfa_curve,
     with_shape_axis,
 )
+from whole_eye_mvp.analysis_zos_pair_scale import (
+    PAIR_MONO_FREQUENCY_SCALE_MODE,
+    TASK009_PAIR_MONO_MTF_ACQUISITION,
+)
 from whole_eye_mvp.carriers import (
     ProvisionalCarrier,
     ResidualCalibration,
@@ -237,6 +241,10 @@ def fake_result(config, output: Path, run_id: str) -> ConfigResult:
 
 
 class FakeBackend:
+    acquisition_contract_id = TASK009_PAIR_MONO_MTF_ACQUISITION.contract_id
+    acquisition_contract_hash = TASK009_PAIR_MONO_MTF_ACQUISITION.contract_hash
+    frequency_scale_mode = PAIR_MONO_FREQUENCY_SCALE_MODE
+
     def __init__(self, fail_id=None, *, wrong_identity: bool = False):
         self.fail_id = fail_id
         self.wrong_identity = wrong_identity
@@ -260,6 +268,9 @@ def environment(baseline_id: str, bundle) -> RunEnvironment:
         NOMINAL_MAIN_FFT_MTF_555_V2.settings_id,
         bundle.manifest_hash,
         compute_lock_set_hash(bundle.physical_carriers),
+        TASK009_PAIR_MONO_MTF_ACQUISITION.contract_id,
+        TASK009_PAIR_MONO_MTF_ACQUISITION.contract_hash,
+        PAIR_MONO_FREQUENCY_SCALE_MODE,
     )
 
 
@@ -352,6 +363,33 @@ def test_analysis_environment_must_match_manifest_lock_set_settings_and_project_
             store.root / "results",
             store=store,
             environment=replace(good, analysis_settings_id="OTHER"),
+            selection=selected,
+        )
+    with pytest.raises(ProjectStoreError, match="acquisition_contract_id"):
+        run_analysis_batch(
+            FakeBackend(),
+            bundle,
+            store.root / "results",
+            store=store,
+            environment=replace(good, acquisition_contract_id="OTHER"),
+            selection=selected,
+        )
+    with pytest.raises(ProjectStoreError, match="acquisition_contract_hash"):
+        run_analysis_batch(
+            FakeBackend(),
+            bundle,
+            store.root / "results",
+            store=store,
+            environment=replace(good, acquisition_contract_hash="OTHER"),
+            selection=selected,
+        )
+    with pytest.raises(ProjectStoreError, match="frequency_scale_mode"):
+        run_analysis_batch(
+            FakeBackend(),
+            bundle,
+            store.root / "results",
+            store=store,
+            environment=replace(good, frequency_scale_mode="per_state_EFFL"),
             selection=selected,
         )
     with pytest.raises(ProjectStoreError, match="inside project root"):
