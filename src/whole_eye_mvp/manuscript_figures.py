@@ -80,7 +80,9 @@ def load_pair_rows(path: Path) -> tuple[dict[str, str], ...]:
     return tuple(rows)
 
 
-def pair_index(rows: Sequence[Mapping[str, str]]) -> dict[tuple[str, str, str, float], Mapping[str, str]]:
+def pair_index(
+    rows: Sequence[Mapping[str, str]],
+) -> dict[tuple[str, str, str, float], Mapping[str, str]]:
     index = {
         (
             row["base_id"],
@@ -170,13 +172,17 @@ def _figure_matrix(
 
     fig, axes = plt.subplots(2, 2, figsize=(11.0, 8.2), constrained_layout=True)
     image = None
-    for ax, (base_id, pupil_mm), matrix in zip(axes.flat, strata, matrices, strict=True):
+    for panel_i, (ax, (base_id, pupil_mm), matrix) in enumerate(
+        zip(axes.flat, strata, matrices, strict=True)
+    ):
         image = ax.imshow(matrix, aspect="auto", vmin=global_min, vmax=global_max)
         ax.set_xticks(range(len(PLATFORM_IDS)), [PLATFORM_LABELS[item] for item in PLATFORM_IDS])
         ax.set_yticks(range(len(CORNEA_IDS)), CORNEA_IDS)
         ax.set_title(f"{base_id} · {PUPIL_LABELS[pupil_mm]}")
-        ax.set_xlabel("EDoF mechanism surrogate")
-        ax.set_ylabel("Corneal prototype")
+        if panel_i >= 2:
+            ax.set_xlabel("EDoF mechanism surrogate")
+        if panel_i % 2 == 0:
+            ax.set_ylabel("Corneal prototype")
         for row_i, cornea_id in enumerate(CORNEA_IDS):
             for col_i, platform_id in enumerate(PLATFORM_IDS):
                 row = index[(base_id, cornea_id, platform_id, pupil_mm)]
@@ -197,28 +203,37 @@ def _figure_tradeoff(rows: Sequence[Mapping[str, str]], path: Path) -> None:
         (axes[0], "delta_mtfa_at_zero_d", "ΔMTFa at 0 D"),
         (axes[1], "delta_tf_mtfa_mean", "ΔTF MTFa mean"),
     ):
+        limited_rows: list[Mapping[str, str]] = []
         for platform_id in PLATFORM_IDS:
             selected = [row for row in rows if row["platform_id"] == platform_id]
             exact = [row for row in selected if row["dof50_effect_status"] == "exact"]
-            limited = [row for row in selected if row["dof50_effect_status"] != "exact"]
+            limited_rows.extend(row for row in selected if row["dof50_effect_status"] != "exact")
             ax.scatter(
                 [_float(row, "delta_dof50_width_d") for row in exact],
                 [_float(row, outcome) for row in exact],
                 marker=marker_by_platform[platform_id],
                 label=PLATFORM_LABELS[platform_id],
             )
-            if limited:
-                ax.scatter(
-                    [_float(row, "delta_dof50_width_d") for row in limited],
-                    [_float(row, outcome) for row in limited],
-                    marker="x",
-                    label=f"{PLATFORM_LABELS[platform_id]} DOF bound",
+        if limited_rows:
+            ax.scatter(
+                [_float(row, "delta_dof50_width_d") for row in limited_rows],
+                [_float(row, outcome) for row in limited_rows],
+                marker="x",
+                label="DOF50 lower bound",
+            )
+            for row in limited_rows:
+                ax.annotate(
+                    row["platform_id"],
+                    (_float(row, "delta_dof50_width_d"), _float(row, outcome)),
+                    xytext=(4, 3),
+                    textcoords="offset points",
+                    fontsize=7,
                 )
         ax.axhline(0.0, linewidth=0.8)
         ax.axvline(0.0, linewidth=0.8)
         ax.set_xlabel("ΔDOF50 (D), EDOF − MONO")
         ax.set_ylabel(ylabel)
-        ax.legend(fontsize=8)
+        ax.legend(fontsize=8, ncols=2)
     axes[0].set_title("Fixed-focus quality")
     axes[1].set_title("Whole-window quality")
     fig.suptitle("Extension–quality trade-off")
@@ -252,19 +267,21 @@ def _figure_selected_through_focus(
             ax.axvline(0.0, linewidth=0.8)
             ax.set_ylim(y_min, y_max)
             suffixes: list[str] = []
-            if pair["dof50_effect_status"] != "exact":
-                suffixes.append(f"DOF {pair['dof50_effect_status']}")
+            if pair["dof50_effect_status"] == "lower_bound":
+                suffixes.append("DOF≥")
+            elif pair["dof50_effect_status"] != "exact":
+                suffixes.append("DOF bound")
             if pair.get("pair_peak_censored") == "True":
-                suffixes.append("peak-window")
-            suffix = f" · {', '.join(suffixes)}" if suffixes else ""
-            ax.set_title(f"{base_id} · {PUPIL_LABELS[pupil_mm]}{suffix}", fontsize=9)
+                suffixes.append("peak*")
+            suffix = f" · {' '.join(suffixes)}" if suffixes else ""
+            ax.set_title(f"{base_id} · {PUPIL_LABELS[pupil_mm]}{suffix}", fontsize=8.5)
             if col_i == 0:
                 ax.set_ylabel(f"{coupling_label}\nMTFa")
             if row_i == 2:
                 ax.set_xlabel("Retinal defocus (D)")
             if row_i == 0 and col_i == 0:
                 ax.legend(fontsize=8)
-    fig.suptitle("Selected coupling through-focus MTFa")
+    fig.suptitle("Selected coupling through-focus MTFa · DOF≥ = lower bound; peak* = window-conditioned")
     _save(fig, path)
 
 
