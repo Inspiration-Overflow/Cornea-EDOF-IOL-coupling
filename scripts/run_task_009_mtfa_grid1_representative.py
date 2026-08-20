@@ -149,7 +149,7 @@ def _select_pair(
         )
     mono = next((config for config in matches if config.optic_state == OpticState.MONO), None)
     edof = next((config for config in matches if config.optic_state == OpticState.EDOF), None)
-    if mono is None or edof is None or mono.config.pair_key != edof.config.pair_key:
+    if mono is None or edof is None or mono.pair_key != edof.pair_key:
         raise SystemExit("representative frozen manifest pair is malformed")
     return mono, edof
 
