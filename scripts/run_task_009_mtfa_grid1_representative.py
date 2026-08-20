@@ -456,13 +456,13 @@ def main() -> None:
             if mono is None or edof is None:
                 continue
             delta = matched_pair_delta(mono, edof)
-            pair_block[edof.pair_key] = {
+            pair_block[edof.config.pair_key] = {
                 "mono": _summary(mono),
                 "edof": _summary(edof),
                 "paired_deltas": dict(delta.deltas),
                 "delta_f_residual_d": delta.deltas["distance_peak_retina_d"],
             }
-            crosschecks[edof.pair_key] = _mtf_crosscheck(
+            crosschecks[edof.config.pair_key] = _mtf_crosscheck(
                 session,
                 edof,
                 integration_backend.diagnostics[edof.config_id],
