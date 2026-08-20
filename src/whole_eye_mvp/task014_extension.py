@@ -63,6 +63,17 @@ class Task014ResidualPowerEnvelopeCheck:
     def extension_validation_required(self) -> bool:
         return not self.within_existing_coverage
 
+    @property
+    def passed(self) -> bool:
+        """Compatibility alias for the pre-revision TASK-014 report field.
+
+        This means only "inside historical validation coverage". It is not a
+        scientific residual-validity gate; exact-carrier validation remains enforced
+        in the EDOF materialization path.
+        """
+
+        return self.within_existing_coverage
+
 
 def _platform_values() -> tuple[str, ...]:
     return tuple(str(value) for value in PlatformId)
