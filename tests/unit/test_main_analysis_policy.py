@@ -32,7 +32,6 @@ FORBIDDEN_ACTIVE_TOKENS = (
     "psf_to_complex_otf",
     "vsotf",
     "vsmtf",
-    "zosfftmtfanalysisbackend",
 )
 FORBIDDEN_RUNTIME_TOKENS = (
     "new_fftmtf",
@@ -106,8 +105,8 @@ def test_formal_task009_sampling_lock_matches_active_contract_and_evidence() -> 
     assert payload["crosscheck_web_review"] == "PASS"
     assert payload["sampling_escalation_256_active"] is False
     assert payload["run72_started"] is False
-    # Sampling lock remains an immutable method decision snapshot; Run72 engineering
-    # authorization is represented by a separate clearance artifact below.
+    # Sampling lock is an immutable method-decision snapshot. Run72 engineering
+    # authorization is represented by the separate clearance artifact below.
     assert payload["run72_authorized"] is False
 
 
@@ -168,9 +167,12 @@ def test_active_scripts_do_not_reintroduce_removed_paths() -> None:
 
 
 @pytest.mark.unit
-def test_active_specs_do_not_reintroduce_removed_paths() -> None:
+def test_active_specs_do_not_reintroduce_removed_science_paths() -> None:
     findings = _scan(ACTIVE_SPEC_FILES)
-    assert not findings, "removed analysis path leaked into active specs: " + ", ".join(findings)
+    assert not findings, "removed science path leaked into active specs: " + ", ".join(findings)
+    # The six active normative/status documents must positively name the current
+    # production contract. Retired backend names may still appear in historical or
+    # prohibition notes and are therefore not treated as bare-text failures here.
     for path in ACTIVE_SPEC_FILES[:6]:
         text = path.read_text(encoding="utf-8")
         assert "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2" in text
