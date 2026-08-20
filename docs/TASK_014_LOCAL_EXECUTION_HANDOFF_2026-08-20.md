@@ -29,6 +29,8 @@ compileall = PASS
 uv lock --check = PASS
 ```
 
+其后的提交只同步实现审核和本地执行交接文档；正式执行时应使用分支**最新干净 HEAD**，并在回传中记录该 HEAD，而不是强制 detached checkout 到 `f332da42...`。
+
 vertex-correction 修订前回退锚点：
 
 ```text
