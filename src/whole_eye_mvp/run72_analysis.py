@@ -220,6 +220,17 @@ def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def sha256_repository_bytes(path: Path) -> str:
+    """SHA256 over the Git-style normalized bytes (CRLF -> LF).
+
+    TASK012_REPOSITORY_HASHES are defined over the normalized text that a Git
+    checkout yields on any platform, so verification must not depend on the
+    local checkout's line-ending mode (e.g. core.autocrlf on Windows).
+    """
+    raw = path.read_bytes()
+    return hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest()
+
+
 def verify_source_hashes(evidence_dir: Path) -> dict[str, str]:
     observed: dict[str, str] = {}
     mismatches: dict[str, tuple[str, str]] = {}
@@ -227,7 +238,7 @@ def verify_source_hashes(evidence_dir: Path) -> dict[str, str]:
         path = evidence_dir / filename
         if not path.is_file():
             raise Task012Error(f"missing formal TASK-011 evidence file: {path}")
-        actual = sha256_file(path)
+        actual = sha256_repository_bytes(path)
         observed[filename] = actual
         if actual != expected:
             mismatches[filename] = (actual, expected)
