@@ -32,13 +32,36 @@ jobs:
         run: uv sync --frozen
 
       - name: Unit tests
+        id: pytest
+        continue-on-error: true
         run: uv run pytest tests/unit
 
       - name: Ruff
+        id: ruff
+        continue-on-error: true
         run: uv run ruff check .
 
       - name: Compileall
+        id: compileall
+        continue-on-error: true
         run: uv run python -m compileall -q src tests scripts
 
       - name: Lock consistency
+        id: lock
+        continue-on-error: true
         run: uv lock --check
+
+      - name: Enforce all offline checks
+        if: always()
+        env:
+          PYTEST_OUTCOME: ${{ steps.pytest.outcome }}
+          RUFF_OUTCOME: ${{ steps.ruff.outcome }}
+          COMPILEALL_OUTCOME: ${{ steps.compileall.outcome }}
+          LOCK_OUTCOME: ${{ steps.lock.outcome }}
+        run: |
+          printf 'pytest=%s\nruff=%s\ncompileall=%s\nlock=%s\n' \
+            "$PYTEST_OUTCOME" "$RUFF_OUTCOME" "$COMPILEALL_OUTCOME" "$LOCK_OUTCOME"
+          test "$PYTEST_OUTCOME" = success
+          test "$RUFF_OUTCOME" = success
+          test "$COMPILEALL_OUTCOME" = success
+          test "$LOCK_OUTCOME" = success
