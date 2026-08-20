@@ -121,7 +121,7 @@ production_sampling_locked = true
 sampling_escalation_256_active = false
 ```
 
-`AS_FftMtf`/`New_FftMtf()` production path retired。`NOMINAL_MAIN_FFT_MTF_555_v2` 名称中的 FFT 仅保留历史 hash continuity。Huygens、complex OTF 与 VSOTF 也不属于当前生产路线。
+`AS_FftMtf`/`New_FftMtf()` production path retired。`NOMINAL_MAIN_FFT_MTF_555_v2` 名称中的 FFT 仅保留历史 hash continuity。其他已退休的 pre-TASK009 production routes 也不属于当前生产路线。
 
 ## 4.2 Corrected representative evidence
 
@@ -309,7 +309,7 @@ PR #26 保持 Draft，除非另行授权改变状态或合并。
 1. TASK-005–009 frozen assets/method locks 不得修改；
 2. TASK-008 manifest/hash/lock-set 不得因 TASK-012 改变；
 3. sampling lock 必须保持128；
-4. 不恢复 `AS_FftMtf`、Huygens、complex OTF 或 VSOTF production path；
+4. 不恢复任何已退休的 pre-TASK009 production path；
 5. 不使用 per-state/EDOF EFFL 改变 matched MONO/EDOF cpd 坐标；
 6. 不因 peak/DOF censoring 扩大预注册窗口后补跑矩阵；
 7. 不重新优化 B0.20 或 residual profiles；
