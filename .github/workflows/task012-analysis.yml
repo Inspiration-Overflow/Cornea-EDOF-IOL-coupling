@@ -1,0 +1,80 @@
+name: TASK-012 analysis evidence
+
+on:
+  push:
+    branches:
+      - feat/task-011-run72
+    paths:
+      - '.github/workflows/task012-analysis.yml'
+      - 'src/whole_eye_mvp/run72_analysis.py'
+      - 'src/whole_eye_mvp/run72_figures.py'
+      - 'scripts/analyze_task_012_run72.py'
+      - 'tests/unit/test_task012_run72_analysis.py'
+      - 'docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md'
+
+permissions:
+  contents: write
+
+jobs:
+  task012-analysis:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout branch head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Sync locked environment
+        run: uv sync --frozen
+
+      - name: TASK-012 unit gate
+        run: uv run pytest tests/unit/test_task012_run72_analysis.py
+
+      - name: Static gate
+        run: |
+          uv run ruff check src/whole_eye_mvp/run72_analysis.py src/whole_eye_mvp/run72_figures.py scripts/analyze_task_012_run72.py tests/unit/test_task012_run72_analysis.py
+          uv run python -m compileall -q src/whole_eye_mvp/run72_analysis.py src/whole_eye_mvp/run72_figures.py scripts/analyze_task_012_run72.py
+
+      - name: Generate formal offline analysis
+        run: uv run python scripts/analyze_task_012_run72.py
+
+      - name: Verify generated artifact set
+        run: |
+          test -f docs/evidence/task012/TASK_012_ANALYSIS_EVIDENCE.json
+          test -f docs/evidence/task012/TASK_012_PAIR_ANALYSIS.csv
+          test -f docs/evidence/task012/TASK_012_INTERACTION_CONTRASTS.csv
+          test -f docs/evidence/task012/TASK_012_COUPLING_MATRIX.csv
+          test "$(find docs/evidence/task012/figures -maxdepth 1 -type f -name '*.png' | wc -l)" -eq 24
+
+      - name: Upload review artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: task012-analysis-${{ github.sha }}
+          path: docs/evidence/task012
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Commit formal TASK-012 evidence
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/evidence/task012
+          if git diff --cached --quiet; then
+            echo 'TASK-012 outputs already match branch state.'
+            exit 0
+          fi
+          git commit -m 'data: add TASK-012 offline analysis evidence'
+          git push origin HEAD:${GITHUB_REF_NAME}
