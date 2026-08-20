@@ -6,9 +6,11 @@ import json
 import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Mapping, Sequence
+from typing import Mapping, Sequence
 
 TASK012_SOURCE_COMMIT = "f28b3032136aa28f54abb5fe5129765a125d3926"
+TASK012_ANALYSIS_PLAN_ID = "TASK012_RUN72_ANALYSIS_PLAN_2026-08-19"
+TASK012_ANALYSIS_PLAN = "docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md"
 TASK012_SOURCE_HASHES = {
     "TASK_011_RUN72_EVIDENCE.json": (
         "9044898ca71109269b1a35bd5f8701d682bad125e819c54afe50593341e0aa51"
@@ -23,7 +25,6 @@ TASK012_SOURCE_HASHES = {
         "03dfe506566f83f6868c72890c042389ed8d0cd370255967fd1ff3b1ca25fa62"
     ),
 }
-TASK012_ANALYSIS_PLAN = "docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md"
 ABS_TOL = 1e-12
 
 BASE_IDS = ("LB_AL2395", "ATC_M3_AL24477")
@@ -55,16 +56,9 @@ SCALAR_FIELDS = {
     "delta_f_residual_d": "distance_peak_retina_d",
 }
 FORMAL_DELTA_COLUMNS = {
-    "delta_dof50_width_d": "dof50_width_d",
-    "delta_distance_peak_mtfa": "distance_peak_mtfa",
-    "delta_mtfa_at_zero_d": "mtfa_at_zero_d",
-    "delta_tf_mtfa_mean": "tf_mtfa_mean",
-    "delta_c40_um": "c40_um",
-    "delta_c60_um": "c60_um",
-    "delta_hoa_rms_um": "hoa_rms_um",
+    **{name: field for name, field in SCALAR_FIELDS.items() if name != "delta_f_residual_d"},
     "delta_f_residual_d": "delta_f_residual_d",
 }
-
 EXPECTED_DEFOCUS_GRID = tuple(round(0.50 - 0.25 * index, 10) for index in range(15))
 
 
@@ -121,7 +115,7 @@ class PairResult:
     edof_peak_censored: bool
 
     def to_row(self) -> dict[str, object]:
-        row: dict[str, object] = {
+        return {
             "pair_key": self.pair_key,
             "mono_config_id": self.mono_config_id,
             "edof_config_id": self.edof_config_id,
@@ -140,7 +134,6 @@ class PairResult:
             "mono_peak_censored": self.mono_peak_censored,
             "edof_peak_censored": self.edof_peak_censored,
         }
-        return row
 
 
 @dataclass(frozen=True, slots=True)
@@ -169,7 +162,9 @@ class NumericBound:
         raise Task012Error(f"unknown bound status: {status}")
 
     def scaled(self, coefficient: float) -> NumericBound:
-        if coefficient >= 0:
+        if coefficient == 0:
+            return NumericBound(0.0, 0.0)
+        if coefficient > 0:
             return NumericBound(coefficient * self.lower, coefficient * self.upper)
         return NumericBound(coefficient * self.upper, coefficient * self.lower)
 
@@ -177,11 +172,15 @@ class NumericBound:
         return NumericBound(self.lower + other.lower, self.upper + other.upper)
 
     def status(self) -> str:
-        if math.isfinite(self.lower) and math.isfinite(self.upper):
-            return "exact" if abs(self.upper - self.lower) <= ABS_TOL else "bounded_interval"
-        if math.isfinite(self.lower) and math.isinf(self.upper):
+        lower_finite = math.isfinite(self.lower)
+        upper_finite = math.isfinite(self.upper)
+        if lower_finite and upper_finite:
+            if abs(self.upper - self.lower) <= ABS_TOL:
+                return "exact"
+            return "bounded_interval"
+        if lower_finite:
             return "lower_bound"
-        if math.isinf(self.lower) and math.isfinite(self.upper):
+        if upper_finite:
             return "upper_bound"
         return "indeterminate"
 
@@ -229,16 +228,16 @@ def _float(row: Mapping[str, str], field: str) -> float:
 
 
 def _validate_factor_sets(configs: Sequence[ConfigSummary]) -> None:
-    if {config.factors.base_id for config in configs} != set(BASE_IDS):
-        raise Task012Error("base_id set differs from frozen TASK-012 factors")
-    if {config.factors.cornea_id for config in configs} != set(CORNEA_IDS):
-        raise Task012Error("cornea_id set differs from frozen TASK-012 factors")
-    if {config.factors.platform_id for config in configs} != set(PLATFORM_IDS):
-        raise Task012Error("platform_id set differs from frozen TASK-012 factors")
-    if {config.factors.pupil_mm for config in configs} != set(PUPIL_MM):
-        raise Task012Error("pupil_mm set differs from frozen TASK-012 factors")
-    if {config.optic_state for config in configs} != set(OPTIC_STATES):
-        raise Task012Error("optic_state set differs from frozen TASK-012 factors")
+    checks = (
+        ({item.factors.base_id for item in configs}, set(BASE_IDS), "base_id"),
+        ({item.factors.cornea_id for item in configs}, set(CORNEA_IDS), "cornea_id"),
+        ({item.factors.platform_id for item in configs}, set(PLATFORM_IDS), "platform_id"),
+        ({item.factors.pupil_mm for item in configs}, set(PUPIL_MM), "pupil_mm"),
+        ({item.optic_state for item in configs}, set(OPTIC_STATES), "optic_state"),
+    )
+    for observed, expected, field in checks:
+        if observed != expected:
+            raise Task012Error(f"{field} set differs from frozen TASK-012 factors")
 
 
 def load_config_summaries(path: Path) -> tuple[ConfigSummary, ...]:
@@ -252,36 +251,33 @@ def load_config_summaries(path: Path) -> tuple[ConfigSummary, ...]:
         if not config_id or config_id in seen:
             raise Task012Error(f"duplicate or empty config_id: {config_id!r}")
         seen.add(config_id)
-        factors = FactorKey(
-            base_id=row.get("base_id", ""),
-            cornea_id=row.get("cornea_id", ""),
-            platform_id=row.get("platform_id", ""),
-            pupil_mm=_float(row, "pupil_mm"),
+        config = ConfigSummary(
+            run_id=row.get("run_id", ""),
+            config_id=config_id,
+            pair_key=row.get("pair_key", ""),
+            carrier_id=row.get("carrier_id", ""),
+            factors=FactorKey(
+                row.get("base_id", ""),
+                row.get("cornea_id", ""),
+                row.get("platform_id", ""),
+                _float(row, "pupil_mm"),
+            ),
+            optic_state=row.get("optic_state", ""),
+            distance_peak_retina_d=_float(row, "distance_peak_retina_d"),
+            distance_peak_mtfa=_float(row, "distance_peak_mtfa"),
+            mtfa_at_zero_d=_float(row, "mtfa_at_zero_d"),
+            dof50_width_d=_float(row, "dof50_width_d"),
+            dof50_far_censored=_strict_bool(row.get("dof50_far_censored", "")),
+            dof50_near_censored=_strict_bool(row.get("dof50_near_censored", "")),
+            tf_mtfa_mean=_float(row, "tf_mtfa_mean"),
+            peak_search_censored=_strict_bool(row.get("peak_search_censored", "")),
+            c40_um=_float(row, "c40_um"),
+            c60_um=_float(row, "c60_um"),
+            hoa_rms_um=_float(row, "hoa_rms_um"),
         )
-        optic_state = row.get("optic_state", "")
-        configs.append(
-            ConfigSummary(
-                run_id=row.get("run_id", ""),
-                config_id=config_id,
-                pair_key=row.get("pair_key", ""),
-                carrier_id=row.get("carrier_id", ""),
-                factors=factors,
-                optic_state=optic_state,
-                distance_peak_retina_d=_float(row, "distance_peak_retina_d"),
-                distance_peak_mtfa=_float(row, "distance_peak_mtfa"),
-                mtfa_at_zero_d=_float(row, "mtfa_at_zero_d"),
-                dof50_width_d=_float(row, "dof50_width_d"),
-                dof50_far_censored=_strict_bool(row.get("dof50_far_censored", "")),
-                dof50_near_censored=_strict_bool(row.get("dof50_near_censored", "")),
-                tf_mtfa_mean=_float(row, "tf_mtfa_mean"),
-                peak_search_censored=_strict_bool(row.get("peak_search_censored", "")),
-                c40_um=_float(row, "c40_um"),
-                c60_um=_float(row, "c60_um"),
-                hoa_rms_um=_float(row, "hoa_rms_um"),
-            )
-        )
-    if any(not config.run_id or not config.pair_key or not config.carrier_id for config in configs):
-        raise Task012Error("config identity fields must be non-empty")
+        if not config.run_id or not config.pair_key or not config.carrier_id:
+            raise Task012Error(f"config identity fields must be non-empty: {config_id}")
+        configs.append(config)
     _validate_factor_sets(configs)
     return tuple(configs)
 
@@ -289,7 +285,9 @@ def load_config_summaries(path: Path) -> tuple[ConfigSummary, ...]:
 def _trapezoid_mean(rows: Sequence[Mapping[str, str]]) -> float:
     points = sorted((_float(row, "defocus_retina_d"), _float(row, "mtfa")) for row in rows)
     area = 0.0
-    for (x0, y0), (x1, y1) in zip(points, points[1:], strict=True):
+    for index in range(len(points) - 1):
+        x0, y0 = points[index]
+        x1, y1 = points[index + 1]
         area += (x1 - x0) * (y0 + y1) / 2.0
     width = points[-1][0] - points[0][0]
     if abs(width - 3.5) > ABS_TOL:
@@ -297,20 +295,16 @@ def _trapezoid_mean(rows: Sequence[Mapping[str, str]]) -> float:
     return area / width
 
 
-def validate_through_focus(
-    path: Path,
-    configs: Sequence[ConfigSummary],
-) -> None:
+def validate_through_focus(path: Path, configs: Sequence[ConfigSummary]) -> None:
     rows = _read_csv(path)
     if len(rows) != 1080:
         raise Task012Error(f"TASK-012 requires exactly 1080 through-focus rows, got {len(rows)}")
     by_config: dict[str, list[dict[str, str]]] = {}
     for row in rows:
         by_config.setdefault(row.get("config_id", ""), []).append(row)
-    expected_ids = {config.config_id for config in configs}
-    if set(by_config) != expected_ids:
-        raise Task012Error("through-focus config IDs differ from the 72 config-summary IDs")
     config_map = {config.config_id: config for config in configs}
+    if set(by_config) != set(config_map):
+        raise Task012Error("through-focus config IDs differ from the config-summary IDs")
     for config_id, config_rows in by_config.items():
         if len(config_rows) != 15:
             raise Task012Error(f"through-focus rows/config must equal 15: {config_id}")
@@ -318,8 +312,16 @@ def validate_through_focus(
         if grid != EXPECTED_DEFOCUS_GRID:
             raise Task012Error(f"through-focus grid differs from frozen grid: {config_id}")
         config = config_map[config_id]
+        expected_identity = (
+            config.factors.base_id,
+            config.factors.cornea_id,
+            config.factors.platform_id,
+            config.factors.pupil_mm,
+            config.optic_state,
+            config.pair_key,
+        )
         for row in config_rows:
-            factor_values = (
+            observed_identity = (
                 row.get("base_id", ""),
                 row.get("cornea_id", ""),
                 row.get("platform_id", ""),
@@ -327,23 +329,16 @@ def validate_through_focus(
                 row.get("optic_state", ""),
                 row.get("pair_key", ""),
             )
-            expected = (
-                config.factors.base_id,
-                config.factors.cornea_id,
-                config.factors.platform_id,
-                config.factors.pupil_mm,
-                config.optic_state,
-                config.pair_key,
-            )
-            if factor_values != expected:
+            if observed_identity != expected_identity:
                 raise Task012Error(f"through-focus factor identity mismatch: {config_id}")
-        zero = [row for row in config_rows if abs(_float(row, "defocus_retina_d")) <= ABS_TOL]
-        if len(zero) != 1:
+        zero_rows = [
+            row for row in config_rows if abs(_float(row, "defocus_retina_d")) <= ABS_TOL
+        ]
+        if len(zero_rows) != 1:
             raise Task012Error(f"through-focus grid must contain one zero-D row: {config_id}")
-        if abs(_float(zero[0], "mtfa") - config.mtfa_at_zero_d) > ABS_TOL:
+        if abs(_float(zero_rows[0], "mtfa") - config.mtfa_at_zero_d) > ABS_TOL:
             raise Task012Error(f"mtfa_at_zero_d reconstruction failed: {config_id}")
-        tf_mean = _trapezoid_mean(config_rows)
-        if abs(tf_mean - config.tf_mtfa_mean) > ABS_TOL:
+        if abs(_trapezoid_mean(config_rows) - config.tf_mtfa_mean) > ABS_TOL:
             raise Task012Error(f"tf_mtfa_mean reconstruction failed: {config_id}")
 
 
@@ -358,10 +353,10 @@ def dof50_effect_status(mono: ConfigSummary, edof: ConfigSummary) -> str:
 
 
 def _pair_delta(mono: ConfigSummary, edof: ConfigSummary) -> dict[str, float]:
-    values: dict[str, float] = {}
-    for output_name, field_name in SCALAR_FIELDS.items():
-        values[output_name] = float(getattr(edof, field_name) - getattr(mono, field_name))
-    return values
+    return {
+        output: float(getattr(edof, field) - getattr(mono, field))
+        for output, field in SCALAR_FIELDS.items()
+    }
 
 
 def build_pairs(configs: Sequence[ConfigSummary]) -> tuple[PairResult, ...]:
@@ -371,7 +366,7 @@ def build_pairs(configs: Sequence[ConfigSummary]) -> tuple[PairResult, ...]:
     if len(grouped) != 36:
         raise Task012Error(f"TASK-012 requires exactly 36 pair keys, got {len(grouped)}")
     pairs: list[PairResult] = []
-    seen_factors: set[FactorKey] = set()
+    factors_seen: set[FactorKey] = set()
     for pair_key in sorted(grouped):
         members = grouped[pair_key]
         if len(members) != 2:
@@ -383,27 +378,27 @@ def build_pairs(configs: Sequence[ConfigSummary]) -> tuple[PairResult, ...]:
         edof = states["EDOF"]
         if mono.factors != edof.factors:
             raise Task012Error(f"MONO/EDOF explicit factor columns differ: {pair_key}")
-        if mono.factors in seen_factors:
+        if mono.factors in factors_seen:
             raise Task012Error(f"duplicate Base×Cornea×Platform×Pupil pair: {mono.factors}")
-        seen_factors.add(mono.factors)
+        factors_seen.add(mono.factors)
         status = dof50_effect_status(mono, edof)
         pairs.append(
             PairResult(
-                pair_key=pair_key,
-                mono_config_id=mono.config_id,
-                edof_config_id=edof.config_id,
-                factors=mono.factors,
-                values=_pair_delta(mono, edof),
-                dof50_effect_status=status,
-                pair_dof50_censored=status != "exact",
-                mono_dof50_censored=mono.dof50_censored,
-                edof_dof50_censored=edof.dof50_censored,
-                pair_peak_censored=mono.peak_search_censored or edof.peak_search_censored,
-                mono_peak_censored=mono.peak_search_censored,
-                edof_peak_censored=edof.peak_search_censored,
+                pair_key,
+                mono.config_id,
+                edof.config_id,
+                mono.factors,
+                _pair_delta(mono, edof),
+                status,
+                status != "exact",
+                mono.dof50_censored,
+                edof.dof50_censored,
+                mono.peak_search_censored or edof.peak_search_censored,
+                mono.peak_search_censored,
+                edof.peak_search_censored,
             )
         )
-    if len(seen_factors) != 36:
+    if len(factors_seen) != 36:
         raise Task012Error("factorial pair coverage is not exact 2×3×3×2")
     return tuple(pairs)
 
@@ -416,7 +411,7 @@ def validate_formal_paired_deltas(path: Path, pairs: Sequence[PairResult]) -> No
     for row in rows:
         pair_key = row.get("pair_key", "")
         if not pair_key or pair_key in by_pair:
-            raise Task012Error(f"duplicate or empty pair_key in formal paired CSV: {pair_key!r}")
+            raise Task012Error(f"duplicate or empty formal pair_key: {pair_key!r}")
         by_pair[pair_key] = row
     if set(by_pair) != {pair.pair_key for pair in pairs}:
         raise Task012Error("formal paired-delta pair keys differ from reconstructed pairs")
@@ -426,13 +421,9 @@ def validate_formal_paired_deltas(path: Path, pairs: Sequence[PairResult]) -> No
             raise Task012Error(f"formal paired MONO config mismatch: {pair.pair_key}")
         if row.get("edof_config_id") != pair.edof_config_id:
             raise Task012Error(f"formal paired EDOF config mismatch: {pair.pair_key}")
-        for output_name, formal_name in FORMAL_DELTA_COLUMNS.items():
-            observed = _float(row, formal_name)
-            expected = pair.values[output_name]
-            if abs(observed - expected) > ABS_TOL:
-                raise Task012Error(
-                    f"paired delta reconstruction mismatch {pair.pair_key}:{output_name}"
-                )
+        for output, formal_column in FORMAL_DELTA_COLUMNS.items():
+            if abs(_float(row, formal_column) - pair.values[output]) > ABS_TOL:
+                raise Task012Error(f"paired delta reconstruction mismatch {pair.pair_key}:{output}")
 
 
 def _pair_index(pairs: Sequence[PairResult]) -> dict[FactorKey, PairResult]:
@@ -443,35 +434,30 @@ def _pair_index(pairs: Sequence[PairResult]) -> dict[FactorKey, PairResult]:
 
 
 def _contrast_bound(
-    terms: Sequence[tuple[float, PairResult]],
-    outcome: str,
-) -> tuple[str, float | None, float | None]:
+    terms: Sequence[tuple[float, PairResult]], outcome: str
+) -> tuple[str, float | str, float | str]:
     if outcome != "delta_dof50_width_d":
-        return "exact", None, None
-    bound = NumericBound(0.0, 0.0)
+        return "exact", "", ""
+    result = NumericBound(0.0, 0.0)
     for coefficient, pair in terms:
-        source = NumericBound.from_status(
-            pair.values[outcome],
-            pair.dof50_effect_status,
-        )
-        bound = bound.add(source.scaled(coefficient))
-    lower = bound.lower if math.isfinite(bound.lower) else None
-    upper = bound.upper if math.isfinite(bound.upper) else None
-    return bound.status(), lower, upper
+        source = NumericBound.from_status(pair.values[outcome], pair.dof50_effect_status)
+        result = result.add(source.scaled(coefficient))
+    lower: float | str = result.lower if math.isfinite(result.lower) else ""
+    upper: float | str = result.upper if math.isfinite(result.upper) else ""
+    return result.status(), lower, upper
 
 
 def _contrast_row(
-    *,
     contrast_type: str,
     outcome: str,
     label: str,
     terms: Sequence[tuple[float, PairResult]],
+    *,
     base_id: str = "",
     cornea_id: str = "",
     platform_id: str = "",
     pupil_mm: float | str = "",
 ) -> dict[str, object]:
-    value = sum(coefficient * pair.values[outcome] for coefficient, pair in terms)
     status, lower, upper = _contrast_bound(terms, outcome)
     return {
         "contrast_type": contrast_type,
@@ -481,13 +467,11 @@ def _contrast_row(
         "cornea_id": cornea_id,
         "platform_id": platform_id,
         "pupil_mm": pupil_mm,
-        "value": value,
+        "value": sum(coef * pair.values[outcome] for coef, pair in terms),
         "bound_status": status,
-        "lower_bound": lower if lower is not None else "",
-        "upper_bound": upper if upper is not None else "",
-        "source_pair_keys": json.dumps(
-            [pair.pair_key for _, pair in terms], separators=(",", ":")
-        ),
+        "lower_bound": lower,
+        "upper_bound": upper,
+        "source_pair_keys": json.dumps([pair.pair_key for _, pair in terms], separators=(",", ":")),
         "source_dof50_statuses": json.dumps(
             [pair.dof50_effect_status for _, pair in terms], separators=(",", ":")
         ),
@@ -498,179 +482,131 @@ def _contrast_row(
 def build_contrasts(pairs: Sequence[PairResult]) -> tuple[dict[str, object], ...]:
     index = _pair_index(pairs)
     rows: list[dict[str, object]] = []
-    platform_contrasts = (("WFS", "RAD"), ("WFS", "HOA"), ("RAD", "HOA"))
-    cornea_contrasts = (("B0", "A0"), ("C0", "A0"), ("B0", "C0"))
-
+    platform_pairs = (("WFS", "RAD"), ("WFS", "HOA"), ("RAD", "HOA"))
+    cornea_pairs = (("B0", "A0"), ("C0", "A0"), ("B0", "C0"))
     for outcome in PAIR_OUTCOMES:
-        for base_id in BASE_IDS:
-            for cornea_id in CORNEA_IDS:
-                for pupil_mm in PUPIL_MM:
-                    for left, right in platform_contrasts:
+        for base in BASE_IDS:
+            for cornea in CORNEA_IDS:
+                for pupil in PUPIL_MM:
+                    for left, right in platform_pairs:
                         terms = (
-                            (1.0, index[FactorKey(base_id, cornea_id, left, pupil_mm)]),
-                            (-1.0, index[FactorKey(base_id, cornea_id, right, pupil_mm)]),
+                            (1.0, index[FactorKey(base, cornea, left, pupil)]),
+                            (-1.0, index[FactorKey(base, cornea, right, pupil)]),
                         )
                         rows.append(
                             _contrast_row(
-                                contrast_type="platform",
-                                outcome=outcome,
-                                label=f"{left}-{right}",
-                                terms=terms,
-                                base_id=base_id,
-                                cornea_id=cornea_id,
-                                pupil_mm=pupil_mm,
+                                "platform",
+                                outcome,
+                                f"{left}-{right}",
+                                terms,
+                                base_id=base,
+                                cornea_id=cornea,
+                                pupil_mm=pupil,
                             )
                         )
-        for base_id in BASE_IDS:
-            for platform_id in PLATFORM_IDS:
-                for pupil_mm in PUPIL_MM:
-                    for left, right in cornea_contrasts:
+        for base in BASE_IDS:
+            for platform in PLATFORM_IDS:
+                for pupil in PUPIL_MM:
+                    for left, right in cornea_pairs:
                         terms = (
-                            (1.0, index[FactorKey(base_id, left, platform_id, pupil_mm)]),
-                            (-1.0, index[FactorKey(base_id, right, platform_id, pupil_mm)]),
+                            (1.0, index[FactorKey(base, left, platform, pupil)]),
+                            (-1.0, index[FactorKey(base, right, platform, pupil)]),
                         )
                         rows.append(
                             _contrast_row(
-                                contrast_type="cornea",
-                                outcome=outcome,
-                                label=f"{left}-{right}",
-                                terms=terms,
-                                base_id=base_id,
-                                platform_id=platform_id,
-                                pupil_mm=pupil_mm,
+                                "cornea",
+                                outcome,
+                                f"{left}-{right}",
+                                terms,
+                                base_id=base,
+                                platform_id=platform,
+                                pupil_mm=pupil,
                             )
                         )
-        for base_id in BASE_IDS:
-            for pupil_mm in PUPIL_MM:
-                for cornea_left, cornea_right in cornea_contrasts:
-                    for platform_left, platform_right in platform_contrasts:
+        for base in BASE_IDS:
+            for pupil in PUPIL_MM:
+                for cornea_left, cornea_right in cornea_pairs:
+                    for platform_left, platform_right in platform_pairs:
                         terms = (
-                            (
-                                1.0,
-                                index[
-                                    FactorKey(
-                                        base_id,
-                                        cornea_left,
-                                        platform_left,
-                                        pupil_mm,
-                                    )
-                                ],
-                            ),
-                            (
-                                -1.0,
-                                index[
-                                    FactorKey(
-                                        base_id,
-                                        cornea_right,
-                                        platform_left,
-                                        pupil_mm,
-                                    )
-                                ],
-                            ),
-                            (
-                                -1.0,
-                                index[
-                                    FactorKey(
-                                        base_id,
-                                        cornea_left,
-                                        platform_right,
-                                        pupil_mm,
-                                    )
-                                ],
-                            ),
-                            (
-                                1.0,
-                                index[
-                                    FactorKey(
-                                        base_id,
-                                        cornea_right,
-                                        platform_right,
-                                        pupil_mm,
-                                    )
-                                ],
-                            ),
+                            (1.0, index[FactorKey(base, cornea_left, platform_left, pupil)]),
+                            (-1.0, index[FactorKey(base, cornea_right, platform_left, pupil)]),
+                            (-1.0, index[FactorKey(base, cornea_left, platform_right, pupil)]),
+                            (1.0, index[FactorKey(base, cornea_right, platform_right, pupil)]),
+                        )
+                        label = (
+                            f"({cornea_left}-{cornea_right})_{platform_left}-"
+                            f"({cornea_left}-{cornea_right})_{platform_right}"
                         )
                         rows.append(
                             _contrast_row(
-                                contrast_type="cornea_x_platform_did",
-                                outcome=outcome,
-                                label=(
-                                    f"({cornea_left}-{cornea_right})_"
-                                    f"{platform_left}-({cornea_left}-{cornea_right})_"
-                                    f"{platform_right}"
-                                ),
-                                terms=terms,
-                                base_id=base_id,
-                                pupil_mm=pupil_mm,
+                                "cornea_x_platform_did",
+                                outcome,
+                                label,
+                                terms,
+                                base_id=base,
+                                pupil_mm=pupil,
                             )
                         )
-        for base_id in BASE_IDS:
-            for cornea_id in CORNEA_IDS:
-                for platform_id in PLATFORM_IDS:
+        for base in BASE_IDS:
+            for cornea in CORNEA_IDS:
+                for platform in PLATFORM_IDS:
                     terms = (
-                        (1.0, index[FactorKey(base_id, cornea_id, platform_id, 5.0)]),
-                        (-1.0, index[FactorKey(base_id, cornea_id, platform_id, 3.0)]),
+                        (1.0, index[FactorKey(base, cornea, platform, 5.0)]),
+                        (-1.0, index[FactorKey(base, cornea, platform, 3.0)]),
                     )
                     rows.append(
                         _contrast_row(
-                            contrast_type="pupil_sensitivity",
-                            outcome=outcome,
-                            label="EPD5-EPD3",
-                            terms=terms,
-                            base_id=base_id,
-                            cornea_id=cornea_id,
-                            platform_id=platform_id,
+                            "pupil_sensitivity",
+                            outcome,
+                            "EPD5-EPD3",
+                            terms,
+                            base_id=base,
+                            cornea_id=cornea,
+                            platform_id=platform,
                         )
                     )
-        for cornea_id in CORNEA_IDS:
-            for platform_id in PLATFORM_IDS:
-                for pupil_mm in PUPIL_MM:
+        for cornea in CORNEA_IDS:
+            for platform in PLATFORM_IDS:
+                for pupil in PUPIL_MM:
                     terms = (
-                        (
-                            1.0,
-                            index[FactorKey("ATC_M3_AL24477", cornea_id, platform_id, pupil_mm)],
-                        ),
-                        (
-                            -1.0,
-                            index[FactorKey("LB_AL2395", cornea_id, platform_id, pupil_mm)],
-                        ),
+                        (1.0, index[FactorKey("ATC_M3_AL24477", cornea, platform, pupil)]),
+                        (-1.0, index[FactorKey("LB_AL2395", cornea, platform, pupil)]),
                     )
                     rows.append(
                         _contrast_row(
-                            contrast_type="base_sensitivity",
-                            outcome=outcome,
-                            label="ATC-LB",
-                            terms=terms,
-                            cornea_id=cornea_id,
-                            platform_id=platform_id,
-                            pupil_mm=pupil_mm,
+                            "base_sensitivity",
+                            outcome,
+                            "ATC-LB",
+                            terms,
+                            cornea_id=cornea,
+                            platform_id=platform,
+                            pupil_mm=pupil,
                         )
                     )
     return tuple(rows)
 
 
-def _direction_count(values: Iterable[float]) -> str:
-    numbers = tuple(values)
-    positive = sum(value > 0 for value in numbers)
-    zero = sum(abs(value) <= ABS_TOL for value in numbers)
-    negative = len(numbers) - positive - zero
+def _direction_count(values: Sequence[float]) -> str:
+    positive = sum(value > ABS_TOL for value in values)
+    negative = sum(value < -ABS_TOL for value in values)
+    zero = len(values) - positive - negative
     return f"+{positive}/0{zero}/-{negative}"
 
 
 def build_coupling_matrix(pairs: Sequence[PairResult]) -> tuple[dict[str, object], ...]:
     index = _pair_index(pairs)
     rows: list[dict[str, object]] = []
-    for cornea_id in CORNEA_IDS:
-        for platform_id in PLATFORM_IDS:
-            cell_pairs = tuple(
-                index[FactorKey(base_id, cornea_id, platform_id, pupil_mm)]
-                for base_id in BASE_IDS
-                for pupil_mm in PUPIL_MM
+    for cornea in CORNEA_IDS:
+        for platform in PLATFORM_IDS:
+            cell = tuple(
+                index[FactorKey(base, cornea, platform, pupil)]
+                for base in BASE_IDS
+                for pupil in PUPIL_MM
             )
             row: dict[str, object] = {
-                "cornea_id": cornea_id,
-                "platform_id": platform_id,
-                "platform_label": PLATFORM_LABELS[platform_id],
+                "cornea_id": cornea,
+                "platform_id": platform,
+                "platform_label": PLATFORM_LABELS[platform],
                 "stratum_count": 4,
                 "strata": json.dumps(
                     [
@@ -680,27 +616,24 @@ def build_coupling_matrix(pairs: Sequence[PairResult]) -> tuple[dict[str, object
                             "pupil_label": PUPIL_LABELS[pair.factors.pupil_mm],
                             "pair_key": pair.pair_key,
                         }
-                        for pair in cell_pairs
+                        for pair in cell
                     ],
                     separators=(",", ":"),
                 ),
                 "dof50_effect_statuses": json.dumps(
-                    [pair.dof50_effect_status for pair in cell_pairs], separators=(",", ":")
+                    [pair.dof50_effect_status for pair in cell], separators=(",", ":")
                 ),
-                "dof50_censored_count": sum(pair.pair_dof50_censored for pair in cell_pairs),
-                "peak_censored_count": sum(pair.pair_peak_censored for pair in cell_pairs),
+                "dof50_censored_count": sum(pair.pair_dof50_censored for pair in cell),
+                "peak_censored_count": sum(pair.pair_peak_censored for pair in cell),
             }
-            for outcome in PAIR_OUTCOMES[:4]:
-                values = tuple(pair.values[outcome] for pair in cell_pairs)
-                row[f"{outcome}_values"] = json.dumps(values, separators=(",", ":"))
-                row[f"{outcome}_mean"] = sum(values) / len(values)
-                row[f"{outcome}_min"] = min(values)
-                row[f"{outcome}_max"] = max(values)
-                row[f"{outcome}_direction"] = _direction_count(values)
-            for outcome in PAIR_OUTCOMES[4:]:
-                values = tuple(pair.values[outcome] for pair in cell_pairs)
+            for outcome in PAIR_OUTCOMES:
+                values = tuple(pair.values[outcome] for pair in cell)
                 row[f"{outcome}_values"] = json.dumps(values, separators=(",", ":"))
                 row[f"{outcome}_direction"] = _direction_count(values)
+                if outcome in PAIR_OUTCOMES[:4]:
+                    row[f"{outcome}_mean"] = sum(values) / 4.0
+                    row[f"{outcome}_min"] = min(values)
+                    row[f"{outcome}_max"] = max(values)
             rows.append(row)
     return tuple(rows)
 
@@ -711,6 +644,9 @@ def analyze_evidence(evidence_dir: Path) -> Task012Analysis:
     validate_through_focus(evidence_dir / "TASK_011_RUN72_THROUGH_FOCUS.csv", configs)
     pairs = build_pairs(configs)
     validate_formal_paired_deltas(evidence_dir / "TASK_011_RUN72_PAIRED_DELTAS.csv", pairs)
-    contrasts = build_contrasts(pairs)
-    coupling_matrix = build_coupling_matrix(pairs)
-    return Task012Analysis(pairs, contrasts, coupling_matrix, source_hashes)
+    return Task012Analysis(
+        pairs=pairs,
+        contrasts=build_contrasts(pairs),
+        coupling_matrix=build_coupling_matrix(pairs),
+        source_hashes=source_hashes,
+    )
