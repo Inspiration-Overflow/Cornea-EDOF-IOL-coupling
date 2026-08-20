@@ -3,10 +3,13 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from .cornea_assets import MAIN_CORNEA_SCAFFOLD, CorneaLockPrescription
+from .cornea_assets import (
+    MAIN_CORNEA_SCAFFOLD,
+    CorneaLockPrescription,
+    distance_corrected_front_radius_mm,
+)
 from .cornea_candidates_zos import (
     A_CONIC_SCAN,
-    B_R4_SCAN,
     C0_TRANSITION_SLICES_NOMINAL,
     CORNEA_SUPPORT_RADIUS_MM,
     CorneaCandidateMeasurement,
@@ -58,8 +61,6 @@ def build_task014_distance_cornea(
     editor = SequentialEditor(session.system, session.zosapi)
     editor.set_comment(1, f"{DISTANCE_CORNEA_ANT_ROLE}_V12")
     treatment = TASK014_RX_CONTRACT.corneal_plane_distance_treatment_d
-    from .cornea_assets import distance_corrected_front_radius_mm
-
     editor.set_radius_conic(
         1,
         radius_mm=distance_corrected_front_radius_mm(treatment),
@@ -126,8 +127,6 @@ def _build_b0v12(
 ) -> CorneaCandidateMeasurement:
     if prescription.candidate_id != TASK014_B0_ID or prescription.cornea_id != CorneaId.B0:
         raise Task014CorneaZosError("B0V12 prescription identity mismatch")
-    # The existing B builder is prescription-driven; passing the TASK-014 prescription
-    # reuses the validated Even Asphere solve without consulting the legacy baseline treatment.
     result = build_b_candidate(
         session,
         prescription,
