@@ -20,6 +20,7 @@ from .zos import SequentialEditor, ZosSession
 VALIDATION_SCHEMA_VERSION = 1
 VALIDATION_PUPIL_MM = 5.0
 VALIDATION_INDEX_NAME = "VALIDATION_INDEX.json"
+CURRENT_POINTER_NAME = "CURRENT.json"
 
 
 class ResidualExtensionValidationError(RuntimeError):
@@ -160,13 +161,67 @@ def _load_reusable_validation(
     return payload
 
 
+def _write_current_pointer(
+    validation_root: Path,
+    record_path: Path,
+    payload: dict[str, object],
+) -> Path:
+    carrier_id = payload.get("carrier_id")
+    if not isinstance(carrier_id, str) or not carrier_id.strip():
+        raise ResidualExtensionValidationError("validation payload lacks carrier_id")
+    pointer_path = validation_root / carrier_id / CURRENT_POINTER_NAME
+    pointer_path.parent.mkdir(parents=True, exist_ok=True)
+    pointer = {
+        "schema_version": VALIDATION_SCHEMA_VERSION,
+        "carrier_id": carrier_id,
+        "carrier_sha256": payload.get("carrier_sha256"),
+        "residual_id": payload.get("residual_id"),
+        "residual_sha256": payload.get("residual_sha256"),
+        "policy_id": payload.get("policy_id"),
+        "passed": payload.get("passed"),
+        "record_relative_path": record_path.relative_to(validation_root).as_posix(),
+        "record_sha256": sha256_file(record_path),
+    }
+    pointer_path.write_text(
+        json.dumps(pointer, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return pointer_path
+
+
 def _write_validation_index(validation_root: Path) -> Path:
     rows: list[dict[str, object]] = []
-    for record_path in sorted(validation_root.glob("*/*/VALIDATION.json")):
+    for pointer_path in sorted(validation_root.glob(f"*/{CURRENT_POINTER_NAME}")):
+        pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
+        if not isinstance(pointer, dict):
+            raise ResidualExtensionValidationError(
+                f"validation current pointer is not an object: {pointer_path}"
+            )
+        relative = pointer.get("record_relative_path")
+        expected_record_sha = pointer.get("record_sha256")
+        if not isinstance(relative, str) or not isinstance(expected_record_sha, str):
+            raise ResidualExtensionValidationError(
+                f"validation current pointer is incomplete: {pointer_path}"
+            )
+        record_path = validation_root / relative
+        if not record_path.is_file() or sha256_file(record_path) != expected_record_sha:
+            raise ResidualExtensionValidationError(
+                f"validation current pointer record mismatch: {pointer_path}"
+            )
         payload = json.loads(record_path.read_text(encoding="utf-8"))
         if not isinstance(payload, dict):
             raise ResidualExtensionValidationError(
                 f"validation record root is not an object: {record_path}"
+            )
+        if (
+            payload.get("carrier_id") != pointer.get("carrier_id")
+            or payload.get("carrier_sha256") != pointer.get("carrier_sha256")
+            or payload.get("residual_sha256") != pointer.get("residual_sha256")
+            or payload.get("policy_id") != pointer.get("policy_id")
+            or payload.get("passed") != pointer.get("passed")
+        ):
+            raise ResidualExtensionValidationError(
+                f"validation current pointer identity mismatch: {pointer_path}"
             )
         rows.append(
             {
@@ -179,8 +234,10 @@ def _write_validation_index(validation_root: Path) -> Path:
                 "residual_sha256": payload.get("residual_sha256"),
                 "policy_id": payload.get("policy_id"),
                 "passed": payload.get("passed"),
-                "record_relative_path": record_path.relative_to(validation_root).as_posix(),
-                "record_sha256": sha256_file(record_path),
+                "record_relative_path": relative,
+                "record_sha256": expected_record_sha,
+                "current_pointer_relative_path": pointer_path.relative_to(validation_root).as_posix(),
+                "current_pointer_sha256": sha256_file(pointer_path),
             }
         )
     index = validation_root / VALIDATION_INDEX_NAME
@@ -201,6 +258,15 @@ def _write_validation_index(validation_root: Path) -> Path:
     return index
 
 
+def _refresh_validation_summary(
+    validation_root: Path,
+    record_path: Path,
+    payload: dict[str, object],
+) -> None:
+    _write_current_pointer(validation_root, record_path, payload)
+    _write_validation_index(validation_root)
+
+
 def ensure_frozen_residual_carrier_validation(
     session: ZosSession,
     *,
@@ -219,7 +285,7 @@ def ensure_frozen_residual_carrier_validation(
 
     The numerical hard gates intentionally match TASK-007 consolidated calibration:
     actual-eye and standard-eye piston/global-defocus readback plus EPD5 actual-eye
-    MONO/EDOF ray health.  Power-envelope coverage is descriptive only; these exact-
+    MONO/EDOF ray health. Power-envelope coverage is descriptive only; these exact-
     carrier replay checks determine whether production may continue.
     """
 
@@ -255,7 +321,7 @@ def ensure_frozen_residual_carrier_validation(
         residual_sha256=residual_sha256,
     )
     if reusable is not None:
-        _write_validation_index(validation_root_path)
+        _refresh_validation_summary(validation_root_path, record_path, reusable)
         return reusable
 
     r_ant, r_post, q_ant = _read_actual_carrier_geometry(session, mono_path)
@@ -346,7 +412,7 @@ def ensure_frozen_residual_carrier_validation(
         json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    _write_validation_index(validation_root_path)
+    _refresh_validation_summary(validation_root_path, record_path, payload)
     return payload
 
 
