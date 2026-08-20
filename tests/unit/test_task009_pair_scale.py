@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+import importlib.util
 from pathlib import Path
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 
 import pytest
 
-import scripts.run_task_009_pair_mono_scale_representative as task009_script
 from whole_eye_mvp.analysis_zos_pair_scale import (
     EXPECTED_PAIR_MONO_MTF_ACQUISITION_HASH,
     TASK009_PAIR_MONO_MTF_ACQUISITION,
@@ -13,6 +13,17 @@ from whole_eye_mvp.analysis_zos_pair_scale import (
     frequencies_for_pair_reference,
 )
 from whole_eye_mvp.metrics import mm_per_degree
+
+SCRIPT_PATH = Path("scripts/run_task_009_pair_mono_scale_representative.py")
+
+
+def _load_task009_script() -> ModuleType:
+    spec = importlib.util.spec_from_file_location("task009_pair_scale_script", SCRIPT_PATH)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("unable to load TASK-009 paired-scale script")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 @pytest.mark.unit
@@ -73,6 +84,8 @@ def test_pair_scale_backend_fails_closed_without_valid_reference(tmp_path: Path)
 
 @pytest.mark.unit
 def test_pair_report_uses_config_identity_not_configresult_shortcuts(monkeypatch) -> None:
+    task009_script = _load_task009_script()
+
     def result(config_id: str, pair_key: str):
         return SimpleNamespace(
             config=SimpleNamespace(
@@ -115,9 +128,7 @@ def test_pair_report_uses_config_identity_not_configresult_shortcuts(monkeypatch
 
 @pytest.mark.unit
 def test_task009_script_has_no_known_configresult_identity_shortcuts() -> None:
-    text = Path("scripts/run_task_009_pair_mono_scale_representative.py").read_text(
-        encoding="utf-8"
-    )
+    text = SCRIPT_PATH.read_text(encoding="utf-8")
     forbidden = (
         "mono_result.config_id",
         "edof_result.config_id",
