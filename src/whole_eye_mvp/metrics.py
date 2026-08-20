@@ -47,34 +47,20 @@ def cycles_mm_to_cpd(
     cycles_per_mm: np.ndarray | Sequence[float] | float,
     effective_focal_length_mm: float,
 ) -> np.ndarray:
-    return np.asarray(cycles_per_mm, dtype=float) * mm_per_degree(effective_focal_length_mm)
+    values = np.asarray(cycles_per_mm, dtype=float)
+    if not np.all(np.isfinite(values)) or np.any(values < 0):
+        raise ValueError("cycles/mm values must be finite and non-negative")
+    return values * mm_per_degree(effective_focal_length_mm)
 
 
-def resample_fft_mtf_to_cpd(
-    frequencies_cycles_per_mm: Sequence[float],
-    sagittal: Sequence[float],
-    tangential: Sequence[float],
-    *,
+def cpd_to_cycles_mm(
+    cycles_per_degree: np.ndarray | Sequence[float] | float,
     effective_focal_length_mm: float,
-    max_cpd: float = 60.0,
-    step_cpd: float = 1.0,
-) -> tuple[np.ndarray, np.ndarray]:
-    f_mm = np.asarray(frequencies_cycles_per_mm, dtype=float)
-    if f_mm.ndim != 1 or f_mm.size < 2 or not np.all(np.isfinite(f_mm)):
-        raise ValueError("FFT MTF frequency axis must be a finite vector with at least two points")
-    if np.any(np.diff(f_mm) <= 0):
-        raise ValueError("FFT MTF frequency axis must be strictly increasing")
-    if max_cpd <= 0 or step_cpd <= 0:
-        raise ValueError("target cpd grid settings must be positive")
-
-    avg = average_sagittal_tangential_mtf(sagittal, tangential)
-    if avg.shape != f_mm.shape:
-        raise ValueError("FFT MTF frequency and modulation vectors must have equal lengths")
-    f_cpd = cycles_mm_to_cpd(f_mm, effective_focal_length_mm)
-    target = np.arange(0.0, max_cpd + 0.5 * step_cpd, step_cpd, dtype=float)
-    if f_cpd[0] > target[0] + 1e-12 or f_cpd[-1] < target[-1] - 1e-12:
-        raise ValueError("FFT MTF acquisition does not cover the requested cpd domain")
-    return target, np.interp(target, f_cpd, avg)
+) -> np.ndarray:
+    values = np.asarray(cycles_per_degree, dtype=float)
+    if not np.all(np.isfinite(values)) or np.any(values < 0):
+        raise ValueError("cycles/degree values must be finite and non-negative")
+    return values / mm_per_degree(effective_focal_length_mm)
 
 
 def mtfa(
