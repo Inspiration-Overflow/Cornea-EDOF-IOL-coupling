@@ -25,7 +25,7 @@ from .cornea_zos import FIXED_CORNEA_POST_ROLE
 from .domain import NOMINAL_MAIN_FFT_MTF_555_V2, OpticState
 from .grid_sag_residual import apply_grid_sag_residual
 from .manifest import NominalConfig
-from .metrics import mm_per_degree, mtfa, resample_fft_mtf_to_cpd
+from .metrics import mm_per_degree, mtfa
 from .quality import settings_hash
 from .ref_mono import symmetric_biconvex_power_d
 from .residual_payload import (
@@ -36,12 +36,14 @@ from .residual_payload import (
 )
 from .store import sha256_file
 from .zos import (
-    FftMtfRunner,
-    FftMtfSettings,
     MfeEfflRunner,
     MfeFullHoaRunner,
+    MfeMtfGridRunner,
+    MfeMtfGridSettings,
     ZosSession,
 )
+
+TASK009_MTF_ACQUISITION_ID = "TASK009_MFE_MTFA_GRID1_v1"
 
 
 class AnalysisZosError(RuntimeError):
@@ -68,6 +70,25 @@ class FootprintReadback:
     iol_footprint_mm: float
     unintended_vignetting: bool
     failures: tuple[dict[str, object], ...]
+
+
+@dataclass(frozen=True, slots=True)
+class MtfAcquisitionContract:
+    contract_id: str = TASK009_MTF_ACQUISITION_ID
+    production_operand: str = "MTFA"
+    grid: int = 1
+    data_type: int = 0
+    wavelength_number: int = 1
+    field_number: int = 1
+    frequency_axis: str = "direct_0_to_60_cpd_via_nominal_EFL"
+
+    @property
+    def contract_hash(self) -> str:
+        text = json.dumps(asdict(self), sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+TASK009_MTF_ACQUISITION = MtfAcquisitionContract()
 
 
 def _candidate(platform: str) -> RadialResidualCandidate:
@@ -127,6 +148,8 @@ def _assert_loaded_nominal_model(session: ZosSession, config: NominalConfig) -> 
         raise AnalysisZosError(
             f"loaded model wavelength is {wavelength_nm:.12g} nm, expected {settings.wavelength_nm:g}"
         )
+    if settings.fft_mtf_use_polarization is not False:
+        raise AnalysisZosError("TASK-009 MFE MTFA Grid=1 contract is frozen to unpolarized MTF")
     _require_cycles_per_mm(session)
     _set_epd(session, config.pupil_mm)
 
@@ -304,7 +327,7 @@ def _write_plots(
 
 
 @dataclass(slots=True)
-class ZosFftMtfAnalysisBackend:
+class ZosMtfaGridAnalysisBackend:
     session: ZosSession
     project_dir: Path
     carrier_asset_sha256: Mapping[str, str]
@@ -391,77 +414,67 @@ class ZosFftMtfAnalysisBackend:
         saved_object_thickness = float(object_surface.Thickness)
         effl_mm = MfeEfflRunner(self.session.system, self.session.zosapi).run().effective_focal_length_mm
         scale = mm_per_degree(effl_mm)
-        requested_max_frequency = math.ceil(65.0 / scale)
-        runner = FftMtfRunner(self.session.system, self.session.zosapi)
-        grid = NOMINAL_MAIN_FFT_MTF_555_V2.defocus_grid()
+        settings = NOMINAL_MAIN_FFT_MTF_555_V2
+        cpd_grid = settings.mtf_frequency_grid_cpd()
+        frequencies_mm = tuple(float(cpd / scale) for cpd in cpd_grid)
+        runner = MfeMtfGridRunner(self.session.system, self.session.zosapi)
+        defocus_grid = settings.defocus_grid()
         mtfa_values: list[float] = []
         fixed_columns: dict[float, list[float]] = {
-            frequency: [] for frequency in NOMINAL_MAIN_FFT_MTF_555_V2.mtf_sample_frequencies_cpd
+            frequency: [] for frequency in settings.mtf_sample_frequencies_cpd
         }
-        common_cpd: tuple[float, ...] | None = None
         zero_mtf: tuple[float, ...] | None = None
         runtime_meta: dict[str, object] | None = None
         try:
-            for defocus_d in grid:
+            for defocus_d in defocus_grid:
                 object_surface.Thickness = object_thickness_for_defocus_d(
                     defocus_d,
                     infinity_thickness_mm=saved_object_thickness,
                 )
-                fft = runner.run(
-                    FftMtfSettings(
-                        sampling=self.sampling,
-                        maximum_frequency_cyc_per_mm=float(requested_max_frequency),
-                        use_polarization=NOMINAL_MAIN_FFT_MTF_555_V2.fft_mtf_use_polarization,
+                result = runner.run(
+                    MfeMtfGridSettings(
+                        frequencies_cyc_per_mm=frequencies_mm,
+                        sampling_grid_size=self.sampling,
+                        operand_type="MTFA",
+                        grid=1,
+                        data_type=0,
                     )
                 )
-                cpd, avg = resample_fft_mtf_to_cpd(
-                    fft.frequency_cycles_per_mm,
-                    fft.sagittal_mtf,
-                    fft.tangential_mtf,
-                    effective_focal_length_mm=effl_mm,
-                    max_cpd=NOMINAL_MAIN_FFT_MTF_555_V2.mtfa_max_cpd,
-                    step_cpd=NOMINAL_MAIN_FFT_MTF_555_V2.mtf_frequency_step_cpd,
-                )
-                current_cpd = tuple(float(value) for value in cpd)
-                if common_cpd is None:
-                    common_cpd = current_cpd
+                avg = tuple(float(value) for value in result.values)
+                if runtime_meta is None:
                     runtime_meta = {
-                        "analysis_api_name": fft.analysis_api_name,
-                        "settings_implementation_type": fft.settings_implementation_type,
-                        "sample_size_enum": fft.sample_size_enum,
-                        "modulation_enum": fft.modulation_enum,
-                        "data_series_count": fft.data_series_count,
-                        "data_series_runtime_type": fft.data_series_runtime_type,
-                        "selected_series_runtime_type": fft.selected_series_runtime_type,
-                        "series_labels": fft.series_labels,
-                        "x_label": fft.x_label,
-                        "native_frequency_min_cycles_per_mm": fft.frequency_cycles_per_mm[0],
-                        "native_frequency_max_cycles_per_mm": fft.frequency_cycles_per_mm[-1],
-                        "native_frequency_count": len(fft.frequency_cycles_per_mm),
+                        "acquisition_contract_id": TASK009_MTF_ACQUISITION.contract_id,
+                        "acquisition_contract_hash": TASK009_MTF_ACQUISITION.contract_hash,
+                        "production_operand": result.operand_type,
+                        "grid": result.grid,
+                        "data_type": result.data_type,
+                        "sampling_grid_size": result.sampling_grid_size,
+                        "sampling_index": result.sampling_index,
+                        "parameter_headers": result.parameter_headers,
+                        "frequency_min_cycles_per_mm": frequencies_mm[0],
+                        "frequency_max_cycles_per_mm": frequencies_mm[-1],
+                        "frequency_count": len(frequencies_mm),
+                        "cpd_min": cpd_grid[0],
+                        "cpd_max": cpd_grid[-1],
+                        "cpd_count": len(cpd_grid),
                     }
-                elif current_cpd != common_cpd:
-                    raise AnalysisZosError("common cpd grid changed between through-focus planes")
-                mtfa_values.append(
-                    mtfa(cpd, avg, max_cpd=NOMINAL_MAIN_FFT_MTF_555_V2.mtfa_max_cpd)
-                )
+                mtfa_values.append(mtfa(cpd_grid, avg, max_cpd=settings.mtfa_max_cpd))
                 for frequency, values in fixed_columns.items():
-                    index = round(
-                        frequency / NOMINAL_MAIN_FFT_MTF_555_V2.mtf_frequency_step_cpd
-                    )
-                    values.append(float(avg[index]))
+                    index = round(frequency / settings.mtf_frequency_step_cpd)
+                    values.append(avg[index])
                 if abs(defocus_d) <= 1.0e-12:
-                    zero_mtf = tuple(float(value) for value in avg)
+                    zero_mtf = avg
         finally:
             object_surface.Thickness = saved_object_thickness
 
-        if common_cpd is None or zero_mtf is None or runtime_meta is None:
-            raise AnalysisZosError("FFT MTF through-focus acquisition is incomplete")
+        if zero_mtf is None or runtime_meta is None:
+            raise AnalysisZosError("MFE MTFA Grid=1 through-focus acquisition is incomplete")
         rows = with_shape_axis(
-            grid,
+            defocus_grid,
             tuple(mtfa_values),
             tuple(
                 tuple(fixed_columns[frequency])
-                for frequency in NOMINAL_MAIN_FFT_MTF_555_V2.mtf_sample_frequencies_cpd
+                for frequency in settings.mtf_sample_frequencies_cpd
             ),
         )
         summary = summarize_mtfa_curve(rows)
@@ -473,14 +486,14 @@ class ZosFftMtfAnalysisBackend:
         through_focus_plot = output / "through_focus_mtfa.png"
         mtf_plot = output / "mtf_at_zero_d.png"
         _write_through_focus_csv(through_focus_csv, rows)
-        _write_plots(rows, common_cpd, zero_mtf, through_focus_plot, mtf_plot)
+        _write_plots(rows, cpd_grid, zero_mtf, through_focus_plot, mtf_plot)
 
         self.diagnostics[config.config_id] = {
             "sampling": self.sampling,
             "effective_focal_length_mm": effl_mm,
             "mm_per_degree": scale,
-            "requested_max_frequency_cycles_per_mm": requested_max_frequency,
-            "fft_runtime": runtime_meta,
+            "target_frequencies_cycles_per_mm": frequencies_mm,
+            "mtf_runtime": runtime_meta,
             "footprint_failures": footprints.failures,
             "entity_before": asdict(before),
             "entity_after": asdict(after),
@@ -503,7 +516,7 @@ class ZosFftMtfAnalysisBackend:
             tf_mtfa_mean=float(summary["tf_mtfa_mean"]),
             peak_search_censored=bool(summary["peak_search_censored"]),
             aberrations=AberrationSummary(hoa.c40_um, hoa.c60_um, hoa.hoa_rms_um),
-            analysis_settings_hash=settings_hash(NOMINAL_MAIN_FFT_MTF_555_V2),
+            analysis_settings_hash=settings_hash(settings),
             hoa_settings_id=hoa.settings_id,
             hoa_settings_hash=hoa.settings_hash,
             cornea_footprint_mm=footprints.cornea_footprint_mm,
