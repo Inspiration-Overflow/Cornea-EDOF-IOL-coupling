@@ -534,7 +534,12 @@ def main() -> None:
         "frequency_scale_mode": PAIR_MONO_FREQUENCY_SCALE_MODE,
         "production_sampling": NOMINAL_MAIN_FFT_MTF_555_V2.fft_mtf_sampling,
         "residual_power_envelope_checks": [asdict(item) for item in envelope_checks],
-        "residual_power_envelope_passed": all(item.passed for item in envelope_checks),
+        "residual_power_coverage_complete": all(
+            item.within_existing_coverage for item in envelope_checks
+        ),
+        "residual_power_extension_validation_required": any(
+            item.extension_validation_required for item in envelope_checks
+        ),
         "carrier_evidence": carrier_evidence,
         "pair_reference_records": pair_reference_records,
         "pair_reference_set_sha256": pair_reference_hash,
