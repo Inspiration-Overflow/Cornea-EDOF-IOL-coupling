@@ -101,9 +101,10 @@ def test_task014_power_envelope_accepts_corrected_carriers_inside_frozen_range()
     checks = require_task014_residual_power_envelopes(existing, corrected)
     assert len(checks) == 18
     assert all(check.passed for check in checks)
+    assert not any(check.extension_validation_required for check in checks)
 
 
-def test_task014_power_envelope_fails_closed_outside_frozen_range() -> None:
+def test_task014_power_envelope_outside_is_validation_trigger() -> None:
     existing = []
     corrected = []
     for platform in (str(PlatformId.WFS), str(PlatformId.RAD), str(PlatformId.HOA)):
@@ -113,5 +114,9 @@ def test_task014_power_envelope_fails_closed_outside_frozen_range() -> None:
             for cornea in TASK014_CORNEA_IDS:
                 power = 25.0 if (platform == str(PlatformId.WFS) and cornea == "A0V12") else 17.5
                 corrected.append(_carrier(base, cornea, platform, power))
-    with pytest.raises(Task014ExtensionError, match="outside frozen residual calibration power envelope"):
-        require_task014_residual_power_envelopes(existing, corrected)
+    checks = require_task014_residual_power_envelopes(existing, corrected)
+    flagged = [check for check in checks if check.extension_validation_required]
+    assert len(flagged) == 2
+    assert all(check.platform_id == str(PlatformId.WFS) for check in flagged)
+    assert all(check.carrier_id.endswith("_A0V12_WFS") for check in flagged)
+    assert all(check.passed is False for check in flagged)
