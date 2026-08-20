@@ -118,7 +118,7 @@ def test_task013_residual_power_envelope_is_validation_trigger() -> None:
     native = _native_carriers()
     checks = require_residual_power_envelopes(existing, native)
     assert len(checks) == 6
-    assert all(check.passed for check in checks)
+    assert all(check.within_existing_coverage for check in checks)
     assert not any(check.extension_validation_required for check in checks)
 
     outside = list(native)
@@ -132,7 +132,7 @@ def test_task013_residual_power_envelope_is_validation_trigger() -> None:
     flagged = [check for check in outside_checks if check.extension_validation_required]
     assert len(flagged) == 1
     assert flagged[0].carrier_id == outside[0].key.carrier_id
-    assert flagged[0].passed is False
+    assert flagged[0].within_existing_coverage is False
 
 
 def test_model_archive_hashes_copy_and_index(tmp_path: Path) -> None:
