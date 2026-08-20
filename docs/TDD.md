@@ -13,6 +13,11 @@
 - optical_integration_environment: Windows + OpticStudio 2026 R1 + valid ZOS-API license
 - active_main_settings: `NOMINAL_MAIN_FFT_MTF_555_v2`
 - active_main_settings_sha256: `0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc`
+- active_mtf_acquisition: `TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2`
+- active_mtf_acquisition_sha256: `f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d`
+- active_frequency_scale_mode: `paired_residual_free_MONO_EFFL`
+- production_sampling: `128`
+- production_sampling_lock: `TASK009_PRODUCTION_SAMPLING_LOCK_v1`
 - active_hoa_settings: `TASK009_MFE_ZERN_HOA_555_v1`
 - active_hoa_settings_sha256: `7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2`
 
@@ -22,19 +27,21 @@
 
 | ID | Decision |
 | --- | --- |
-| TDD-DEC-001 | 主实验使用 OpticStudio FFT MTF Analysis；Python 只做单位转换、MTFa、贯焦摘要和 paired delta。 |
+| TDD-DEC-001 | 主生产 MTF 使用 MFE `MTFA Grid=1`；每 matched pair 使用 residual-free MONO EFFL 固定角尺度；Python 只做确定性频率映射、MTFa、贯焦摘要和 paired delta。 |
 | TDD-DEC-002 | 标准眼 carrier SA calibration 固定 EPD6、约546 nm；主实验 EPD3/5 不改变 Q(P) calibration。 |
 | TDD-DEC-003 | B0 lock 使用独立 `CORNEA_LOCK_B0_555_v2`，不进入 main-analysis settings identity。 |
 | TDD-DEC-004 | DOF50 是固定 50% distance-peak MTFa 的命名指标，不是可调 settings 字段。 |
 | TDD-DEC-005 | `DeltaF_residual` 是 matched analysis result，不进入 physical carrier lock identity。 |
 | TDD-DEC-006 | TASK-009 代表配置必须来自 frozen TASK-008 manifest；6-config integration 必须走真实 `AnalysisBackend → run_analysis_batch`。 |
-| TDD-DEC-007 | 主分析 settings 与 HOA readback settings 分开版本化并各自记录 hash。 |
-| TDD-DEC-008 | 本地 TASK-009 只能证明 sampling candidate；Web review 后才允许写正式 production sampling lock。 |
-| TDD-DEC-009 | limited extraction check 不自行定义新 acceptance threshold；只用于发现 API/单位/列解析错误。 |
+| TDD-DEC-007 | numerical settings、MTF acquisition/scale contract、HOA readback settings 分开版本化并分别记录 identity。 |
+| TDD-DEC-008 | 本地 TASK-009 只生成 evidence；正式 sampling lock 所有权在 Web。Corrected evidence 已通过，Web 已正式锁定 sampling=128。 |
+| TDD-DEC-009 | `MTFT/MTFS` limited extraction check 不定义新 acceptance threshold；只检查 operand/frequency/direction mapping。 |
+
+`AS_FftMtf` production path 已退休。代码中的 `NOMINAL_MAIN_FFT_MTF_555_v2` 和 `fft_mtf_*` 字段名仅为保持冻结 settings hash，不构成 FFT-MTF Analysis 的 active test authority。
 
 ---
 
-# 2. Frozen settings
+# 2. Frozen settings / contracts
 
 ## 2.1 B0 lock settings
 
@@ -53,7 +60,7 @@ frequency step = 5 cycles/mm
 
 只用于 B0 selection provenance。
 
-## 2.2 Main analysis settings
+## 2.2 Main numerical settings
 
 ```text
 settings_id = NOMINAL_MAIN_FFT_MTF_555_v2
@@ -64,7 +71,7 @@ field = 0 deg
 defocus = +0.50 → -3.00 D
 step = -0.25 D
 planes = 15
-production sampling candidate = 128
+production sampling = 128
 convergence samplings = 64 / 128 / 256
 polarization = false
 MTF common grid = 0..60 cpd
@@ -72,7 +79,30 @@ frequency step = 1 cpd
 reported fixed frequencies = 10/20/30/40/50/60 cpd
 ```
 
-## 2.3 HOA readback settings
+## 2.3 Production MTF acquisition / scale
+
+```text
+contract_id = TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2
+contract_sha256 = f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d
+operand = MTFA
+Grid = 1
+Data Type = 0
+Wave = 1
+Field = 1
+frequency_scale_mode = paired_residual_free_MONO_EFFL
+sampling mapping = 64→Samp2, 128→Samp3, 256→Samp4
+```
+
+Formal sampling lock：
+
+```text
+TASK009_PRODUCTION_SAMPLING_LOCK_v1
+production_sampling_locked = true
+production_sampling = 128
+sampling_escalation_256_active = false
+```
+
+## 2.4 HOA readback settings
 
 ```text
 settings_id = TASK009_MFE_ZERN_HOA_555_v1
@@ -91,38 +121,47 @@ terms = Z7..Z28
 
 # 3. Metric oracle
 
-## 3.1 Frequency conversion
+## 3.1 Paired-MONO angular-frequency scale
+
+每个 frozen pair 只从 residual-free MONO nominal-distance model 得到一个 reference：
 
 \[
-mm/deg=EFL_{mm}\tan(1^\circ),\qquad
-f_{cpd}=f_{cyc/mm}\times mm/deg
-\]
-
-要求 EFL finite positive、native frequency strictly increasing、覆盖≥60 cpd，且 common-grid 不外推。
-
-## 3.2 Average MTF / MTFa
-
-\[
-MTF_{avg}=\frac{MTF_{sag}+MTF_{tan}}2
+mm/deg=EFL_{MONO}\tan(1^\circ)
 \]
 
 \[
-MTFa=\frac1{60}\int_0^{60}MTF_{avg}(f)df
+f_{cyc/mm}=\frac{f_{cpd}}{mm/deg}
 \]
 
-输入 equal length、finite、non-negative。1-cpd grid + trapezoidal integration。Pure-math oracle：constant MTF=0.5 → MTFa=0.5，算术容差≤1e-10。
+要求 MONO reference EFL finite positive，并绑定 pair key、MONO config ID、model SHA 与 entity fingerprint。同一 reference 必须用于该 pair 的 MONO、EDOF、所有 defocus、所有 sampling。EDOF/state EFFL 仅为诊断，不得改变生产 cpd 轴。
+
+## 3.2 MTFa
+
+生产输入直接为 MFE `MTFA Grid=1`：
+
+\[
+MTFa=\frac1{60}\int_0^{60}MTFA(f)df
+\]
+
+1-cpd grid + trapezoidal integration。Pure-math oracle：constant MTFA=0.5 → MTFa=0.5，算术容差≤1e-10。
+
+`MTFT/MTFS` 只用于 limited diagnostic；20/40/60 cpd 的方向平均检查为：
+
+\[
+MTFA=\frac{MTFT+MTFS}{2}
+\]
+
+该检查不成为第二条 production path。
 
 ## 3.3 Distance peak / DOF50 / TF mean
 
 Distance peak：±0.50D 内最大 MTFa；tie 先 minimum |D|，再 larger signed D；边界峰标 censored。
 
-DOF50：
-
 \[
 T_{50}=0.5\times MTFa_{distance\ peak}
 \]
 
-从 distance peak 向两侧扩展，取包含 distance peak 的连续区间；crossing 线性插值，不外推。
+DOF50 从 distance peak 向两侧取连续 ≥T50 区间，crossing 线性插值，不外推。
 
 \[
 TF\_MTFa\_mean=\frac1{3.5D}\int_{-3.0}^{+0.5}MTFa(F)dF
@@ -177,35 +216,34 @@ versioned residual payload + frozen low-order policy + low/median/high calibrati
 
 ## TDD-TEST-110 — frozen manifest reload semantics
 
-必须 strict-load `physical_carriers.csv`、`nominal_72.csv`、`manifest.sha256`，并满足 exact 18/72 rows、schema/version exact、18 locks 可重建、`build_manifests()` 重新生成的72 configs 与 loaded CSV 全等、manifest/lock-set 与 TASK-008 evidence 一致。MONO residual provenance empty；EDOF complete；555nm、EPD3/5、field0、alignment/monovision=0。
+必须 strict-load `physical_carriers.csv`、`nominal_72.csv`、`manifest.sha256`，并满足 exact18/72 rows、schema/version exact、18 locks 可重建、`build_manifests()` 重新生成的72 configs 与 loaded CSV 全等、manifest/lock-set 与 TASK-008 evidence 一致。MONO residual provenance empty；EDOF complete；555nm、EPD3/5、field0、alignment/monovision=0。
 
 任一 tamper 必须在 OpticStudio acquisition 前 fail。
 
 ---
 
-# 7. TASK-009 real API gate
+# 7. TASK-009 real API / production gate
 
-## TDD-TEST-201 — FFT MTF capability
+## TDD-TEST-201 — MFE MTFA Grid=1 capability
 
-真实 OpticStudio 2026 R1：
+真实 OpticStudio 2026 R1 必须验证：
 
-- `New_FftMtf()` 可创建；
-- sampling/max frequency/modulation/wave/field/image surface 明确设置；
-- DataSeries 可读；
-- sagittal/tangential columns 由 label 唯一识别；
-- frequency unit cycles/mm；
-- result finite；analysis 显式 close；
-- evidence 记录真实 settings implementation type、sample enum、modulation enum、DataSeries count/runtime type、selected series runtime type、SeriesLabels、XLabel。
+- `MTFA`、`MTFT`、`MTFS` operands 可写入/读取；
+- Grid=1、Data Type=0、Wave1、Field1；
+- sampling mapping 64→2、128→3、256→4；
+- frequency parameter headers/API mapping 明确；
+- cycles/mm 输入与返回 finite；
+- MFE 临时 rows 可恢复，不污染模型。
 
-API enum/header/array wrapper 差异可机械适配；不得猜列位置或改科学 settings。
+`AS_FftMtf` / `New_FftMtf()` 不再是 active capability prerequisite。
 
-## TDD-TEST-202 — EFFL capability
+## TDD-TEST-202 — paired MONO EFFL capability
 
-临时 MFE `EFFL` 返回 finite positive mm，运行后删除并恢复 MFE row count。
+每 representative pair 的 residual-free MONO nominal-distance EFFL 必须 finite positive，并记录 pair key、MONO config ID、model SHA、entity fingerprint。EDOF/state EFFL 可记录为 diagnostic，但不得用于 production frequency scale。
 
-## TDD-TEST-203 — cpd coverage
+## TDD-TEST-203 — cpd target coverage / mapping
 
-每 representative acquisition 覆盖≥60 cpd；不足时 fail，不外推。
+对 0..60 cpd common grid，必须使用 pair MONO reference 计算直接 cycles/mm targets；60 cpd target finite positive。MONO/EDOF、所有 defocus/sampling 必须复用同一个 pair scale，不允许 per-state remapping。
 
 ---
 
@@ -223,61 +261,59 @@ REP-3 ATC_M3_AL24477 + C0 + HOA + EPD5
 
 每 EDOF representative 跑64/128/256。128→256：distance-peak MTFa relative≤2%；TF_MTFa_mean relative≤2%；distance peak shift≤0.25D；DOF50 width change≤0.25D。
 
-本地全部通过只得到 `production_sampling_candidate_passed=true`，不能自行写正式 lock。
+Corrected pair-MONO-scale evidence 三组全部 PASS；formal production sampling 已锁128。不执行256→512 escalation。
 
 ## TDD-TEST-205 — repeatability
 
-每 EDOF representative 独立重复一次128：peak sample identical；peak MTFa relative≤0.1%；TF mean relative≤0.1%；C4/C6≤0.001µm。
+每 EDOF representative 独立重复128：peak sample identical；peak MTFa relative≤0.1%；TF mean relative≤0.1%；C4/C6≤0.001µm。Corrected evidence 三组全部 PASS。
 
 ## TDD-TEST-206 — real six-config production integration
 
 三个 frozen pair 的 MONO+EDOF，共6 configs，必须：
 
-- 使用 `ZosFftMtfAnalysisBackend`；
-- 通过 `run_analysis_batch()`，不能用手工 dict/CSV 代替；
+- 使用 `ZosMtfaPairScaleAnalysisBackend`；
+- 通过 `run_analysis_batch()`；
 - selection config IDs 完全来自 frozen manifest；
-- RunEnvironment 引用 baseline/main-settings/manifest/lock-set；
+- RunEnvironment 引用 baseline/main-settings/manifest/lock-set/acquisition ID+hash/frequency-scale mode；
+- backend 自报 acquisition ID/hash/scale 与 RunEnvironment 完全一致，否则 acquisition 前 fail；
 - 每 config 15 rows、MTFa/fixed MTF/C4/C6/HOA RMS finite；
 - `ConfigResult` validator PASS；
 - run history 有 running→completed/failed；
-- completed result artifacts 注册；
+- completed artifacts 注册；
 - matched deltas 与 `DeltaF_residual` 正确；
 - formal carrier/residual 文件不修改。
 
+Corrected evidence completed/failed=6/0，PASS。
+
 ## TDD-TEST-207 — limited independent extraction check
 
-3 representative EDOF 在少量 fixed frequencies 比较主 FFT MTF Analysis average 与 MFE `MTFA Grid=1` 或同 family 独立 export/readback。
+3 representative EDOF 在0D、20/40/60 cpd，用同一 paired-MONO scale 比较 production `MTFA` 与独立重复 `MTFA`，并比较 `MTFA` 与 `(MTFT+MTFS)/2`。记录 absolute differences，不新增 threshold。
 
-要求两边 finite、frequency/unit/direction mapping 明确并保存 absolute differences；本地不设新一致性 threshold，Web review 后才能正式锁 sampling。
+Corrected evidence 两组差值逐点均为0；Web review=PASS。
 
 ---
 
-# 9. Main analysis result contract
+# 9. Main analysis result / provenance contract
 
 ## TDD-TEST-301 — one config
 
-成功 `ConfigResult` 必须保存15 rows、MTFa/MTF10..60、distance peak/zero/DOF50/TF mean、C4/C6/HOA RMS、main settings hash、HOA settings ID/hash、footprints/vignetting、working model hash、entity fingerprint、retina/IOL/ELP、artifacts。summary 必须可由15-row curve复算，shape axis 必须严格由 retina axis 与 distance peak 推导。
+成功 `ConfigResult` 必须保存15 rows、MTFa/MTF10..60、distance peak/zero/DOF50/TF mean、C4/C6/HOA RMS、main settings hash、HOA settings ID/hash、footprints/vignetting、working model hash、entity fingerprint、retina/IOL/ELP、artifacts。summary 必须由15-row curve复算；shape axis 严格由 retina axis 与 distance peak 推导。
+
+Run-level `RunEnvironment` 必须保存 acquisition contract ID/hash 与 frequency-scale mode；backend 必须在 batch acquisition 前与环境一致。
 
 ## TDD-TEST-302 — entity invariants
 
-through-focus before/after：
-
-- working model file hash unchanged；
-- in-memory entity fingerprint unchanged；
-- fingerprint 覆盖 carrier R_ant/R_post、Q_ant/Q_post、CT/material、IOL position/ELP、retina、surface role/type/count/STOP；
-- OBJECT thickness 故意排除，但运行结束必须恢复；
-- retina/IOL/ELP unchanged；
-- no unintended vignetting。
+through-focus before/after：working model file hash unchanged；in-memory entity fingerprint unchanged；fingerprint 覆盖 carrier R/Q/CT/material/IOL position/ELP/retina/surface role/type/count/STOP；OBJECT thickness 排除但结束恢复；retina/IOL/ELP unchanged；no unintended vignetting。
 
 ## TDD-TEST-303 — matched pair
 
-same carrier ID/lock hash、same Base/Cornea/Platform/Pupil/alignment；MONO residual empty；EDOF residual ID/SHA/policy ID/hash complete；paired deltas=EDOF−MONO。
+same carrier ID/lock hash、same Base/Cornea/Platform/Pupil/alignment；MONO residual empty；EDOF residual ID/SHA/policy ID/hash complete；同一 pair angular scale；paired deltas=EDOF−MONO。
 
 ---
 
 # 10. Full Run72 acceptance
 
-只有 TDD-TEST-201~207 全部通过、Web 接受 independent extraction evidence，并写入正式 production-sampling lock 后才允许 Run72。
+Run72 前置条件：TDD-TEST-201~207 全部通过；`TASK009_PRODUCTION_SAMPLING_LOCK_v1` 存在且 sampling=128；active RunEnvironment/backend acquisition provenance gate 生效；Web active specs 已同步。
 
 ## TDD-TEST-401 — exact completion
 
@@ -292,7 +328,7 @@ config IDs 必须与 frozen manifest 完全相等。
 
 ## TDD-TEST-402 — repeatability sample
 
-从正式 Run72 的预注册代表 configs 重跑，使用 TASK-009 repeatability tolerance。
+从正式 Run72 的预注册代表 configs 重跑，使用 TASK-009 repeatability tolerance。该测试属于 Run72 后验 acceptance，不是再次阻塞 Run72 启动的代表性预跑。
 
 ## TDD-TEST-403 — failed config isolation
 
@@ -302,14 +338,32 @@ config IDs 必须与 frozen manifest 完全相等。
 
 # 11. Active prohibition / trace tests
 
-单元测试必须扫描 `src/whole_eye_mvp/**/*.py`、TASK-009/Run72 scripts 和 active URD/ADD/MDD/TDD/RMD/RMD_EXECUTION_STATUS，阻止已移除的旧主分析入口重新进入 runtime。
+单元测试必须扫描 `src/whole_eye_mvp/**/*.py`、TASK-009/Run72 scripts 和 active URD/ADD/MDD/TDD/RMD/RMD_EXECUTION_STATUS，阻止已移除的旧主分析入口重新成为 production authority。
 
-`docs/TRACE.md` 必须覆盖当前 ID universe：URD-REQ001..018、URD-AC001..010、FR/DP001..010、MDD-MOD001..010、MDD-API001..013。旧文档 ID 不可继续让 trace checker 假通过。
+Active specs 不得把以下内容表述为 production：
+
+```text
+OpticStudio FFT MTF Analysis
+ZosFftMtfAnalysisBackend
+New_FftMtf
+per-state EFFL frequency scale
+```
+
+`docs/TRACE.md` 必须覆盖当前 ID universe：URD-REQ-001..018、URD-AC-001..010、FR/DP-001..010、MDD-MOD-001..010、MDD-API-001..013。
 
 ---
 
-# 12. 当前 STOP
+# 12. Current gate status
 
-截至 TASK-008：18/3/72 formal artifacts 已冻结，`TDD-999` 已解除。
+截至 2026-08-19：
 
-当前 STOP：TASK-009 real API + sampling convergence + repeatability + real 6-config production integration + Web extraction review + formal sampling lock 未全部通过前，不得启动 Run72。
+- TASK-005–008 frozen assets PASS；
+- TDD-999 cleared；
+- TASK-009 MFE MTFA Grid1 API PASS；
+- corrected paired-MONO angular-scale convergence PASS；
+- repeatability PASS；
+- six-config real integration PASS；
+- limited extraction Web review PASS；
+- production sampling=128 formally locked；
+- no 256→512 escalation required；
+- Run72 尚未启动。
