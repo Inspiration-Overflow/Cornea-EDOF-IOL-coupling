@@ -1,6 +1,6 @@
 # RMD 执行状态
 
-> `RMD-0001 v1.6` 的执行伴随记录。本文只记录当前真实状态、不可变上游资产和下一执行闸门。
+> `RMD-0001 v1.7` 的执行伴随记录。本文只记录当前真实状态、不可变上游资产和下一执行闸门。
 
 ## 当前项目
 
@@ -12,8 +12,11 @@
 - production sampling：**128，正式锁定**
 - Run72 Web clearance：**AUTHORIZED**
 - TASK-011 Web runner：**IMPLEMENTED / CI PASS**
-- Run72：**尚未启动**
+- TASK-011 formal Run72：**COMPLETE / ACCEPTED**
+- TASK-011 Web independent evidence review：**PASS**
+- TASK-012：**analysis plan frozen；纯 Web/offline analysis next**
 - 新增 TASK-009 representative OpticStudio 复验：**不需要**
+- 新增 TASK-011 OpticStudio rerun：**不需要**
 
 ## 不可变正式身份
 
@@ -41,7 +44,7 @@ frequency_scale_mode = paired_residual_free_MONO_EFFL
 production_sampling = 128
 ```
 
-TASK-011 对 TASK-005–009 scientific/method locks 只读。
+TASK-011/TASK-012 对 TASK-005–009 scientific/method locks 只读。
 
 ---
 
@@ -57,136 +60,153 @@ CSV SHA256 = e51e524ee1eb009a1e2ae8cd56cc0bc101aa3dda052fe14dfba585d583987006
 
 128→256 convergence、repeatability、6-config production integration、entity/ray-health、fixed-frequency diagnostic 全部 PASS；不启动256→512 escalation。
 
-RunEnvironment/backend provenance 已 fail-closed 绑定 acquisition contract ID/hash 与 `paired_residual_free_MONO_EFFL`；旧 `AS_FftMtf` 和 per-state-EFL production 语义已退休。
-
-独立 Run72 放行凭证：
-
-```text
-docs/evidence/task009/TASK_009_RUN72_WEB_CLEARANCE.json
-clearance_id = TASK009_RUN72_WEB_CLEARANCE_v1
-run72_authorized = true
-no_additional_representative_opticstudio_rerun_required = true
-```
+RunEnvironment/backend provenance 已 fail-closed 绑定 acquisition contract ID/hash 与 `paired_residual_free_MONO_EFFL`；旧 `AS_FftMtf`、Huygens、complex OTF/VSOTF 和 per-state-EFL production 语义均不属于当前生产路线。
 
 ---
 
-## TASK-011 Web 实现
+## TASK-011 正式 Run72 已完成
 
-正式入口：
+正式 Run72 的 Web 代码基点：
 
 ```text
-src/whole_eye_mvp/run72.py
-scripts/run_task_011_run72.py
+01f13b768cf1eca361703469b2fdce3d21f3376d
 ```
 
-执行计划：
+正式 evidence commit：
 
 ```text
-docs/TASK_011_RUN72_EXECUTION_PLAN_2026-08-19.md
+f28b3032136aa28f54abb5fe5129765a125d3926
 ```
 
-### 首次批次
-
-脚本在启动正式72-config acquisition 前执行严格 clearance/manifest/lock/settings/acquisition provenance preflight。
-
-真实 OpticStudio session 中首先对 frozen 36 `pair_key` 各读取一次 residual-free MONO nominal-distance EFFL，记录：
+唯一 run：
 
 ```text
-pair_key
-reference_effl_mm
-mm_per_degree
-model_sha256
-entity_fingerprint
-```
-
-形成 `pair_reference_set_sha256`。之后72 configs 全部通过：
-
-```text
-ZosMtfaPairScaleAnalysisBackend(sampling=128)
-→ run_analysis_batch
-```
-
-### 失败恢复
-
-首次批次结束都会保存：
-
-```text
-project_mvp_2026_v2_zmx/results/task011_run72/reports/<run_id>.json
-```
-
-若 config-level failure 存在：
-
-- 已成功 config 不重跑；
-- `--resume-report` 只选择 prior `failed_config_ids`；
-- 使用新 run ID；
-- 重新验证 prior completed `config_result.json`；
-- 必须复用第一次36-reference set；
-- `pair_reference_set_sha256` 不一致立即 fail-closed。
-
-### 完整 acceptance
-
-```text
-completed configs = exact 72
+run_id = analysis-1cc1441dec4744a18d7ac73763507a6c
+resume_mode = false
+completed configs = 72
 failed configs = 0
-through-focus rows/config = 15
-total through-focus rows = 1080
-matched deltas = 36
+matched pairs = 36
+through-focus rows = 1080
 pair-reference records = 36
+acceptance_passed = true
+run72_complete = true
 ```
 
-成功 evidence：
+角尺度 reference set：
+
+```text
+pair_reference_set_sha256 =
+a1cb8a899718d0327d8b1ecde21a4324e54090fd3db12cab36e649bb3cfc5b5d
+```
+
+正式 evidence：
 
 ```text
 docs/evidence/task011/TASK_011_RUN72_EVIDENCE.json
+SHA256 = 9044898ca71109269b1a35bd5f8701d682bad125e819c54afe50593341e0aa51
+
 docs/evidence/task011/TASK_011_RUN72_CONFIG_RESULTS.csv
+SHA256 = 337628d95529a3711f36e7ea250ef435413d8f6aff11c25739e3c9b9ccc69dfa
+
 docs/evidence/task011/TASK_011_RUN72_THROUGH_FOCUS.csv
+SHA256 = cb4ece26a0a5d3a931db52a5f3b7e3325a99cbe26c9e175abd12bec5b7ec79da
+
 docs/evidence/task011/TASK_011_RUN72_PAIRED_DELTAS.csv
+SHA256 = 03dfe506566f83f6868c72890c042389ed8d0cd370255967fd1ff3b1ca25fa62
 ```
 
-CSV 保留每个 config 实际 `run_id`；evidence JSON 保存36 pair references 与其集合 SHA256，但不保存本机 absolute result paths。
+Web 已从 GitHub evidence 独立审核：配置完整、无 failed config、无 resume 混入、provenance/identity 一致，无理由重跑 OpticStudio。
 
 ---
 
-## TASK-011 Web CI
+## TASK-011 censoring 状态
 
-Web runner、aggregate、clearance、36-reference hash 和 execution-plan 代码路径已通过：
+Run72 acceptance 与 censoring 是两个不同层级：批次计算通过，但部分派生指标是预注册窗口边界受限值。
+
+### distance peak censoring
+
+`peak_search_censored=true` 的 EDOF 配置中，`distance_peak_retina_d=-0.50 D` 只表示最佳点达到或越过预注册距离峰搜索边界；相应 `DeltaF_residual` 也属于边界受限值。不得解释为无限制精确峰位。
+
+主要集中于 EPD5，尤其 A0/B0 × HOA-like，以及 B0 × RAD-like/WFS-like；两个基础眼均可出现。
+
+### DOF50 far-side censoring
+
+已明确的 EDOF 配置：
+
+1. ATC + B0 + WFS-like + EPD3
+2. LB + B0 + WFS-like + EPD3
+3. ATC + C0 + HOA-like + EPD5
+4. ATC + C0 + RAD-like + EPD5
+5. LB + C0 + RAD-like + EPD5
+
+其 `dof50_width_d` 为受限值/下限，不得与 uncensored width 等价解释。
+
+TASK-012 必须从 config-level evidence 把 censor flags 传播到 pair-level 结果；不能只读取 `TASK_011_RUN72_PAIRED_DELTAS.csv` 后直接排名。
+
+---
+
+## TASK-012 当前任务
+
+正式分析计划：
 
 ```text
-source HEAD = d03f29dd830d71068664811c1f4d0717a8bbbc43
-GitHub Actions run = 32332799561
-pytest = 203 passed
-ruff = PASS
-compileall = PASS
-uv lock = PASS
-final offline gate = PASS
+docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md
 ```
 
-本次 Web 开发未启动 OpticStudio，未修改 TASK-005–009 scientific/method locks。
+TASK-012 使用 `f28b303...` 的四个 TASK-011 evidence 文件作为唯一正式数据源，不启动 OpticStudio。
+
+主分析单元：36 个 matched MONO–EDOF pairs。
+
+因素：
+
+```text
+Base: LB / ATC
+Cornea: A0 / B0 / C0
+Platform: WFS / RAD / HOA
+Pupil: EPD3 / EPD5
+```
+
+主要 paired outcomes：
+
+```text
+Delta DOF50_width
+Delta distance_peak_mtfa
+Delta mtfa_at_zero_d
+Delta tf_mtfa_mean
+Delta C40
+Delta C60
+Delta HOA_RMS
+Delta F_residual
+```
+
+分析以描述性 factorial contrasts、interaction contrasts、effect ranges、rank stability、pupil/base sensitivity 和 censor-aware interpretation 为主；不把 36 个确定性模拟 pair 当作随机临床样本做传统 p-value 推断。
 
 ---
 
 ## 下一执行
 
-下一次 Windows/OpticStudio 工作只做一个**单次大粒度 TASK-011 Run72**，不再插入小 probe。
+下一步为纯 Web/offline TASK-012：
 
-正式命令与 failed-only resume 规则以：
+1. 从 config-level evidence 重建并验证36个 paired deltas；
+2. 将 config-level censor flags 传播到 pair-level；
+3. 从1080-row through-focus evidence 复核 `mtfa_at_zero_d` 与 `tf_mtfa_mean`；
+4. 计算 cornea × platform interaction、pupil/base sensitivity；
+5. 生成3×3耦合矩阵、through-focus 曲线和收益—质量代价图；
+6. 完成单元测试、代码 review、结果 review 后再进入论文级解释。
 
-```text
-docs/TASK_011_RUN72_EXECUTION_PLAN_2026-08-19.md
-```
-
-为准。
-
-TASK-010 GUI 不是 CLI Run72 的前置条件。
+TASK-010 GUI 不是 TASK-012 前置条件。
 
 ---
 
 ## 当前 STOP
 
 - 不修改 TASK-005–009 frozen assets/method locks；
-- 不恢复 `AS_FftMtf` production path；
-- 不使用 per-state EFL 作为 matched-pair production scale；
-- 不再次执行 TASK-009 representative validation；
-- Run72 preflight 不通过时在 optical acquisition 前 STOP；
-- config-level failure 后不得重新跑完整72，必须优先 failed-only resume；
-- 首次36-reference set 在 resume 中不得重新定义。
+- 不重跑正式72 configs；
+- 不因 censored peak/DOF 事后扩大 focus/search span 并补跑矩阵；
+- 不恢复 Huygens PSF/MTF、complex OTF、VSOTF 或旧 FFT MTF Analysis production path；
+- 不使用 EDOF-state/per-state EFFL 改变 matched-pair production angular scale；
+- 不修改 B0.20；
+- 不重新优化 residual profile；
+- 不把 `DeltaF_residual` 写入 carrier physical lock identity；
+- 不把确定性36-pair矩阵直接当随机临床样本做传统显著性检验；
+- TASK-012 离线一致性检查失败时停止结果解释，先返回 evidence/code review，不启动 OpticStudio 作为默认修复手段。
