@@ -7,7 +7,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
 
 from .carriers import SA_TARGETS_UM, ProvisionalCarrier
-from .domain import BaseId, OpticState, PlatformId
+from .domain import BaseId, OpticState, PlatformId, ScientificBaseline
 from .manifest import NominalConfig
 from .task013_native_reference import ResidualProvenance
 from .task014_vertex_corrected_cornea import (
@@ -17,7 +17,6 @@ from .task014_vertex_corrected_cornea import (
     TASK014_ID,
     task014_prescription_snapshot,
 )
-from .domain import ScientificBaseline
 
 TASK014_CORNEA_IDS = (TASK014_A0_ID, TASK014_B0_ID, TASK014_C0_ID)
 TASK014_EXPECTED_CARRIER_COUNT = 18
