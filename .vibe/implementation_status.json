@@ -1,18 +1,19 @@
 {
-  "version": 6,
+  "version": 7,
   "as_of": "2026-08-19",
-  "phase": "task009-paired-mono-angular-scale-correction_web-ci-green_local-revalidation-pending",
+  "phase": "task009-production-sampling-128-locked_web-provenance-and-spec-consolidation-pending",
   "project_schema_version": 2,
   "active_branch": "feat/task-009-fft-mtf-main",
   "offline_unit_tests": {
     "web_ci_status": "PASS",
-    "web_ci_commit": "9924b991c803de38dd3364bf8f905a46e2ad53d5",
     "web_ci_pytest_passed": 198,
     "web_ci_ruff": "PASS",
     "web_ci_compileall": "PASS",
     "web_ci_uv_lock": "PASS",
-    "local_last_validated_passed": 193,
-    "local_last_validated_commit": "e508a83f41a63bc74a4a4ae1fc1bf060f0de4ea9"
+    "local_status": "PASS",
+    "local_pytest_passed": 198,
+    "local_run_code_commit": "d80b3a1c33fce02deda50f5ce8ebc73326e5b946",
+    "local_code_modified": false
   },
   "tasks": {
     "RMD-TASK-001": "complete",
@@ -23,9 +24,9 @@
     "RMD-TASK-006": "complete_B0.20-immutable-lock",
     "RMD-TASK-007": "complete_tdd999-cleared",
     "RMD-TASK-008": "complete_formal-18-carriers_3-residuals_72-configs",
-    "RMD-TASK-009": "MTFA-Grid1-production-chain-validated_pair-scale-Web-CI-green_local-revalidation-pending",
-    "RMD-TASK-010": "blocked-until-task009",
-    "RMD-TASK-011": "blocked-until-formal-sampling-lock"
+    "RMD-TASK-009": "sampling-lock-complete_provenance-and-active-spec-consolidation-pending",
+    "RMD-TASK-010": "blocked-until-task009-web-consolidation",
+    "RMD-TASK-011": "blocked-until-run-provenance-and-active-spec-consolidation"
   },
   "task007": {
     "status": "complete",
@@ -48,51 +49,45 @@
     "tdd_999_cleared": true
   },
   "task009": {
-    "status": "paired-MONO-angular-scale-correction-Web-CI-green_local-revalidation-pending",
-    "mtfa_grid1_evidence_commit": "e508a83f41a63bc74a4a4ae1fc1bf060f0de4ea9",
-    "mtfa_grid1_evidence_sha256": "e12b558b2e07f07a19992262cc1866a6034512833fdebdf282872b7afb5e72e4",
-    "mtfa_grid1_api_validated": true,
-    "six_config_production_workflow_validated": true,
-    "repeat128_validated_under_old_scale": true,
-    "entity_and_ray_health_validated": true,
-    "mtfa_direction_average_diagnostic": "PASS-exact-at-20-40-60-cpd",
+    "status": "corrected-pair-MONO-evidence-PASS_sampling-128-formally-locked",
+    "representative_run_code_commit": "d80b3a1c33fce02deda50f5ce8ebc73326e5b946",
+    "corrected_evidence_commit": "47f901dad36fb9d407826a6da8baceeef4c2edfd",
+    "corrected_evidence_json_sha256": "404502231e154ebae0813c6b52151961ad4278bef8cc4d29f412d21db7bc8d49",
+    "corrected_through_focus_csv_sha256": "e51e524ee1eb009a1e2ae8cd56cc0bc101aa3dda052fe14dfba585d583987006",
+    "local_report_sha256": "fad2824a86ce946c56b269959ed3cf7d4a244fa068a96bd2a0d55d037563d2e8",
     "analysis_settings_id": "NOMINAL_MAIN_FFT_MTF_555_v2",
     "analysis_settings_sha256": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
-    "production_sampling_candidate": 128,
-    "production_sampling_locked": false,
-    "old_frequency_scale": "per-state EFFL",
-    "old_HOA_EDOF_effl_mm": 9.633329064114418,
-    "old_HOA_EDOF_mm_per_degree": 0.16815038428900272,
-    "old_HOA_128_to_256_tf_mtfa_relative_change": 0.020188291791026776,
-    "old_HOA_convergence_decision": "not-final-because-angular-scale-definition-superseded",
-    "active_scale_decision_doc": "docs/TASK_009_PAIR_FIXED_ANGULAR_SCALE_2026-08-19.md",
     "active_mtf_acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
     "active_mtf_acquisition_contract_sha256": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
-    "active_frequency_scale": "paired residual-free MONO EFFL fixed across MONO+EDOF and all defocus planes",
-    "sampling_escalation_256": "HOLD-until-corrected-128-to-256-evidence",
-    "active_script": "scripts/run_task_009_pair_mono_scale_representative.py",
-    "superseded_per_state_script_removed": true,
+    "active_frequency_scale": "paired_residual_free_MONO_EFFL",
+    "all_convergence_passed": true,
+    "all_repeatability_passed": true,
+    "all_six_config_integration_passed": true,
+    "crosscheck_web_review": "PASS",
+    "entity_and_ray_health_validated": true,
+    "production_sampling": 128,
+    "production_sampling_locked": true,
+    "formal_sampling_lock_path": "docs/evidence/task009/TASK_009_PRODUCTION_SAMPLING_LOCK.json",
+    "sampling_escalation_256_active": false,
+    "sampling_escalation_reason": "inactive-because-corrected-128-to-256-gates-all-pass",
+    "old_per_state_effl_result_superseded": true,
+    "old_HOA_128_to_256_tf_mtfa_relative_change": 0.020188291791026776,
+    "corrected_HOA_128_to_256_tf_mtfa_relative_change": 0.0052007450614762795,
+    "corrected_HOA_128_to_256_peak_mtfa_relative_change": 0.017642820289757794,
     "web_ci_draft_pr": 25,
-    "requires_opticstudio": true,
     "run72_started": false,
-    "local_validation_pending": [
-      "record MONO-reference and EDOF-diagnostic EFFL for all three representative pairs",
-      "rerun 64/128/256 convergence using paired-MONO scale",
-      "rerun independent repeat128 using paired-MONO scale",
-      "rerun six frozen configs through run_analysis_batch using paired-MONO scale",
-      "repeat MTFA-vs-direction-average diagnostic on corrected frequency axis"
-    ],
-    "pre_run72_provenance_debt": [
-      "bind MTF acquisition/scale contract explicitly in formal RunEnvironment/ConfigResult provenance after corrected evidence review",
-      "replace legacy fft_mtf_* field names in final post-TASK009 settings version if a settings revision is required"
+    "run72_authorized": false,
+    "requires_more_opticstudio_sampling_validation": false,
+    "remaining_web_gates_before_run72": [
+      "bind acquisition contract id/hash and paired-MONO frequency-scale mode into run-level provenance",
+      "consolidate active URD/ADD/MDD/TDD/RMD acquisition semantics and regression tests"
     ]
   },
-  "science_gates_still_active": [
-    "TASK-009 corrected 128-to-256 sampling convergence",
-    "TASK-009 corrected repeatability",
-    "TASK-009 corrected six-config production integration",
-    "Web review of corrected angular-scale evidence",
-    "formal Web-side production sampling lock"
+  "science_gates_still_active": [],
+  "web_only_gates_still_active": [
+    "TASK-009 run-level acquisition provenance hardening",
+    "TASK-009 active normative-document consolidation",
+    "Web CI after consolidation"
   ],
   "immutability": {
     "task005_to_task008_science_changed": false,
