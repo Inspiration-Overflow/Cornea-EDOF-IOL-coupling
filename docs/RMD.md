@@ -12,7 +12,7 @@
 - implementation_language: Python
 - package_manager: uv
 - default_branch: main
-- active_task_branch: `feat/task-009-fft-mtf-main`
+- active_task_branch: `feat/task-011-run72`
 - active_production_acquisition: `TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2`
 - active_production_sampling: `128`
 
@@ -117,24 +117,7 @@ sampling_escalation_256_active = false
 
 ## 4.2 Corrected representative evidence
 
-三个 frozen pair：
-
-```text
-LB+A0+WFS+EPD3
-ATC+B0+RAD+EPD5
-ATC+C0+HOA+EPD5
-```
-
-corrected paired-MONO scale 下：
-
-- 128→256 convergence 全 PASS；
-- repeat128 全 PASS；
-- 6-config `run_analysis_batch` integration = 6/6 PASS；
-- entity/ray-health PASS；
-- 20/40/60 cpd production-vs-repeat MTFA abs=0；
-- 20/40/60 cpd MTFA-vs-mean(MTFT,MTFS) abs=0；
-- HOA TF mean 128→256 从旧坐标的2.019%修正为0.520%；
-- 无需256→512 escalation。
+三个 frozen pair 在 corrected paired-MONO scale 下：128→256 convergence 全 PASS、repeat128 全 PASS、6-config `run_analysis_batch` integration 6/6 PASS、entity/ray-health PASS，且独立 fixed-frequency diagnostic PASS。无需256→512 escalation。
 
 Evidence：
 
@@ -146,41 +129,26 @@ CSV SHA256 = e51e524ee1eb009a1e2ae8cd56cc0bc101aa3dda052fe14dfba585d583987006
 
 ## 4.3 Run-level provenance hardening
 
-`RunEnvironment` 必须非空保存：
-
-```text
-program_version
-opticstudio_version
-baseline_id
-analysis_settings_id
-manifest_hash
-lock_set_hash
-acquisition_contract_id
-acquisition_contract_hash
-frequency_scale_mode
-```
-
-`run_analysis_batch()` 在任何 acquisition 前检查 backend 自报的 acquisition ID/hash/scale 是否与 RunEnvironment 完全一致；旧 per-state-EFL backend 不能静默进入正式 Run72。
+`RunEnvironment` 必须非空保存 program/OpticStudio version、baseline、analysis settings、manifest、lock-set、acquisition contract ID/hash 与 frequency-scale mode。`run_analysis_batch()` 在 acquisition 前检查 backend 自报的 acquisition ID/hash/scale 是否完全一致。
 
 ---
 
 # 5. TASK-010 — GUI integration（非 Run72 科学前置）
 
-TASK-010 仅负责：
-
-- 将已验证的 `run_analysis_batch` 接到 GUI action dispatch；
-- progress/log/failed-target rerun UI；
-- 必要时做最小 GUI smoke。
-
-**TASK-010 不再负责首次实现或首次验证 real AnalysisBackend，也不是 CLI Run72 的科学前置条件。**
-
-考虑本地运行时间成本，除非 GUI 本身是当轮目标，不应为了 Run72 再做一次长 optical full-flow smoke。
+TASK-010 只负责 GUI action dispatch、progress/log/failed-target rerun UI 与必要的最小 GUI smoke。**它不是 CLI Run72 的科学前置条件。**
 
 ---
 
 # 6. TASK-011 — Run72
 
-TASK-009 Web clearance 后可进入 Run72。正式批次：
+TASK-011 的 Web runner 已实现于：
+
+```text
+src/whole_eye_mvp/run72.py
+scripts/run_task_011_run72.py
+```
+
+正式批次：
 
 \[
 18\ carriers\times2\ states\times2\ pupils=72\ configs
@@ -188,18 +156,59 @@ TASK-009 Web clearance 后可进入 Run72。正式批次：
 
 每 config 15 planes，共1080 through-focus rows、36 matched deltas。
 
-Run72 preflight 必须在启动 OpticStudio 前检查：
+## 6.1 Preflight
+
+启动正式 acquisition 前必须满足：
 
 1. clean tracked checkout；
 2. offline pytest/ruff/compileall/uv-lock PASS；
-3. frozen TASK-008 manifest 18/72/36 + exact hashes PASS；
-4. `TASK009_PRODUCTION_SAMPLING_LOCK_v1` 存在且 sampling=128；
-5. acquisition contract ID/hash = pair-MONO v2；
-6. frequency scale mode = `paired_residual_free_MONO_EFFL`；
-7. `RunEnvironment` 完整；
-8. backend provenance 与 environment exact match。
+3. `TASK009_RUN72_WEB_CLEARANCE_v1` exact PASS；
+4. frozen TASK-008 manifest 18/72/36 + exact manifest/lock-set hash；
+5. sampling=128 formally locked；
+6. pair-MONO acquisition ID/hash/scale exact；
+7. complete `RunEnvironment`；
+8. backend provenance exact match。
 
-Run72 acceptance：
+## 6.2 Angular-scale reference freeze
+
+首次 Run72 在真实 OpticStudio 中，对 frozen manifest 的 36 个 `pair_key` 各读取一次 residual-free MONO nominal-distance EFFL。形成 36 条：
+
+```text
+pair_key
+reference_effl_mm
+mm_per_degree
+model_sha256
+entity_fingerprint
+```
+
+并计算 `pair_reference_set_sha256`。该集合定义本次 Run72 的角频率坐标 provenance。
+
+- 同一 pair 的 MONO/EDOF、全部 defocus plane 都复用同一 reference；
+- 如果后续仅重跑失败 config，必须复用第一次 report 中同一 36-reference set；
+- resume 时集合 hash 不一致立即 fail-closed；
+- 不因失败重跑重新测量/改变角尺度。
+
+## 6.3 Failure/resume
+
+首次运行无论是否有 config 失败，都保存本地 report：
+
+```text
+project_mvp_2026_v2_zmx/results/task011_run72/reports/<run_id>.json
+```
+
+普通 config-level failure 由 `run_analysis_batch()` 隔离，不回滚已完成结果。
+
+若 report 中 `failed_config_ids` 非空：
+
+```text
+--resume-report <prior-report.json>
+```
+
+只重跑这些 failed IDs，生成新 run ID；已完成 config 的 `config_result.json` 必须重新校验后复用。最终 acceptance 可以由多个 run ID 的完成结果组合，但每个 config 的实际 `run_id` 必须保留在正式 CSV provenance 中。
+
+## 6.4 Acceptance / evidence
+
+完整 acceptance：
 
 ```text
 completed config IDs = exact frozen 72
@@ -207,9 +216,19 @@ failed = 0 after any permitted rerun
 rows/config = 15
 total rows = 1080
 matched deltas = 36
+pair-reference records = 36
 ```
 
-失败 config 不计 completed；failed-only rerun 使用新 run ID，不重跑已成功 config。
+成功后只提交 sanitized structured evidence：
+
+```text
+docs/evidence/task011/TASK_011_RUN72_EVIDENCE.json
+docs/evidence/task011/TASK_011_RUN72_CONFIG_RESULTS.csv
+docs/evidence/task011/TASK_011_RUN72_THROUGH_FOCUS.csv
+docs/evidence/task011/TASK_011_RUN72_PAIRED_DELTAS.csv
+```
+
+其中 evidence JSON 保存 36 条 pair-reference records + `pair_reference_set_sha256`，但不保存本机绝对 result paths。大型 working `.zmx` 与逐配置本地 artifacts 留在 project results/diagnostics，不提交 Git。
 
 ---
 
@@ -217,33 +236,31 @@ matched deltas = 36
 
 ```text
 feat/task-009-fft-mtf-main
-  1. analysis migration
-  2. local real MTFA evidence
-  3. paired-MONO scale correction + corrected evidence
-  4. Web sampling lock
-  5. Web RunEnvironment/backend provenance hardening
-  6. active specs/status synchronization
-  7. CI + Run72 Web clearance
+  TASK-009 complete / Run72 Web clearance
 
-next: TASK-011 / Run72 branch or approved continuation
+feat/task-011-run72
+  1. Web Run72 runner + exact aggregate
+  2. failed-only resume + fixed 36-reference provenance
+  3. Web CI + execution-plan freeze
+  4. one formal local Run72 batch
+  5. optional failed-only resume
+  6. sanitized TASK-011 evidence
+  7. Web final review
 ```
 
-PR #25 保持 Draft 作为 Web quality gate，除非另行授权合并。
+PR #25 和 TASK-011 PR 均保持 Draft，除非另行授权合并。
 
 ---
 
 # 8. Current STOP conditions
-
-仍然有效的 STOP：
 
 1. TASK-005–008 frozen assets 不得修改；
 2. TASK-008 manifest/hash/lock-set preflight 不通过不得启动 Run72；
 3. sampling lock 缺失或不是128不得启动；
 4. acquisition ID/hash/scale 与 formal contract 不同不得启动；
 5. RunEnvironment/backend provenance 不一致不得启动；
-6. 单 config optical/ray/entity/export failure 不能伪装 completed；
-7. 不得恢复 `AS_FftMtf` production path；
-8. 不得使用 per-state EFFL 改变 matched MONO/EDOF cpd 坐标；
-9. 不得为了重复确认 TASK-009 已通过 gate 再执行耗时代表性复验。
-
-TASK-009 已不存在 sampling/convergence/repeatability/crosscheck STOP；这些门禁已通过并正式固化。
+6. 首次固定的 36-reference set 在 resume 中 hash 不一致不得继续；
+7. 单 config optical/ray/entity/export failure 不能伪装 completed；
+8. 不得恢复 `AS_FftMtf` production path；
+9. 不得使用 per-state EFFL 改变 matched MONO/EDOF cpd 坐标；
+10. 不得为了重复确认 TASK-009 已通过 gate 再执行耗时代表性复验。
