@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
 
-from whole_eye_mvp.analysis_zos import TASK009_MTF_ACQUISITION
+from whole_eye_mvp.analysis_zos_pair_scale import (
+    EXPECTED_PAIR_MONO_MTF_ACQUISITION_HASH,
+    TASK009_PAIR_MONO_MTF_ACQUISITION,
+)
 from whole_eye_mvp.domain import NOMINAL_MAIN_FFT_MTF_555_V2
 from whole_eye_mvp.quality import assert_trace_coverage
 
@@ -15,7 +19,9 @@ ACTIVE_SPEC_FILES = (
     Path("docs/TDD.md"),
     Path("docs/RMD.md"),
     Path("docs/RMD_EXECUTION_STATUS.md"),
+    Path("docs/TASK_009_PRODUCTION_SAMPLING_LOCK_2026-08-19.md"),
 )
+SAMPLING_LOCK = Path("docs/evidence/task009/TASK_009_PRODUCTION_SAMPLING_LOCK.json")
 
 FORBIDDEN_ACTIVE_TOKENS = (
     "huygens",
@@ -49,14 +55,54 @@ def test_active_main_analysis_settings_and_acquisition_contract() -> None:
     assert not hasattr(settings, "dof_relative_fraction")
     assert not hasattr(settings, "b0_q_lock_max_cycles_per_mm")
 
-    assert TASK009_MTF_ACQUISITION.contract_id == "TASK009_MFE_MTFA_GRID1_v1"
-    assert TASK009_MTF_ACQUISITION.production_operand == "MTFA"
-    assert TASK009_MTF_ACQUISITION.grid == 1
-    assert TASK009_MTF_ACQUISITION.data_type == 0
-    assert (
-        TASK009_MTF_ACQUISITION.contract_hash
-        == "5986a768779fc5be4798b3c9c608babbe46cc311d9e4928d7782879a95c9fd0b"
+    contract = TASK009_PAIR_MONO_MTF_ACQUISITION
+    assert contract.contract_id == "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2"
+    assert contract.production_operand == "MTFA"
+    assert contract.grid == 1
+    assert contract.data_type == 0
+    assert contract.wavelength_number == 1
+    assert contract.field_number == 1
+    assert contract.frequency_axis == "direct_0_to_60_cpd_via_paired_MONO_EFFL"
+    assert contract.contract_hash == EXPECTED_PAIR_MONO_MTF_ACQUISITION_HASH
+    assert EXPECTED_PAIR_MONO_MTF_ACQUISITION_HASH == (
+        "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d"
     )
+
+
+@pytest.mark.unit
+def test_formal_task009_sampling_lock_matches_active_contract_and_evidence() -> None:
+    payload = json.loads(SAMPLING_LOCK.read_text(encoding="utf-8"))
+    assert payload["lock_id"] == "TASK009_PRODUCTION_SAMPLING_LOCK_v1"
+    assert payload["formal_artifact"] is True
+    assert payload["selection_locked"] is True
+    assert payload["production_sampling_locked"] is True
+    assert payload["production_sampling"] == 128
+    assert payload["convergence_samplings"] == [64, 128, 256]
+    assert payload["analysis_settings_id"] == NOMINAL_MAIN_FFT_MTF_555_V2.settings_id
+    assert payload["analysis_settings_sha256"] == (
+        "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc"
+    )
+    assert payload["acquisition_contract_id"] == TASK009_PAIR_MONO_MTF_ACQUISITION.contract_id
+    assert payload["acquisition_contract_sha256"] == EXPECTED_PAIR_MONO_MTF_ACQUISITION_HASH
+    assert payload["frequency_scale_mode"] == "paired_residual_free_MONO_EFFL"
+    assert payload["representative_run_code_commit"] == (
+        "d80b3a1c33fce02deda50f5ce8ebc73326e5b946"
+    )
+    assert payload["evidence_commit"] == "47f901dad36fb9d407826a6da8baceeef4c2edfd"
+    assert payload["evidence_json_sha256"] == (
+        "404502231e154ebae0813c6b52151961ad4278bef8cc4d29f412d21db7bc8d49"
+    )
+    assert payload["through_focus_csv_sha256"] == (
+        "e51e524ee1eb009a1e2ae8cd56cc0bc101aa3dda052fe14dfba585d583987006"
+    )
+    assert payload["through_focus_rows"] == 90
+    assert payload["all_convergence_passed"] is True
+    assert payload["all_repeatability_passed"] is True
+    assert payload["all_six_config_integration_passed"] is True
+    assert payload["crosscheck_web_review"] == "PASS"
+    assert payload["sampling_escalation_256_active"] is False
+    assert payload["run72_started"] is False
+    assert payload["run72_authorized"] is False
 
 
 def _scan(paths, tokens=FORBIDDEN_ACTIVE_TOKENS) -> list[str]:
