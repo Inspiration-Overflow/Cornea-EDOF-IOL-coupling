@@ -37,11 +37,12 @@ class RunStatus(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class AnalysisSettings:
-    """Frozen main-analysis settings that materially affect FFT-MTF/MTFa results.
+    """Frozen numerical settings that materially affect the main MTFa results.
 
-    TASK-009 intentionally keeps B0-lock and Zernike-acquisition settings out of this
-    identity. Those acquisitions have separate versioned contracts and therefore cannot
-    silently change the Run72 FFT-MTF settings hash.
+    The ``fft_mtf_*`` attribute names are retained only to preserve the already-frozen
+    ``NOMINAL_MAIN_FFT_MTF_555_v2`` identity/hash. TASK-009 production acquisition is
+    MFE MTFA Grid=1 with a paired residual-free MONO angular scale; acquisition semantics
+    are versioned separately and are bound in ``RunEnvironment``.
     """
 
     settings_id: str
@@ -83,15 +84,15 @@ class AnalysisSettings:
         if self.defocus_start_d < self.defocus_stop_d and self.defocus_step_d < 0:
             raise ValueError("defocus step direction does not reach stop")
         if self.fft_mtf_sampling <= 0:
-            raise ValueError("FFT MTF sampling must be positive")
+            raise ValueError("production MTF sampling must be positive")
         if not self.fft_mtf_convergence_samplings or not all(
             isinstance(value, int) and value > 0 for value in self.fft_mtf_convergence_samplings
         ):
-            raise ValueError("FFT MTF convergence samplings must be positive integers")
+            raise ValueError("MTF convergence samplings must be positive integers")
         if self.fft_mtf_sampling not in self.fft_mtf_convergence_samplings:
-            raise ValueError("production FFT MTF sampling must be included in convergence samplings")
+            raise ValueError("production MTF sampling must be included in convergence samplings")
         if tuple(sorted(set(self.fft_mtf_convergence_samplings))) != self.fft_mtf_convergence_samplings:
-            raise ValueError("FFT MTF convergence samplings must be unique and increasing")
+            raise ValueError("MTF convergence samplings must be unique and increasing")
         if self.mtf_frequency_step_cpd <= 0 or self.mtfa_max_cpd <= 0:
             raise ValueError("MTF frequency settings must be positive")
         ratio = self.mtfa_max_cpd / self.mtf_frequency_step_cpd
@@ -410,6 +411,9 @@ class RunEnvironment:
     analysis_settings_id: str
     manifest_hash: str
     lock_set_hash: str
+    acquisition_contract_id: str = ""
+    acquisition_contract_hash: str = ""
+    frequency_scale_mode: str = ""
 
     def validate(self) -> None:
         for field in fields(self):
