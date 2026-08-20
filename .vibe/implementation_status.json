@@ -1,7 +1,7 @@
 {
-  "version": 10,
+  "version": 11,
   "as_of": "2026-08-19",
-  "phase": "task011-web-runner-ready_run72-not-started",
+  "phase": "task011-run72-complete_task012-analysis-plan-frozen",
   "project_schema_version": 2,
   "active_branch": "feat/task-011-run72",
   "offline_unit_tests": {
@@ -26,8 +26,9 @@
     "RMD-TASK-007": "complete_tdd999-cleared",
     "RMD-TASK-008": "complete_formal-18-carriers_3-residuals_72-configs",
     "RMD-TASK-009": "complete_pair-MONO-MTFA_sampling-128_web-provenance-hardened",
-    "RMD-TASK-010": "optional-gui-integration_not-cli-run72-prerequisite",
-    "RMD-TASK-011": "web-runner-complete_ready-for-single-formal-local-run72"
+    "RMD-TASK-010": "optional-gui-integration_not-analysis-prerequisite",
+    "RMD-TASK-011": "complete_formal-run72_web-evidence-review-pass",
+    "RMD-TASK-012": "analysis-plan-frozen_ready-for-web-offline-implementation"
   },
   "task008": {
     "status": "complete",
@@ -60,41 +61,68 @@
     "no_additional_representative_opticstudio_rerun_required": true,
     "run72_web_clearance_id": "TASK009_RUN72_WEB_CLEARANCE_v1",
     "run72_authorized": true,
-    "run72_started": false
+    "run72_started": true
   },
   "task011": {
-    "status": "web-ready-local-not-started",
-    "runner_module": "src/whole_eye_mvp/run72.py",
-    "runner_script": "scripts/run_task_011_run72.py",
-    "execution_plan": "docs/TASK_011_RUN72_EXECUTION_PLAN_2026-08-19.md",
-    "expected_completed_configs": 72,
-    "expected_through_focus_rows": 1080,
-    "expected_matched_deltas": 36,
-    "expected_pair_reference_records": 36,
-    "pair_reference_set_hash_required": true,
-    "failed_only_resume": true,
-    "resume_reuses_original_pair_reference_set": true,
+    "status": "complete-web-reviewed-pass",
+    "code_commit": "01f13b768cf1eca361703469b2fdce3d21f3376d",
+    "formal_evidence_commit": "f28b3032136aa28f54abb5fe5129765a125d3926",
+    "run_ids": [
+      "analysis-1cc1441dec4744a18d7ac73763507a6c"
+    ],
+    "resume_mode": false,
+    "completed_configs": 72,
+    "failed_configs": 0,
+    "through_focus_rows": 1080,
+    "matched_pairs": 36,
+    "pair_reference_records": 36,
+    "pair_reference_set_sha256": "a1cb8a899718d0327d8b1ecde21a4324e54090fd3db12cab36e649bb3cfc5b5d",
+    "acceptance_passed": true,
+    "run72_complete": true,
+    "web_independent_evidence_review": "PASS",
+    "evidence_json_sha256": "9044898ca71109269b1a35bd5f8701d682bad125e819c54afe50593341e0aa51",
+    "config_results_csv_sha256": "337628d95529a3711f36e7ea250ef435413d8f6aff11c25739e3c9b9ccc69dfa",
+    "through_focus_csv_sha256": "cb4ece26a0a5d3a931db52a5f3b7e3325a99cbe26c9e175abd12bec5b7ec79da",
+    "paired_deltas_csv_sha256": "03dfe506566f83f6868c72890c042389ed8d0cd370255967fd1ff3b1ca25fa62",
     "repo_evidence_files": [
       "docs/evidence/task011/TASK_011_RUN72_EVIDENCE.json",
       "docs/evidence/task011/TASK_011_RUN72_CONFIG_RESULTS.csv",
       "docs/evidence/task011/TASK_011_RUN72_THROUGH_FOCUS.csv",
       "docs/evidence/task011/TASK_011_RUN72_PAIRED_DELTAS.csv"
     ],
-    "run72_started": false
+    "opticstudio_rerun_required": false
+  },
+  "task012": {
+    "status": "analysis-plan-frozen",
+    "analysis_plan": "docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md",
+    "source_of_truth_commit": "f28b3032136aa28f54abb5fe5129765a125d3926",
+    "primary_analysis_unit": "36 matched MONO-EDOF pairs",
+    "factorial_structure": "2 base x 3 cornea x 3 platform x 2 pupil",
+    "censor_aware": true,
+    "requires_pair_reconstruction_from_config_results": true,
+    "requires_through_focus_reconstruction_checks": true,
+    "inferential_p_values_default": false,
+    "opticstudio_required": false
   },
   "science_gates_still_active": [],
-  "web_only_gates_still_active": [],
+  "web_only_gates_still_active": [
+    "TASK-012 offline evidence reconstruction and unit-test gate",
+    "TASK-012 code review before scientific interpretation"
+  ],
   "next_execution": {
-    "preferred": "single-large-granularity-TASK-011-Run72-batch",
-    "gui_task010_required_before_cli_run72": false,
+    "preferred": "TASK-012-pure-web-offline-analysis",
+    "gui_task010_required_before_analysis": false,
     "repeat_task009_representatives": false,
-    "on_partial_failure": "resume-failed-config-ids-only-with-original-36-pair-reference-set"
+    "repeat_task011_run72": false,
+    "on_analysis_validation_failure": "stop-interpretation-review-evidence-and-code-do-not-default-to-opticstudio-rerun"
   },
   "immutability": {
-    "task005_to_task009_science_or_method_changed_by_task011": false,
+    "task005_to_task009_science_or_method_changed_by_task011_or_task012": false,
     "task008_manifest_hash_changed": false,
     "task008_lock_set_hash_changed": false,
     "task009_sampling_lock_changed": false,
-    "run72_started": false
+    "task011_evidence_recomputed": false,
+    "run72_started": true,
+    "run72_complete": true
   }
 }
