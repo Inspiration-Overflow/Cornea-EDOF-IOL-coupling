@@ -60,7 +60,7 @@ CSV SHA256 = e51e524ee1eb009a1e2ae8cd56cc0bc101aa3dda052fe14dfba585d583987006
 
 128→256 convergence、repeatability、6-config production integration、entity/ray-health、fixed-frequency diagnostic 全部 PASS；不启动256→512 escalation。
 
-RunEnvironment/backend provenance 已 fail-closed 绑定 acquisition contract ID/hash 与 `paired_residual_free_MONO_EFFL`；旧 `AS_FftMtf`、Huygens、complex OTF/VSOTF 和 per-state-EFL production 语义均不属于当前生产路线。
+RunEnvironment/backend provenance 已 fail-closed 绑定 acquisition contract ID/hash 与 `paired_residual_free_MONO_EFFL`；旧 `AS_FftMtf` 和其他已退休的 pre-TASK009 production routes 不属于当前生产路线，per-state-EFL production 语义也已退休。
 
 ---
 
@@ -203,7 +203,7 @@ TASK-010 GUI 不是 TASK-012 前置条件。
 - 不修改 TASK-005–009 frozen assets/method locks；
 - 不重跑正式72 configs；
 - 不因 censored peak/DOF 事后扩大 focus/search span 并补跑矩阵；
-- 不恢复 Huygens PSF/MTF、complex OTF、VSOTF 或旧 FFT MTF Analysis production path；
+- 不恢复任何已退休的 pre-TASK009 production path；
 - 不使用 EDOF-state/per-state EFFL 改变 matched-pair production angular scale；
 - 不修改 B0.20；
 - 不重新优化 residual profile；
