@@ -149,7 +149,7 @@ def _select_pair(
         )
     mono = next((config for config in matches if config.optic_state == OpticState.MONO), None)
     edof = next((config for config in matches if config.optic_state == OpticState.EDOF), None)
-    if mono is None or edof is None or mono.pair_key != edof.pair_key:
+    if mono is None or edof is None or mono.config.pair_key != edof.config.pair_key:
         raise SystemExit("representative frozen manifest pair is malformed")
     return mono, edof
 
@@ -352,7 +352,7 @@ def main() -> None:
     with open_zos_session(args.install_dir) as session:
         opticstudio_version = _opticstudio_version(session)
         for _mono, edof in pairs:
-            key = edof.pair_key
+            key = edof.config.pair_key
             samples: dict[str, ConfigResult] = {}
             sample_diagnostics: dict[str, object] = {}
             for sampling in settings.fft_mtf_convergence_samplings:
@@ -370,7 +370,7 @@ def main() -> None:
                 )
                 validate_completed_result(result, require_files=True, expected_config=edof)
                 samples[str(sampling)] = result
-                sample_diagnostics[str(sampling)] = backend.diagnostics[edof.config_id]
+                sample_diagnostics[str(sampling)] = backend.diagnostics[edof.config.config_id]
 
             repeat_backend = ZosMtfaGridAnalysisBackend(
                 session,
@@ -390,11 +390,11 @@ def main() -> None:
             all_convergence_passed = all_convergence_passed and bool(convergence_gate["passed"])
             all_repeatability_passed = all_repeatability_passed and bool(repeatability_gate["passed"])
             convergence[key] = {
-                "frozen_manifest_config_id": edof.config_id,
+                "frozen_manifest_config_id": edof.config.config_id,
                 "sampling_results": {name: _summary(value) for name, value in samples.items()},
                 "sampling_diagnostics": sample_diagnostics,
                 "repeat_128": _summary(repeat128),
-                "repeat_128_diagnostics": repeat_backend.diagnostics[edof.config_id],
+                "repeat_128_diagnostics": repeat_backend.diagnostics[edof.config.config_id],
                 "convergence_gate": convergence_gate,
                 "repeatability_gate": repeatability_gate,
             }
@@ -465,7 +465,7 @@ def main() -> None:
             crosschecks[edof.config.pair_key] = _mtf_crosscheck(
                 session,
                 edof,
-                integration_backend.diagnostics[edof.config_id],
+                integration_backend.diagnostics[edof.config.config_id],
             )
             for state, config_result in (("MONO", mono), ("EDOF", edof)):
                 for row in config_result.rows:
