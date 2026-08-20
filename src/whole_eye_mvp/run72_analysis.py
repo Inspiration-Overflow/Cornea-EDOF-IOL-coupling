@@ -4,16 +4,16 @@ import csv
 import hashlib
 import json
 import math
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping, Sequence
 
 TASK012_SOURCE_COMMIT = "f28b3032136aa28f54abb5fe5129765a125d3926"
 TASK012_ANALYSIS_PLAN_ID = "TASK012_RUN72_ANALYSIS_PLAN_2026-08-19"
 TASK012_ANALYSIS_PLAN = "docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md"
 TASK012_SOURCE_HASHES = {
     "TASK_011_RUN72_EVIDENCE.json": (
-        "9044898ca71109269b1a35bd5f8701d682bad125e819c54afe50593341e0aa51"
+        "d1b347cc221293fccd5a08679e8b6368788b22eecaa904f6b8f617a6296c50ee"
     ),
     "TASK_011_RUN72_CONFIG_RESULTS.csv": (
         "337628d95529a3711f36e7ea250ef435413d8f6aff11c25739e3c9b9ccc69dfa"
@@ -25,6 +25,17 @@ TASK012_SOURCE_HASHES = {
         "03dfe506566f83f6868c72890c042389ed8d0cd370255967fd1ff3b1ca25fa62"
     ),
 }
+TASK011_CODE_COMMIT = "01f13b768cf1eca361703469b2fdce3d21f3376d"
+TASK011_RUN_ID = "analysis-1cc1441dec4744a18d7ac73763507a6c"
+TASK011_MANIFEST_HASH = "29205cf1bd27848bb378fad956709b7cde4686ffd917b10351a992fc0d59ad49"
+TASK011_LOCK_SET_HASH = "b1dff4c05d2c817099c913c32d9eb8c0b1c9cfa3c9ca8a2022b20c6521e08923"
+TASK011_ANALYSIS_SETTINGS_HASH = (
+    "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc"
+)
+TASK011_ACQUISITION_HASH = "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d"
+TASK011_PAIR_REFERENCE_HASH = (
+    "a1cb8a899718d0327d8b1ecde21a4324e54090fd3db12cab36e649bb3cfc5b5d"
+)
 ABS_TOL = 1e-12
 
 BASE_IDS = ("LB_AL2395", "ATC_M3_AL24477")
@@ -191,6 +202,7 @@ def sha256_file(path: Path) -> str:
 
 def verify_source_hashes(evidence_dir: Path) -> dict[str, str]:
     observed: dict[str, str] = {}
+    mismatches: dict[str, tuple[str, str]] = {}
     for filename, expected in TASK012_SOURCE_HASHES.items():
         path = evidence_dir / filename
         if not path.is_file():
@@ -198,10 +210,55 @@ def verify_source_hashes(evidence_dir: Path) -> dict[str, str]:
         actual = sha256_file(path)
         observed[filename] = actual
         if actual != expected:
-            raise Task012Error(
-                f"formal TASK-011 evidence hash mismatch for {filename}: {actual} != {expected}"
-            )
+            mismatches[filename] = (actual, expected)
+    if mismatches:
+        raise Task012Error(f"formal TASK-011 evidence hash mismatch: {mismatches}")
     return observed
+
+
+def validate_evidence_metadata(path: Path) -> None:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise Task012Error("TASK-011 evidence JSON root must be an object")
+    expected = {
+        "schema_version": 1,
+        "phase": "TASK-011-RUN72",
+        "code_commit": TASK011_CODE_COMMIT,
+        "baseline_id": "MVP_2026_v2",
+        "manifest_hash": TASK011_MANIFEST_HASH,
+        "lock_set_hash": TASK011_LOCK_SET_HASH,
+        "analysis_settings_id": "NOMINAL_MAIN_FFT_MTF_555_v2",
+        "analysis_settings_sha256": TASK011_ANALYSIS_SETTINGS_HASH,
+        "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+        "acquisition_contract_sha256": TASK011_ACQUISITION_HASH,
+        "frequency_scale_mode": "paired_residual_free_MONO_EFFL",
+        "production_sampling": 128,
+        "latest_run_id": TASK011_RUN_ID,
+        "resume_mode": False,
+        "selection_count": 72,
+        "pair_reference_count": 36,
+        "pair_reference_set_sha256": TASK011_PAIR_REFERENCE_HASH,
+        "completed_config_count": 72,
+        "failed_config_count": 0,
+        "run72_started": True,
+        "run72_complete": True,
+        "acceptance_passed": True,
+        "accepted_completed_configs": 72,
+        "accepted_matched_pairs": 36,
+        "accepted_through_focus_rows": 1080,
+        "config_results_csv_sha256": TASK012_SOURCE_HASHES["TASK_011_RUN72_CONFIG_RESULTS.csv"],
+        "through_focus_csv_sha256": TASK012_SOURCE_HASHES["TASK_011_RUN72_THROUGH_FOCUS.csv"],
+        "paired_deltas_csv_sha256": TASK012_SOURCE_HASHES["TASK_011_RUN72_PAIRED_DELTAS.csv"],
+    }
+    mismatches = {
+        key: (payload.get(key), value)
+        for key, value in expected.items()
+        if payload.get(key) != value
+    }
+    if mismatches:
+        raise Task012Error(f"TASK-011 evidence metadata mismatch: {mismatches}")
+    if payload.get("run_ids") != [TASK011_RUN_ID]:
+        raise Task012Error("TASK-011 formal evidence must contain exactly the non-resume run ID")
 
 
 def _read_csv(path: Path) -> list[dict[str, str]]:
@@ -437,7 +494,7 @@ def _contrast_bound(
     terms: Sequence[tuple[float, PairResult]], outcome: str
 ) -> tuple[str, float | str, float | str]:
     if outcome != "delta_dof50_width_d":
-        return "exact", "", ""
+        return "not_applicable", "", ""
     result = NumericBound(0.0, 0.0)
     for coefficient, pair in terms:
         source = NumericBound.from_status(pair.values[outcome], pair.dof50_effect_status)
@@ -593,6 +650,16 @@ def _direction_count(values: Sequence[float]) -> str:
     return f"+{positive}/0{zero}/-{negative}"
 
 
+def _mean_dof50_bound(cell: Sequence[PairResult]) -> NumericBound:
+    result = NumericBound(0.0, 0.0)
+    for pair in cell:
+        source = NumericBound.from_status(
+            pair.values["delta_dof50_width_d"], pair.dof50_effect_status
+        )
+        result = result.add(source.scaled(1.0 / len(cell)))
+    return result
+
+
 def build_coupling_matrix(pairs: Sequence[PairResult]) -> tuple[dict[str, object], ...]:
     index = _pair_index(pairs)
     rows: list[dict[str, object]] = []
@@ -603,6 +670,7 @@ def build_coupling_matrix(pairs: Sequence[PairResult]) -> tuple[dict[str, object
                 for base in BASE_IDS
                 for pupil in PUPIL_MM
             )
+            dof_mean_bound = _mean_dof50_bound(cell)
             row: dict[str, object] = {
                 "cornea_id": cornea,
                 "platform_id": platform,
@@ -624,6 +692,13 @@ def build_coupling_matrix(pairs: Sequence[PairResult]) -> tuple[dict[str, object
                     [pair.dof50_effect_status for pair in cell], separators=(",", ":")
                 ),
                 "dof50_censored_count": sum(pair.pair_dof50_censored for pair in cell),
+                "dof50_mean_bound_status": dof_mean_bound.status(),
+                "dof50_mean_lower_bound": (
+                    dof_mean_bound.lower if math.isfinite(dof_mean_bound.lower) else ""
+                ),
+                "dof50_mean_upper_bound": (
+                    dof_mean_bound.upper if math.isfinite(dof_mean_bound.upper) else ""
+                ),
                 "peak_censored_count": sum(pair.pair_peak_censored for pair in cell),
             }
             for outcome in PAIR_OUTCOMES:
@@ -640,6 +715,7 @@ def build_coupling_matrix(pairs: Sequence[PairResult]) -> tuple[dict[str, object
 
 def analyze_evidence(evidence_dir: Path) -> Task012Analysis:
     source_hashes = verify_source_hashes(evidence_dir)
+    validate_evidence_metadata(evidence_dir / "TASK_011_RUN72_EVIDENCE.json")
     configs = load_config_summaries(evidence_dir / "TASK_011_RUN72_CONFIG_RESULTS.csv")
     validate_through_focus(evidence_dir / "TASK_011_RUN72_THROUGH_FOCUS.csv", configs)
     pairs = build_pairs(configs)
