@@ -7,7 +7,7 @@ task_id = TASK-012
 analysis_plan_id = TASK012_RUN72_ANALYSIS_PLAN_2026-08-19
 status = FROZEN_ANALYSIS_PLAN
 original_freeze_date = 2026-08-19
-source_hash_correction_date = 2026-08-20
+provenance_clarification_date = 2026-08-20
 execution_environment = Web / pure-Python offline
 opticstudio_required = false
 upstream_scientific_locks_mutable = false
@@ -15,7 +15,12 @@ upstream_scientific_locks_mutable = false
 
 本计划在读取正式 Run72 结果后、进行系统结果筛选和论文级解释前冻结。其目的不是重新定义 TASK-005～009 的科学模型，也不是重新计算 TASK-011 光学数据，而是规定如何从已经接受的 Run72 evidence 中形成可重复、censor-aware 的耦合分析。
 
-2026-08-20 的修订仅校正 `TASK_011_RUN72_EVIDENCE.json` 文件自身 SHA256。CI 对 `f28b303...` 中正式文件计算得到 `d1b347cc...`，并确认当前 branch 与 `f28b303...` 的该文件 Git blob 完全相同；三个 CSV SHA 仍与 TASK-011 evidence JSON 内部记录一致。因此这是交接记录中的文件哈希抄录错误，不是 Run72 evidence 漂移，也不改变任何分析定义。
+2026-08-20 的 provenance 修订不改变任何 outcome、censor、contrast 或科学定义。CI 发现 TASK-011 在 Windows 端写出 CSV 后记录的 producer-export SHA256，与文件提交 Git 后在 Linux checkout 中可复算的 repository-byte SHA256 不同。进一步核对确认：四个 evidence 文件在 `f28b303...` 与当前 branch 的 Git blob 分别完全相同，因此不存在 TASK-011 evidence 内容漂移。TASK-012 从此明确保存并分别验证两层身份：
+
+1. **repository-byte SHA256**：对当前 Git checkout 的实际字节可复算，用于 TASK-012 fail-closed source verification；
+2. **TASK-011 recorded producer-export SHA256**：由正式 TASK-011 evidence JSON 在生产端记录，仅适用于三个 CSV，用于保留原始导出 provenance。
+
+`TASK_011_RUN72_EVIDENCE.json` 没有在自身内容中记录 producer-side self-hash；因此不为它虚构第二个 producer hash。此前交接记录中的 JSON 自身 hash 不作为正式 producer identity。
 
 若后续需要改变本计划中的主要 outcome、censor 处理、factorial contrast 定义或正式 source-of-truth，必须先显式修订本文件，不得在看到有利结果后静默改变分析规则。
 
@@ -29,20 +34,52 @@ TASK-012 只使用 GitHub commit：
 f28b3032136aa28f54abb5fe5129765a125d3926
 ```
 
-中的四个 TASK-011 evidence 文件：
+中的四个 TASK-011 evidence 文件。
+
+### 2.1 Repository-byte SHA256
+
+这些值必须能从 TASK-012 的 Git checkout 直接复算：
 
 ```text
 docs/evidence/task011/TASK_011_RUN72_EVIDENCE.json
-SHA256 = d1b347cc221293fccd5a08679e8b6368788b22eecaa904f6b8f617a6296c50ee
+repository_sha256 = d1b347cc221293fccd5a08679e8b6368788b22eecaa904f6b8f617a6296c50ee
 
 docs/evidence/task011/TASK_011_RUN72_CONFIG_RESULTS.csv
-SHA256 = 337628d95529a3711f36e7ea250ef435413d8f6aff11c25739e3c9b9ccc69dfa
+repository_sha256 = f51975b588bae3764806a7930fe6b49b0fc09f357d3ca9c11074fa20749cf615
 
 docs/evidence/task011/TASK_011_RUN72_THROUGH_FOCUS.csv
-SHA256 = cb4ece26a0a5d3a931db52a5f3b7e3325a99cbe26c9e175abd12bec5b7ec79da
+repository_sha256 = f2723a30e0629b6f0b27f8f4f73bc469f1ee7fee7fe3c62d2413c0d4a8eba2b6
 
 docs/evidence/task011/TASK_011_RUN72_PAIRED_DELTAS.csv
-SHA256 = 03dfe506566f83f6868c72890c042389ed8d0cd370255967fd1ff3b1ca25fa62
+repository_sha256 = a6f0708e3339a6cec7b029f7d6675de291db4cea3162528d489189720c4598c5
+```
+
+### 2.2 TASK-011 recorded producer-export SHA256
+
+以下值来自正式 `TASK_011_RUN72_EVIDENCE.json`，记录生产端写出三个 CSV 时的字节身份：
+
+```text
+TASK_011_RUN72_CONFIG_RESULTS.csv
+producer_export_sha256 = 337628d95529a3711f36e7ea250ef435413d8f6aff11c25739e3c9b9ccc69dfa
+
+TASK_011_RUN72_THROUGH_FOCUS.csv
+producer_export_sha256 = cb4ece26a0a5d3a931db52a5f3b7e3325a99cbe26c9e175abd12bec5b7ec79da
+
+TASK_011_RUN72_PAIRED_DELTAS.csv
+producer_export_sha256 = 03dfe506566f83f6868c72890c042389ed8d0cd370255967fd1ff3b1ca25fa62
+```
+
+TASK-012 不尝试要求 Git checkout 的 CSV 原始字节 SHA 与 producer-export SHA 相等；它必须同时验证 repository-byte hashes，以及 evidence JSON 内部是否仍然保存上述 producer-export hashes。
+
+### 2.3 Git blob identity cross-check
+
+已独立确认 `f28b303...` 与当前 branch 的四个文件 Git blob 完全相同：
+
+```text
+TASK_011_RUN72_EVIDENCE.json      blob = d1c9d41375e29de0bbf1cc749eb6742865744fb4
+TASK_011_RUN72_CONFIG_RESULTS.csv blob = 8eab9e370714205c37dd35eca58fb052ed25e4d5
+TASK_011_RUN72_THROUGH_FOCUS.csv  blob = 572123cd928512b90952a3aab3a762c1f330c973
+TASK_011_RUN72_PAIRED_DELTAS.csv  blob = a26ca0a862c2a26aae326fa382a4e315b4ca96a6
 ```
 
 正式 Run72 identity：
@@ -190,7 +227,12 @@ TASK-012 的主要 pair-level outcomes 固定为：
 
 ### 6.1 文件身份
 
-脚本必须验证四个正式 evidence 文件 SHA256 与第2节一致。任一不一致则停止正式分析。
+脚本必须分别验证：
+
+1. 四个正式 evidence 文件的 repository-byte SHA256 与第2.1节完全一致；
+2. `TASK_011_RUN72_EVIDENCE.json` 内记录的三个 producer-export CSV SHA256 与第2.2节完全一致。
+
+任一层不一致都停止正式分析。不得通过把其中一层改成另一层的值来“修复”验证。
 
 ### 6.2 Run-level metadata
 
@@ -215,8 +257,6 @@ accepted_completed_configs = 72
 accepted_matched_pairs = 36
 accepted_through_focus_rows = 1080
 ```
-
-JSON 内部记录的三个 CSV SHA 也必须与第2节一致。
 
 ### 6.3 结构完整性
 
@@ -584,7 +624,7 @@ docs/evidence/task012/TASK_012_COUPLING_MATRIX.csv
 docs/evidence/task012/figures/
 ```
 
-正式分析 evidence 必须记录 TASK-011 source commit、四文件 SHA256、分析代码 commit、analysis-plan identity/hash 和输出文件 hashes。输出 evidence 不保存本机绝对路径。
+正式分析 evidence 必须记录：TASK-011 source commit、四个 repository-byte SHA256、TASK-011 evidence JSON 中三个 producer-export SHA256、分析代码 commit、analysis-plan identity/hash 和输出文件 hashes。输出 evidence 不保存本机绝对路径。
 
 ---
 
@@ -608,11 +648,12 @@ docs/evidence/task012/figures/
 14. `tf_mtfa_mean` 从 through-focus data 可重建；
 15. interaction/difference-in-differences 数学 oracle；
 16. pupil/base sensitivity 数学 oracle；
-17. upstream evidence SHA mismatch 必须 fail-closed；
-18. TASK-011 run-level metadata mismatch 必须 fail-closed；
-19. reporting label 不改写 raw factor IDs；
-20. coupling matrix DOF50 mean 保留 bound status；
-21. 输出 evidence 不泄漏本机 absolute path。
+17. repository-byte evidence SHA mismatch 必须 fail-closed；
+18. producer-export SHA metadata mismatch 必须 fail-closed；
+19. TASK-011 run-level metadata mismatch 必须 fail-closed；
+20. reporting label 不改写 raw factor IDs；
+21. coupling matrix DOF50 mean 保留 bound status；
+22. 输出 evidence 不泄漏本机 absolute path。
 
 所有这些测试必须可以在无 OpticStudio 环境下执行。
 
@@ -648,7 +689,8 @@ window-conditioned peak result
 
 TASK-012 中以下情况必须停止并返回 Web review：
 
-- 四个正式 TASK-011 evidence 文件 hash 不一致；
+- 四个正式 TASK-011 evidence 文件的 repository-byte hash 不一致；
+- TASK-011 evidence JSON 中三个 producer-export CSV hash 不一致；
 - TASK-011 evidence JSON 的 run-level identity/provenance 不一致；
 - 72/36/1080 completeness 不成立；
 - paired delta 不能从 config summary 重建；
@@ -669,7 +711,8 @@ TASK-012 中以下情况必须停止并返回 Web review：
 TASK-012 只有在以下项目全部完成后才能标记 complete：
 
 ```text
-source evidence identity verified
+repository source evidence identity verified
+producer-export provenance verified
 run-level metadata verified
 reconstruction gate PASS
 censor propagation PASS
