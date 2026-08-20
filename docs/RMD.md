@@ -1,13 +1,13 @@
 # RMD — 角膜屈光术后 × 非衍射 EDOF IOL Zemax 自动化研究软件
 
-> **角色：** Build Path / Route-Runbook-Execution Map。只规定安全实现顺序、测试闸门、Git checkpoint 与 STOP；科学定义由 URD/TDD 提供。
+> **角色：** Build Path / Route-Runbook-Execution Map。只规定安全实现顺序、测试闸门、Git checkpoint 与 STOP；科学定义由 URD/TDD及已批准的独立任务计划提供。
 
 ## Metadata
 
 - document_id: `RMD-0001`
-- version: `1.8`
+- version: `1.9`
 - status: `active`
-- source_docs: `URD-0001 v1.6`, `ADD-0001 v1.6`, `MDD-0001 v1.5`, `TDD-0001 v1.6`
+- source_docs: `URD-0001 v1.6`, `ADD-0001 v1.6`, `MDD-0001 v1.5`, `TDD-0001 v1.6`, `TASK-013-NATIVE-CORNEA-REFERENCE`
 - last_updated: `2026-08-20`
 - implementation_language: Python
 - package_manager: uv
@@ -17,7 +17,8 @@
 - active_frequency_scale: `paired_residual_free_MONO_EFFL`
 - active_production_sampling: `128`
 - completed_analysis_task: `TASK-012`
-- next_science_phase: paper-level Results / Discussion
+- active_extension_task: `TASK-013`
+- next_science_phase: `TASK-013 native/untreated cornea reference acquisition → offline comparison → final manuscript consolidation`
 
 ---
 
@@ -25,19 +26,20 @@
 
 ## Web
 
-负责科学规范、冻结决策、Python 代码与测试、GitHub static review、structured evidence 审核、TASK-012 纯离线结果统计和图表，以及下一阶段论文级 Results/Discussion。
+负责科学规范、冻结决策、Python 代码与测试、GitHub static review、structured evidence 审核、TASK-012 纯离线结果统计和图表，以及 TASK-013 文档/代码实现与后续离线整合。
 
 ## Local Windows / ZCode
 
-只负责必须由真实 OpticStudio/ZOS-API 给出的新事实。TASK-011 正式 Run72 已完成；TASK-012 完全基于冻结 evidence，不使用 OpticStudio。
+只负责必须由真实 OpticStudio/ZOS-API 给出的新事实。TASK-011 正式 Run72 已完成；TASK-012 完全基于冻结 evidence。TASK-013 是经过明确科学问题批准的独立新增 optical acquisition，只运行新增 N0 层，不重跑既有72配置。
 
 ## Cost-aware rule
 
 - 已满足 gate 的代表配置不重复运行；
-- 已接受的72-config Run72 不因少量 censoring 重跑；
-- 不事后扩大冻结 focus/peak window 以获得更整齐结果；
-- 普通统计、图表、provenance 和文档留在 Web；
-- 新的本地 optical acquisition 必须有独立、明确的科学问题支持。
+- 已接受的72-config Run72 不因 TASK-013 或少量 censoring 重跑；
+- 不事后扩大冻结 focus/peak window；
+- 普通统计、图表、provenance、文档和归档工具留在 Web/GitHub；
+- 新的本地 optical acquisition 必须有独立、明确的科学问题支持；TASK-013 的缺失未治疗角膜基线已经满足这一条件；
+- 任何新任务都不得静默改写旧 scientific identity。
 
 ---
 
@@ -50,13 +52,13 @@ uv run python -m compileall -q src tests scripts
 uv lock --check
 ```
 
-unit tests 不依赖 OpticStudio。正式 scientific assets immutable；analysis provenance 必须版本化/hashable。
+unit tests 不依赖 OpticStudio。正式 scientific assets immutable；analysis provenance 必须版本化/hashable。`.zmx` exact analyzed model 从 TASK-013 起是强制研究 artifact，并要求 canonical archive + SHA index。
 
 ---
 
-# 3. Completed build path
+# 3. Completed build path and active extension
 
-| Task | Status | Frozen output |
+| Task | Status | Frozen / planned output |
 | --- | --- | --- |
 | TASK-001 | complete | uv/src/tests/git skeleton |
 | TASK-002 | complete | ZOS session lifecycle validated |
@@ -69,12 +71,21 @@ unit tests 不依赖 OpticStudio。正式 scientific assets immutable；analysis
 | TASK-009 | complete | paired-MONO MFE MTFA production method + sampling 128 |
 | TASK-011 | complete | formal Run72: 72 configs / 36 pairs / 1080 rows; Web review PASS |
 | TASK-012 | complete | pure-offline reconstruction + censor-aware factorial analysis + 24 figures + result review PASS |
+| TASK-013 | approved / implementation | N0 reference cornea + 6 new carriers + 24 configs + 12 pairs + 360 TF rows + canonical ZMX archive |
 
 TASK-010 GUI 保持 optional，不是科学前置条件。
+
+TASK-013 计划全文：
+
+```text
+docs/TASK_013_NATIVE_CORNEA_REFERENCE_PLAN_2026-08-20.md
+```
 
 ---
 
 # 4. Frozen production identity
+
+以下 TASK-008/009/011 identity 继续只读：
 
 ```text
 baseline_id = MVP_2026_v2
@@ -90,11 +101,10 @@ frequency_scale_mode = paired_residual_free_MONO_EFFL
 production_sampling = 128
 ```
 
-当前生产路径：
+生产方法：
 
 ```text
-frozen TASK-008 manifest
-→ residual-free MONO EFFL once per matched pair
+residual-free MONO EFFL once per matched pair
 → paired_residual_free_MONO_EFFL angular scale
 → ZosMtfaPairScaleAnalysisBackend
 → MFE MTFA Grid=1
@@ -102,7 +112,7 @@ frozen TASK-008 manifest
 → ConfigResult / matched deltas
 ```
 
-TASK-009 以前已退休的 production routes 不再属于 active specs。
+TASK-013 必须复用该 production method，但使用独立 extension identity，不改写 TASK-008 manifest/hash。
 
 ---
 
@@ -132,7 +142,7 @@ docs/evidence/task011/TASK_011_RUN72_THROUGH_FOCUS.csv
 docs/evidence/task011/TASK_011_RUN72_PAIRED_DELTAS.csv
 ```
 
-TASK-012 已独立重建这些 evidence；不需要 TASK-011 rerun。
+现有代码已在每个 target 目录保存 exact `model.zmx`，并把其纳入 `ConfigArtifacts` 的强制存在校验；TASK-013 只增加稳定 canonical archive，不需要为“补保存模型”重跑 TASK-011。
 
 ---
 
@@ -142,28 +152,6 @@ TASK-012 已独立重建这些 evidence；不需要 TASK-011 rerun。
 
 ```text
 docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md
-```
-
-正式实现：
-
-```text
-src/whole_eye_mvp/run72_analysis.py
-src/whole_eye_mvp/run72_figures.py
-scripts/analyze_task_012_run72.py
-tests/unit/test_task012_run72_analysis.py
-.github/workflows/task012-analysis.yml
-```
-
-分析代码基线：
-
-```text
-330b59171e1dab2ea76d1425d56d8e5175d233ef
-```
-
-派生 evidence commit：
-
-```text
-e92960b1f687ff844da07141f6e0aef50f32cea6
 ```
 
 正式产物：
@@ -193,78 +181,143 @@ result_review = PASS_WITH_SCIENTIFIC_CAVEATS
 opticstudio_used = false
 ```
 
-TASK-012 source verification 同时保存：
-
-1. Git checkout 可复算的 repository-byte SHA256；
-2. TASK-011 evidence JSON 内记录的 producer-export CSV SHA256。
-
-这两层 identity 不互相替代。
+TASK-012 structured evidence 不因 TASK-013 改写。后续 N0 comparison 必须作为新的离线分析层，并清楚标记来源为 TASK-013 + frozen TASK-011。
 
 ---
 
-# 7. Frozen interpretation from TASK-012
+# 7. TASK-013 — N0 native/untreated cornea reference extension
 
-所有 paired effect 均为 `EDOF - MONO`。
+## 7.1 Scientific scope
 
-- **B0 × WFS-like**：EPD3 relative DOF coupling 明显；EPD5 interaction 反转，所以属于 pupil-specific interaction。
-- **C0 × RAD-like**：相对 WFS-like 的 DOF coupling 跨两 base、两 pupil 方向更稳定，EPD5 更明显，但0 D质量代价更大。
-- **HOA-like**：EPD3 常有最大 DOF extension，同时伴随最大0 D/全贯焦质量再分配；EPD5 对 cornea/base 高度敏感。
-- Pupil 与 Base eye 都是一阶解释因素，不能在主分析前平均掉。
-- 5个 DOF50 lower-bound 只按下限解释；8个 peak-window pair 只按 boundary/window-conditioned 解释。
-- 当前确定性矩阵不支持单一“最佳组合”、传统随机样本显著性推断或品牌级临床推荐。
-
-详见：
+正式 N0 ID：
 
 ```text
-docs/TASK_012_RESULTS_REVIEW_2026-08-20.md
+N0 = native / untreated reference cornea
 ```
+
+N0 使用既有 `MAIN_CORNEA_LIOU_555_v1` 参考角膜 scaffold；它描述角膜状态，不把 `ATC_M3_AL24477` 重新定义为正常眼。
+
+新增矩阵：
+
+```text
+2 Base × 1 N0 × 3 Platform = 6 new physical carriers
+6 carriers × MONO/EDOF × EPD3/EPD5 = 24 new configs
+12 matched pairs
+360 through-focus rows
+```
+
+完成后完整研究数据库为96 configs，但 TASK-011 仍然是原72-config frozen run，TASK-013 是独立24-config extension。
+
+## 7.2 Carrier and residual route
+
+```text
+N0 cornea scaffold
+→ per Base Q=0 P/R solve
+→ per Platform STD_IOL_EYE_2024 power-specific Q(P)
+→ actual-eye P–Q recheck (max 2)
+→ 6 canonical N0 carriers
+→ frozen residual power-envelope gate
+→ 12 pair-MONO EFFL references
+→ 24-config production acquisition
+```
+
+若任一 N0 power 超出相应平台既有 residual validated power envelope，必须 STOP 于 EDOF production 前；允许补做原 residual 的 replay validation，但不允许重新优化 residual。
+
+## 7.3 Canonical ZMX output
+
+固定：
+
+```text
+project_mvp_2026_v2_zmx/models/task013_native_reference/
+  cornea/N0_REFERENCE_CORNEA.zmx
+  carriers/CAR_<base>_N0_<platform>.zmx
+  runs/<run_id>/pair_references/<pair_key>.zmx
+  runs/<run_id>/configs/<config_id>.zmx
+  runs/<run_id>/MODEL_INDEX.csv
+```
+
+每个 exact analyzed config model 必须存在于 canonical `configs/`，并记录 SHA-256。工作目录中的 `results/.../<config_id>/model.zmx` 不可替代 canonical archive。
+
+`MODEL_INDEX.csv` 至少绑定：model role、run/config/pair/carrier、base/cornea/platform/state/pupil、project-relative path、SHA-256。
+
+## 7.4 Existing TASK-011 model archive
+
+新增纯文件工具，在**不启动 OpticStudio**的情况下将已有：
+
+```text
+72 results/task011_run72/<run_id>/<config_id>/model.zmx
+36 diagnostics/task011/pair_reference_models/<pair_key>.zmx
+```
+
+复制并 hash-verify 到：
+
+```text
+models/task011_run72/archive/<run_id>/configs/
+models/task011_run72/archive/<run_id>/pair_references/
+models/task011_run72/archive/<run_id>/MODEL_INDEX.csv
+```
+
+该操作只改善 provenance/可查找性，不改变 TASK-011 evidence。
 
 ---
 
-# 8. Git checkpoints
+# 8. TASK-013 implementation order
+
+必须遵守“先文档、后代码、最后光学执行”：
+
+```text
+A. docs/TASK_013_NATIVE_CORNEA_REFERENCE_PLAN_2026-08-20.md + RMD sync
+B. offline code / tests
+   - N0 extension identities and 24-config manifest
+   - N0 carrier builder
+   - backward-compatible carrier/residual directory override
+   - TASK-013 runner
+   - ZMX archive + MODEL_INDEX helper
+   - TASK-011 retroactive archive helper
+C. offline gates: pytest / ruff / compileall / uv-lock
+D. Local Windows OpticStudio: N0 + 6 carriers + 12 refs + 24 configs
+E. Web review: 24/12/360 + model SHA/index audit + censor review
+F. offline N0/A0/B0/C0 through-focus supplement
+```
+
+任何代码改动不得要求 TASK-011 rerun 才证明 backward compatibility。
+
+---
+
+# 9. Git checkpoints
 
 ```text
 feat/task-009-fft-mtf-main
   TASK-009 complete / Run72 Web clearance
 
 feat/task-011-run72
-  TASK-011 runner + formal Run72 + evidence review
-  TASK-012 analysis plan
-  TASK-012 offline implementation/tests
-  TASK-012 formal analysis evidence + 24 figures
-  TASK-012 independent result review
-  status/trace synchronization
+  TASK-011 formal Run72 accepted
+  TASK-012 offline analysis accepted
+  manuscript working draft assembled
+  TASK-013 document freeze
+  TASK-013 code implementation
+  TASK-013 local acquisition/evidence (pending Windows execution)
 ```
 
 PR #26 保持 Draft，除非另行授权改变状态或合并。
 
 ---
 
-# 9. Next science phase
-
-优先进入论文级 Results / Discussion：
-
-1. 从冻结 TASK-012 evidence 形成论文主表与主结果段；
-2. 选择最能表达3×3 coupling、pupil/base sensitivity 和 trade-off 的主图；
-3. 把 B0×WFS-like、C0×RAD-like、HOA-like 结果与前期定性机制框架对照；
-4. 明确 lower-bound、peak-window 和模型眼外推限制；
-5. 如需新 sensitivity，只在现有 evidence 上做纯离线分析。
-
-不需要新的 OpticStudio acquisition。
-
----
-
 # 10. Current STOP conditions
 
 1. TASK-005–009 frozen assets/method locks 不得修改；
-2. TASK-008 manifest/hash/lock-set 不得因后续写作改变；
+2. TASK-008 manifest/hash/lock-set 不得因 TASK-013 改变；
 3. sampling lock 保持128；
 4. 不恢复任何已退休的 pre-TASK009 production path；
 5. 不使用 per-state/EDOF EFFL 改变 matched MONO/EDOF cpd 坐标；
-6. 不因 peak/DOF censoring 扩大预注册窗口后补跑矩阵；
+6. 不因 peak/DOF censoring 扩大预注册窗口；
 7. 不重新优化 B0.20 或 residual profiles；
-8. 不把 `DeltaF_residual` 写入 carrier physical lock identity；
+8. 不把 `DeltaF_residual` 写入 carrier physical identity；
 9. 不把 DOF50 lower bound 或 peak-window result 静默当精确值；
 10. 不把确定性矩阵当随机临床样本做传统显著性检验；
-11. 不为获得特定论文叙事事后改变主要 outcome、censor policy 或 interaction definition；
-12. 新 evidence/code inconsistency 出现时先停止解释并做 Web review，不以 OpticStudio rerun 作为默认修复。
+11. 不为获得特定论文叙事事后改变主要 outcome/censor policy/interaction definition；
+12. N0 carrier power 超出 frozen residual calibration envelope 时必须先 STOP/validate；
+13. canonical ZMX copy 的 SHA 与 analyzed model 不一致时不得完成该 config archive；
+14. custom carrier-directory 支持不得改变 TASK-011 默认目录/行为；
+15. TASK-013 不得覆盖 TASK-011/TASK-012 structured evidence；
+16. 新 evidence/code inconsistency 出现时先停止解释并做 Web review，不以重跑全部 OpticStudio 矩阵作为默认修复。
