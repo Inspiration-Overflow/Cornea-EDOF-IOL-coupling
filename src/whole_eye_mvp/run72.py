@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
@@ -76,6 +77,13 @@ def validate_run72_clearance(payload: Mapping[str, object]) -> None:
     }
     if mismatches:
         raise Run72Error(f"Run72 Web clearance mismatch: {mismatches}")
+
+
+def pair_reference_set_hash(records: Mapping[str, Mapping[str, object]]) -> str:
+    if len(records) != 36 or any(not str(key).strip() for key in records):
+        raise Run72Error("Run72 requires exactly 36 non-empty pair-reference records")
+    canonical = json.dumps(records, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def load_config_result_json(path: str | Path) -> ConfigResult:
@@ -170,6 +178,7 @@ def build_run72_aggregate(
 
 def config_scalar_row(result: ConfigResult) -> dict[str, object]:
     return {
+        "run_id": result.run_id,
         "config_id": result.config.config_id,
         "pair_key": result.config.pair_key,
         "carrier_id": result.config.carrier_id,
@@ -201,6 +210,7 @@ def config_scalar_row(result: ConfigResult) -> dict[str, object]:
 
 def through_focus_rows(result: ConfigResult) -> tuple[dict[str, object], ...]:
     base = {
+        "run_id": result.run_id,
         "config_id": result.config.config_id,
         "pair_key": result.config.pair_key,
         "base_id": result.config.base_id,
