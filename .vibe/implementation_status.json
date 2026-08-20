@@ -1,16 +1,17 @@
 {
-  "version": 8,
+  "version": 9,
   "as_of": "2026-08-19",
-  "phase": "task009-production-sampling-128-locked_web-provenance-and-spec-consolidation-pending",
+  "phase": "task009-complete-web-formalized_run72-ready-not-started",
   "project_schema_version": 2,
   "active_branch": "feat/task-009-fft-mtf-main",
   "offline_unit_tests": {
     "web_ci_status": "PASS",
+    "web_ci_source_head": "a16e3e778dfda7f399056ef38dba93cc7a32e03c",
+    "web_ci_run_id": 32331070341,
     "web_ci_pytest_passed": 199,
     "web_ci_ruff": "PASS",
     "web_ci_compileall": "PASS",
     "web_ci_uv_lock": "PASS",
-    "web_ci_sampling_lock_regression": "PASS",
     "local_status": "PASS",
     "local_pytest_passed": 198,
     "local_run_code_commit": "d80b3a1c33fce02deda50f5ce8ebc73326e5b946",
@@ -25,9 +26,9 @@
     "RMD-TASK-006": "complete_B0.20-immutable-lock",
     "RMD-TASK-007": "complete_tdd999-cleared",
     "RMD-TASK-008": "complete_formal-18-carriers_3-residuals_72-configs",
-    "RMD-TASK-009": "sampling-lock-complete_provenance-and-active-spec-consolidation-pending",
-    "RMD-TASK-010": "blocked-until-task009-web-consolidation",
-    "RMD-TASK-011": "blocked-until-run-provenance-and-active-spec-consolidation"
+    "RMD-TASK-009": "complete_pair-MONO-MTFA_sampling-128_web-provenance-hardened",
+    "RMD-TASK-010": "optional-gui-integration_not-cli-run72-prerequisite",
+    "RMD-TASK-011": "ready-run72-web-authorized-not-started"
   },
   "task007": {
     "status": "complete",
@@ -50,7 +51,7 @@
     "tdd_999_cleared": true
   },
   "task009": {
-    "status": "corrected-pair-MONO-evidence-PASS_sampling-128-formally-locked",
+    "status": "complete",
     "representative_run_code_commit": "d80b3a1c33fce02deda50f5ce8ebc73326e5b946",
     "corrected_evidence_commit": "47f901dad36fb9d407826a6da8baceeef4c2edfd",
     "corrected_evidence_json_sha256": "404502231e154ebae0813c6b52151961ad4278bef8cc4d29f412d21db7bc8d49",
@@ -69,28 +70,28 @@
     "production_sampling": 128,
     "production_sampling_locked": true,
     "formal_sampling_lock_path": "docs/evidence/task009/TASK_009_PRODUCTION_SAMPLING_LOCK.json",
-    "sampling_lock_decision_doc": "docs/TASK_009_PRODUCTION_SAMPLING_LOCK_2026-08-19.md",
+    "run72_web_clearance_path": "docs/evidence/task009/TASK_009_RUN72_WEB_CLEARANCE.json",
     "sampling_escalation_256_active": false,
-    "sampling_escalation_reason": "inactive-because-corrected-128-to-256-gates-all-pass",
     "old_per_state_effl_result_superseded": true,
     "old_HOA_128_to_256_tf_mtfa_relative_change": 0.020188291791026776,
     "corrected_HOA_128_to_256_tf_mtfa_relative_change": 0.0052007450614762795,
     "corrected_HOA_128_to_256_peak_mtfa_relative_change": 0.017642820289757794,
-    "web_ci_draft_pr": 25,
-    "run72_started": false,
-    "run72_authorized": false,
+    "run_environment_provenance_hardened": true,
+    "backend_provenance_fail_closed": true,
+    "active_specs_synchronized": true,
     "requires_more_opticstudio_sampling_validation": false,
-    "remaining_web_gates_before_run72": [
-      "bind acquisition contract id/hash and paired-MONO frequency-scale mode into run-level provenance",
-      "consolidate active URD/ADD/MDD/TDD/RMD acquisition semantics and regression tests"
-    ]
+    "no_additional_representative_opticstudio_rerun_required": true,
+    "run72_authorized": true,
+    "run72_started": false,
+    "remaining_web_gates_before_run72": []
   },
   "science_gates_still_active": [],
-  "web_only_gates_still_active": [
-    "TASK-009 run-level acquisition provenance hardening",
-    "TASK-009 active normative-document consolidation",
-    "Web CI after consolidation"
-  ],
+  "web_only_gates_still_active": [],
+  "next_execution": {
+    "preferred": "single-large-granularity-Run72-batch",
+    "gui_task010_required_before_cli_run72": false,
+    "repeat_task009_representatives": false
+  },
   "immutability": {
     "task005_to_task008_science_changed": false,
     "task008_manifest_hash_changed": false,
