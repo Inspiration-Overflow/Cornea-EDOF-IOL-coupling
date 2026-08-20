@@ -217,12 +217,28 @@ def _validate_analysis_environment(
     if environment.baseline_id != store.baseline.baseline_id:
         raise ProjectStoreError("analysis environment baseline does not match project baseline")
     if environment.analysis_settings_id != NOMINAL_MAIN_FFT_MTF_555_V2.settings_id:
-        raise ProjectStoreError("analysis environment does not reference frozen FFT-MTF settings")
+        raise ProjectStoreError("analysis environment does not reference frozen main-analysis settings")
     if environment.manifest_hash != bundle.manifest_hash:
         raise ProjectStoreError("analysis environment manifest hash does not match manifest bundle")
     expected_lock_set_hash = compute_lock_set_hash(bundle.physical_carriers)
     if environment.lock_set_hash != expected_lock_set_hash:
         raise ProjectStoreError("analysis environment lock-set hash does not match manifest bundle")
+
+
+def _validate_backend_provenance(backend: AnalysisBackend, environment: RunEnvironment) -> None:
+    expected = {
+        "acquisition_contract_id": environment.acquisition_contract_id,
+        "acquisition_contract_hash": environment.acquisition_contract_hash,
+        "frequency_scale_mode": environment.frequency_scale_mode,
+    }
+    for name, value in expected.items():
+        actual = getattr(backend, name, None)
+        if not isinstance(actual, str) or not actual.strip():
+            raise ProjectStoreError(f"analysis backend does not expose required {name}")
+        if actual != value:
+            raise ProjectStoreError(
+                f"analysis backend {name} does not match the frozen run environment"
+            )
 
 
 def _ensure_project_output_dir(store: ProjectStore, output_dir: str | Path) -> Path:
@@ -275,6 +291,7 @@ def run_analysis_batch(
     require_files: bool = True,
 ) -> AnalysisBatchSummary:
     _validate_analysis_environment(store, bundle, environment)
+    _validate_backend_provenance(backend, environment)
     manifest = bundle.nominal_configs
     selected = manifest if selection is None else validate_selection(selection, manifest)
     output = _ensure_project_output_dir(store, output_dir)
