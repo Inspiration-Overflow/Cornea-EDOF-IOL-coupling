@@ -19,6 +19,7 @@ from .zos import SequentialEditor, ZosSession
 
 VALIDATION_SCHEMA_VERSION = 1
 VALIDATION_PUPIL_MM = 5.0
+VALIDATION_INDEX_NAME = "VALIDATION_INDEX.json"
 
 
 class ResidualExtensionValidationError(RuntimeError):
@@ -159,6 +160,47 @@ def _load_reusable_validation(
     return payload
 
 
+def _write_validation_index(validation_root: Path) -> Path:
+    rows: list[dict[str, object]] = []
+    for record_path in sorted(validation_root.glob("*/*/VALIDATION.json")):
+        payload = json.loads(record_path.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            raise ResidualExtensionValidationError(
+                f"validation record root is not an object: {record_path}"
+            )
+        rows.append(
+            {
+                "carrier_id": payload.get("carrier_id"),
+                "base_id": payload.get("base_id"),
+                "cornea_id": payload.get("cornea_id"),
+                "platform_id": payload.get("platform_id"),
+                "carrier_sha256": payload.get("carrier_sha256"),
+                "residual_id": payload.get("residual_id"),
+                "residual_sha256": payload.get("residual_sha256"),
+                "policy_id": payload.get("policy_id"),
+                "passed": payload.get("passed"),
+                "record_relative_path": record_path.relative_to(validation_root).as_posix(),
+                "record_sha256": sha256_file(record_path),
+            }
+        )
+    index = validation_root / VALIDATION_INDEX_NAME
+    index.write_text(
+        json.dumps(
+            {
+                "schema_version": VALIDATION_SCHEMA_VERSION,
+                "validation_count": len(rows),
+                "all_passed": bool(rows) and all(row["passed"] is True for row in rows),
+                "records": rows,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return index
+
+
 def ensure_frozen_residual_carrier_validation(
     session: ZosSession,
     *,
@@ -203,7 +245,8 @@ def ensure_frozen_residual_carrier_validation(
         )
 
     candidate = _candidate(platform_id)
-    root = Path(validation_root).resolve() / carrier_id / f"{carrier_sha[:12]}_{residual_sha256[:12]}"
+    validation_root_path = Path(validation_root).resolve()
+    root = validation_root_path / carrier_id / f"{carrier_sha[:12]}_{residual_sha256[:12]}"
     root.mkdir(parents=True, exist_ok=True)
     record_path = root / "VALIDATION.json"
     reusable = _load_reusable_validation(
@@ -212,6 +255,7 @@ def ensure_frozen_residual_carrier_validation(
         residual_sha256=residual_sha256,
     )
     if reusable is not None:
+        _write_validation_index(validation_root_path)
         return reusable
 
     r_ant, r_post, q_ant = _read_actual_carrier_geometry(session, mono_path)
@@ -302,6 +346,7 @@ def ensure_frozen_residual_carrier_validation(
         json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    _write_validation_index(validation_root_path)
     return payload
 
 
