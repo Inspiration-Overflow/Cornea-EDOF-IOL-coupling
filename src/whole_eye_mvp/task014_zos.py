@@ -26,6 +26,11 @@ from .domain import NOMINAL_MAIN_FFT_MTF_555_V2, OpticState
 from .grid_sag_residual import apply_grid_sag_residual
 from .manifest import NominalConfig
 from .metrics import mm_per_degree
+from .residual_extension_validation_zos import (
+    ensure_frozen_residual_carrier_validation,
+    validation_passed,
+)
+from .standard_eye import RELATIVE_PATH as STANDARD_EYE_RELATIVE_PATH
 from .store import sha256_file
 from .task014_extension import TASK014_CORNEA_IDS, validate_task014_carrier
 from .zos import MfeEfflRunner, SequentialEditor, ZosSession
@@ -236,6 +241,31 @@ def prepare_task014_model(
             or sha256_file(residual) != config.residual_sha256
         ):
             raise Task014ZosError(f"TASK-014 residual SHA mismatch: {config.platform_id}")
+
+        validation = ensure_frozen_residual_carrier_validation(
+            session,
+            project_dir=project_root,
+            standard_eye_path=project_root / STANDARD_EYE_RELATIVE_PATH,
+            carrier_id=config.carrier_id,
+            base_id=config.base_id,
+            cornea_id=config.cornea_id,
+            platform_id=config.platform_id,
+            carrier_path=carrier,
+            residual_id=str(config.residual_id),
+            residual_sha256=str(config.residual_sha256),
+            validation_root=(
+                project_root
+                / "models"
+                / "task014_vertex_corrected"
+                / "residual_validations"
+            ),
+        )
+        if not validation_passed(validation):
+            raise SystemExit(
+                "TASK-014 exact-carrier frozen-residual validation failed before EDOF "
+                f"production: {config.carrier_id}"
+            )
+
         apply_grid_sag_residual(session, carrier, _candidate(config.platform_id), residual, output)
     else:
         raise Task014ZosError(f"unknown TASK-014 optic state: {config.optic_state}")
