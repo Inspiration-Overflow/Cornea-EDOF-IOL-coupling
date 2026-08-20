@@ -5,7 +5,6 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-
 from whole_eye_mvp import run72
 from whole_eye_mvp.analysis import MatchedPairDelta
 from whole_eye_mvp.domain import OpticState
