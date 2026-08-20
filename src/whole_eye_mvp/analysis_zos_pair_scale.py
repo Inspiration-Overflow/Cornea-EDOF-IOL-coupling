@@ -38,6 +38,7 @@ TASK009_PAIR_MONO_MTF_ACQUISITION = MtfAcquisitionContract(
 EXPECTED_PAIR_MONO_MTF_ACQUISITION_HASH = (
     "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d"
 )
+PAIR_MONO_FREQUENCY_SCALE_MODE = "paired_residual_free_MONO_EFFL"
 
 
 @dataclass(frozen=True, slots=True)
@@ -126,9 +127,21 @@ def measure_pair_mono_reference(
 
 @dataclass(slots=True)
 class ZosMtfaPairScaleAnalysisBackend(ZosMtfaGridAnalysisBackend):
-    """TASK-009 backend using one residual-free MONO angular scale per matched pair."""
+    """TASK-009 production backend using one residual-free MONO scale per pair."""
 
     pair_reference_effl_mm: Mapping[str, float] = field(default_factory=dict)
+
+    @property
+    def acquisition_contract_id(self) -> str:
+        return TASK009_PAIR_MONO_MTF_ACQUISITION.contract_id
+
+    @property
+    def acquisition_contract_hash(self) -> str:
+        return TASK009_PAIR_MONO_MTF_ACQUISITION.contract_hash
+
+    @property
+    def frequency_scale_mode(self) -> str:
+        return PAIR_MONO_FREQUENCY_SCALE_MODE
 
     def __post_init__(self) -> None:
         # Explicit parent call is intentional: zero-argument super() is unreliable with
@@ -200,8 +213,8 @@ class ZosMtfaPairScaleAnalysisBackend(ZosMtfaGridAnalysisBackend):
                 avg = tuple(float(value) for value in result.values)
                 if runtime_meta is None:
                     runtime_meta = {
-                        "acquisition_contract_id": TASK009_PAIR_MONO_MTF_ACQUISITION.contract_id,
-                        "acquisition_contract_hash": TASK009_PAIR_MONO_MTF_ACQUISITION.contract_hash,
+                        "acquisition_contract_id": self.acquisition_contract_id,
+                        "acquisition_contract_hash": self.acquisition_contract_hash,
                         "production_operand": result.operand_type,
                         "grid": result.grid,
                         "data_type": result.data_type,
@@ -214,7 +227,7 @@ class ZosMtfaPairScaleAnalysisBackend(ZosMtfaGridAnalysisBackend):
                         "cpd_min": cpd_grid[0],
                         "cpd_max": cpd_grid[-1],
                         "cpd_count": len(cpd_grid),
-                        "frequency_scale_mode": "paired_MONO_EFFL",
+                        "frequency_scale_mode": self.frequency_scale_mode,
                     }
                 mtfa_values.append(mtfa(cpd_grid, avg, max_cpd=settings.mtfa_max_cpd))
                 for frequency, values in fixed_columns.items():
