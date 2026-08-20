@@ -115,10 +115,26 @@ def test_locked_artifact_same_hash_is_noop_and_different_hash_conflicts(tmp_path
 
 @pytest.mark.unit
 def test_run_environment_requires_all_provenance_fields_and_is_create_once(tmp_path: Path) -> None:
-    valid = RunEnvironment("0.1.0", "2026 R1", "b", "s", "m", "l")
+    valid = RunEnvironment(
+        "0.1.0",
+        "2026 R1",
+        "b",
+        "s",
+        "m",
+        "l",
+        "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+        "contract-hash",
+        "paired_residual_free_MONO_EFFL",
+    )
     valid.validate()
     with pytest.raises(ValueError, match="manifest_hash"):
-        RunEnvironment("0.1.0", "2026 R1", "b", "s", "", "l").validate()
+        replace(valid, manifest_hash="").validate()
+    with pytest.raises(ValueError, match="acquisition_contract_id"):
+        replace(valid, acquisition_contract_id="").validate()
+    with pytest.raises(ValueError, match="acquisition_contract_hash"):
+        replace(valid, acquisition_contract_hash="").validate()
+    with pytest.raises(ValueError, match="frequency_scale_mode"):
+        replace(valid, frequency_scale_mode="").validate()
 
     store = open_project_store(tmp_path / "project", ScientificBaseline("b"))
     ref = store.record_environment("run-1", valid)
