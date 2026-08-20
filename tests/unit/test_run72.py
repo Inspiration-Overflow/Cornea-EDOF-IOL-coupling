@@ -50,6 +50,26 @@ def test_run72_clearance_matches_active_pair_mono_contract() -> None:
 
 
 @pytest.mark.unit
+def test_pair_reference_set_hash_requires_exact_36_and_detects_change() -> None:
+    records = {
+        f"PAIR_{index:02d}": {
+            "pair_key": f"PAIR_{index:02d}",
+            "reference_effl_mm": 16.0 + index / 100.0,
+            "mm_per_degree": 0.28 + index / 10000.0,
+            "model_sha256": f"sha-{index:02d}",
+            "entity_fingerprint": f"entity-{index:02d}",
+        }
+        for index in range(36)
+    }
+    first = run72.pair_reference_set_hash(records)
+    changed = {key: dict(value) for key, value in records.items()}
+    changed["PAIR_35"]["reference_effl_mm"] = 99.0
+    assert run72.pair_reference_set_hash(changed) != first
+    with pytest.raises(run72.Run72Error, match="exactly 36"):
+        run72.pair_reference_set_hash(dict(list(records.items())[:-1]))
+
+
+@pytest.mark.unit
 def test_run72_aggregate_requires_exact_72_and_36_pairs(monkeypatch) -> None:
     manifest = _manifest()
     results = tuple(
