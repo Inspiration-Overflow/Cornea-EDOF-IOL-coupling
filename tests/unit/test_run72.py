@@ -5,11 +5,11 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+
 from whole_eye_mvp import run72
 from whole_eye_mvp.analysis import MatchedPairDelta
 from whole_eye_mvp.domain import OpticState
 from whole_eye_mvp.manifest import ManifestBundle, NominalConfig
-
 
 CLEARANCE = Path("docs/evidence/task009/TASK_009_RUN72_WEB_CLEARANCE.json")
 
