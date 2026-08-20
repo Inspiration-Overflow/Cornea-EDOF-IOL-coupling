@@ -39,7 +39,7 @@ from whole_eye_mvp.run72 import (
     through_focus_rows,
     validate_run72_clearance,
 )
-from whole_eye_mvp.store import open_project_store, sha256_file
+from whole_eye_mvp.store import open_project_store
 from whole_eye_mvp.workflows import run_analysis_batch
 from whole_eye_mvp.zos import open_zos_session
 
@@ -135,7 +135,11 @@ def _validate_resume(
         "frequency_scale_mode": PAIR_MONO_FREQUENCY_SCALE_MODE,
         "production_sampling": NOMINAL_MAIN_FFT_MTF_555_V2.fft_mtf_sampling,
     }
-    mismatches = {key: (payload.get(key), value) for key, value in expected.items() if payload.get(key) != value}
+    mismatches = {
+        key: (payload.get(key), value)
+        for key, value in expected.items()
+        if payload.get(key) != value
+    }
     if mismatches:
         raise SystemExit(f"resume report identity mismatch: {mismatches}")
     if payload.get("run72_complete") is True:
@@ -186,7 +190,9 @@ def _write_repo_evidence(
             "paired_deltas_csv_sha256": _sha(delta_csv),
         }
     )
-    evidence_json.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    evidence_json.write_text(
+        json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
     return {
         "evidence_json": str(evidence_json),
         "evidence_json_sha256": _sha(evidence_json),
@@ -210,13 +216,19 @@ def main() -> None:
     manifest_artifacts = task008.get("manifest_artifact_sha256")
     carrier_hashes = task008.get("carrier_asset_sha256")
     residual_hashes = task008.get("residual_asset_sha256")
-    if not isinstance(manifest_artifacts, dict) or not isinstance(carrier_hashes, dict) or not isinstance(residual_hashes, dict):
+    if (
+        not isinstance(manifest_artifacts, dict)
+        or not isinstance(carrier_hashes, dict)
+        or not isinstance(residual_hashes, dict)
+    ):
         raise SystemExit("TASK-008 evidence lacks required artifact hash maps")
 
     bundle = load_formal_manifest_bundle(
         project_dir,
         expected_manifest_hash=str(task008.get("manifest_hash", "")),
-        expected_physical_csv_sha256=str(manifest_artifacts.get("TASK008_PHYSICAL_CARRIER_LOCKS", "")),
+        expected_physical_csv_sha256=str(
+            manifest_artifacts.get("TASK008_PHYSICAL_CARRIER_LOCKS", "")
+        ),
         expected_nominal_csv_sha256=str(manifest_artifacts.get("TASK008_NOMINAL_72", "")),
     )
     if len(bundle.nominal_configs) != 72:
@@ -233,7 +245,11 @@ def main() -> None:
 
     if args.resume_report is not None:
         prior_payload = _load_json(args.resume_report.resolve())
-        _validate_resume(prior_payload, manifest_hash=bundle.manifest_hash, lock_set_hash=lock_set_hash)
+        _validate_resume(
+            prior_payload,
+            manifest_hash=bundle.manifest_hash,
+            lock_set_hash=lock_set_hash,
+        )
         combined.update(_prior_results(prior_payload))
         failed = prior_payload.get("failed_config_ids")
         if not isinstance(failed, list) or not failed:
@@ -252,7 +268,9 @@ def main() -> None:
     else:
         selection = tuple(config.config_id for config in bundle.nominal_configs)
 
-    store = open_project_store(project_dir, ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID))
+    store = open_project_store(
+        project_dir, ScientificBaseline(CURRENT_SCIENTIFIC_BASELINE_ID)
+    )
     output_root = project_dir / "results" / "task011_run72"
     pair_model_dir = project_dir / "diagnostics" / "task011" / "pair_reference_models"
     pair_model_dir.mkdir(parents=True, exist_ok=True)
@@ -280,8 +298,11 @@ def main() -> None:
                 pair_reference_effl_mm[pair_key] = reference.reference_effl_mm
                 pair_reference_records[pair_key] = asdict(reference)
 
+        selection_set = set(selection)
         required_pairs = {
-            config.pair_key for config in bundle.nominal_configs if config.config_id in set(selection)
+            config.pair_key
+            for config in bundle.nominal_configs
+            if config.config_id in selection_set
         }
         missing_refs = sorted(required_pairs - set(pair_reference_effl_mm))
         if missing_refs:
@@ -328,7 +349,10 @@ def main() -> None:
     if prior_payload is not None:
         prior_index = prior_payload.get("completed_result_json_paths")
         if isinstance(prior_index, dict):
-            completed_paths = {**{str(k): str(v) for k, v in prior_index.items()}, **completed_paths}
+            completed_paths = {
+                **{str(key): str(value) for key, value in prior_index.items()},
+                **completed_paths,
+            }
 
     expected_ids = {config.config_id for config in bundle.nominal_configs}
     failed_ids = sorted(expected_ids - set(combined))
@@ -381,10 +405,15 @@ def main() -> None:
     reports_dir = output_root / "reports"
     reports_dir.mkdir(parents=True, exist_ok=True)
     report_path = reports_dir / f"{batch.run_id}.json"
-    report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    report_path.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
 
     print(f"TASK-011 report: {report_path}")
-    print(f"completed={len(combined)} failed={len(failed_ids)} latest_run_id={batch.run_id}")
+    print(
+        f"completed={len(combined)} failed={len(failed_ids)} "
+        f"latest_run_id={batch.run_id}"
+    )
 
     if failed_ids:
         print("Failed config IDs:")
