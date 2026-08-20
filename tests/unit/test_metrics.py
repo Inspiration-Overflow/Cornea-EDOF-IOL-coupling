@@ -5,13 +5,13 @@ import pytest
 
 from whole_eye_mvp.metrics import (
     average_sagittal_tangential_mtf,
+    cpd_to_cycles_mm,
     cycles_mm_to_cpd,
     distance_anchored_dof50,
     find_distance_peak,
     matched_numeric_delta,
     mm_per_degree,
     mtfa,
-    resample_fft_mtf_to_cpd,
     through_focus_mean,
 )
 
@@ -23,30 +23,16 @@ def test_average_sagittal_tangential_mtf() -> None:
 
 
 @pytest.mark.unit
-def test_fft_mtf_resampling_converts_cycles_mm_to_cpd_without_extrapolation() -> None:
+def test_frequency_scale_roundtrip_and_direct_target_mapping() -> None:
     efl = 17.0
     scale = mm_per_degree(efl)
-    f_mm = np.arange(0.0, 61.0 / scale, 1.0 / scale)
-    sag = np.linspace(1.0, 0.4, f_mm.size)
-    tan = np.linspace(1.0, 0.2, f_mm.size)
-    f_cpd, avg = resample_fft_mtf_to_cpd(
-        f_mm,
-        sag,
-        tan,
-        effective_focal_length_mm=efl,
-        max_cpd=60.0,
-        step_cpd=1.0,
-    )
-    assert f_cpd[0] == 0.0 and f_cpd[-1] == 60.0 and len(f_cpd) == 61
-    assert avg[0] == pytest.approx(1.0, abs=1e-12)
-    with pytest.raises(ValueError, match="cover"):
-        resample_fft_mtf_to_cpd(
-            f_mm[:20],
-            sag[:20],
-            tan[:20],
-            effective_focal_length_mm=efl,
-            max_cpd=60.0,
-        )
+    assert scale == pytest.approx(efl * np.tan(np.deg2rad(1.0)), abs=1e-10)
+    assert cycles_mm_to_cpd(10.0, efl) == pytest.approx(10 * scale, abs=1e-10)
+    targets_cpd = np.arange(61, dtype=float)
+    targets_mm = cpd_to_cycles_mm(targets_cpd, efl)
+    assert np.allclose(cycles_mm_to_cpd(targets_mm, efl), targets_cpd, atol=1e-12)
+    assert targets_mm[0] == 0.0
+    assert targets_mm[-1] == pytest.approx(60.0 / scale, abs=1e-10)
 
 
 @pytest.mark.unit
@@ -85,13 +71,6 @@ def test_through_focus_mean_is_direction_invariant() -> None:
     reverse = through_focus_mean(list(reversed(d)), list(reversed(y)))
     assert forward == pytest.approx(reverse, abs=1e-12)
     assert 0.0 < forward < 1.0
-
-
-@pytest.mark.unit
-def test_frequency_scale() -> None:
-    efl = 17.0
-    assert mm_per_degree(efl) == pytest.approx(efl * np.tan(np.deg2rad(1.0)), abs=1e-10)
-    assert cycles_mm_to_cpd(10.0, efl) == pytest.approx(10 * mm_per_degree(efl), abs=1e-10)
 
 
 @pytest.mark.unit
