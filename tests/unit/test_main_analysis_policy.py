@@ -7,6 +7,7 @@ import pytest
 
 from whole_eye_mvp.analysis_zos_pair_scale import (
     EXPECTED_PAIR_MONO_MTF_ACQUISITION_HASH,
+    PAIR_MONO_FREQUENCY_SCALE_MODE,
     TASK009_PAIR_MONO_MTF_ACQUISITION,
 )
 from whole_eye_mvp.domain import NOMINAL_MAIN_FFT_MTF_555_V2
@@ -22,6 +23,7 @@ ACTIVE_SPEC_FILES = (
     Path("docs/TASK_009_PRODUCTION_SAMPLING_LOCK_2026-08-19.md"),
 )
 SAMPLING_LOCK = Path("docs/evidence/task009/TASK_009_PRODUCTION_SAMPLING_LOCK.json")
+RUN72_CLEARANCE = Path("docs/evidence/task009/TASK_009_RUN72_WEB_CLEARANCE.json")
 
 FORBIDDEN_ACTIVE_TOKENS = (
     "huygens",
@@ -30,6 +32,7 @@ FORBIDDEN_ACTIVE_TOKENS = (
     "psf_to_complex_otf",
     "vsotf",
     "vsmtf",
+    "zosfftmtfanalysisbackend",
 )
 FORBIDDEN_RUNTIME_TOKENS = (
     "new_fftmtf",
@@ -67,6 +70,7 @@ def test_active_main_analysis_settings_and_acquisition_contract() -> None:
     assert EXPECTED_PAIR_MONO_MTF_ACQUISITION_HASH == (
         "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d"
     )
+    assert PAIR_MONO_FREQUENCY_SCALE_MODE == "paired_residual_free_MONO_EFFL"
 
 
 @pytest.mark.unit
@@ -84,7 +88,7 @@ def test_formal_task009_sampling_lock_matches_active_contract_and_evidence() -> 
     )
     assert payload["acquisition_contract_id"] == TASK009_PAIR_MONO_MTF_ACQUISITION.contract_id
     assert payload["acquisition_contract_sha256"] == EXPECTED_PAIR_MONO_MTF_ACQUISITION_HASH
-    assert payload["frequency_scale_mode"] == "paired_residual_free_MONO_EFFL"
+    assert payload["frequency_scale_mode"] == PAIR_MONO_FREQUENCY_SCALE_MODE
     assert payload["representative_run_code_commit"] == (
         "d80b3a1c33fce02deda50f5ce8ebc73326e5b946"
     )
@@ -102,7 +106,39 @@ def test_formal_task009_sampling_lock_matches_active_contract_and_evidence() -> 
     assert payload["crosscheck_web_review"] == "PASS"
     assert payload["sampling_escalation_256_active"] is False
     assert payload["run72_started"] is False
+    # Sampling lock remains an immutable method decision snapshot; Run72 engineering
+    # authorization is represented by a separate clearance artifact below.
     assert payload["run72_authorized"] is False
+
+
+@pytest.mark.unit
+def test_run72_web_clearance_requires_hardened_provenance_and_no_repeat_probe() -> None:
+    payload = json.loads(RUN72_CLEARANCE.read_text(encoding="utf-8"))
+    assert payload["clearance_id"] == "TASK009_RUN72_WEB_CLEARANCE_v1"
+    assert payload["gate_artifact"] is True
+    assert payload["formal_scientific_lock"] is False
+    assert payload["source_sampling_lock_id"] == "TASK009_PRODUCTION_SAMPLING_LOCK_v1"
+    assert payload["production_sampling"] == 128
+    assert payload["production_sampling_locked"] is True
+    assert payload["analysis_settings_id"] == NOMINAL_MAIN_FFT_MTF_555_V2.settings_id
+    assert payload["acquisition_contract_id"] == TASK009_PAIR_MONO_MTF_ACQUISITION.contract_id
+    assert payload["acquisition_contract_sha256"] == EXPECTED_PAIR_MONO_MTF_ACQUISITION_HASH
+    assert payload["frequency_scale_mode"] == PAIR_MONO_FREQUENCY_SCALE_MODE
+    assert payload["run_environment_provenance_hardened"] is True
+    assert payload["backend_provenance_fail_closed"] is True
+    assert payload["active_specs_synchronized"] is True
+    assert payload["as_fft_mtf_production_retired"] is True
+    assert payload["per_state_effl_production_scale_forbidden"] is True
+    assert payload["sampling_escalation_256_active"] is False
+    assert payload["no_additional_representative_opticstudio_rerun_required"] is True
+    assert payload["web_gate_ci_pytest_passed"] == 199
+    assert payload["web_gate_ci_ruff"] == "PASS"
+    assert payload["web_gate_ci_compileall"] == "PASS"
+    assert payload["web_gate_ci_uv_lock"] == "PASS"
+    assert payload["run72_authorized"] is True
+    assert payload["run72_started"] is False
+    assert payload["task009_complete"] is True
+    assert payload["task010_gui_required_before_cli_run72"] is False
 
 
 def _scan(paths, tokens=FORBIDDEN_ACTIVE_TOKENS) -> list[str]:
@@ -135,6 +171,10 @@ def test_active_scripts_do_not_reintroduce_removed_paths() -> None:
 def test_active_specs_do_not_reintroduce_removed_paths() -> None:
     findings = _scan(ACTIVE_SPEC_FILES)
     assert not findings, "removed analysis path leaked into active specs: " + ", ".join(findings)
+    for path in ACTIVE_SPEC_FILES[:6]:
+        text = path.read_text(encoding="utf-8")
+        assert "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2" in text
+        assert "paired_residual_free_MONO_EFFL" in text
 
 
 @pytest.mark.unit
