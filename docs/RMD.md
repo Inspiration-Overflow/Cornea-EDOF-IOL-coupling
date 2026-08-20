@@ -153,7 +153,7 @@ diagnostic_only_aperture_limited_mode0
 
 # 4. Acceptance 语义
 
-以后扩展任务统一区分：
+扩展任务统一区分：
 
 ```text
 acquisition_acceptance
@@ -186,7 +186,7 @@ Final scientific acceptance 还要求 Web 审核 structured evidence。任何 `w
 
 # 6. TASK-014 本地执行路线
 
-坚持最短可靠路径：
+坚持最短可靠路径，并保持现有 runner 结构：
 
 ```text
 verify frozen provenance
@@ -194,13 +194,16 @@ verify frozen provenance
 → solve 6 Q=0 starts
 → solve 18 physical carriers
 → classify historical power coverage
-→ exact-carrier residual validation
-→ 36 paired-MONO references
-→ 72 production configs
+→ build 36 paired-MONO references
+→ run 72 production configs
+   └─ 每个 carrier 第一次进入 EDOF materialization 前执行 schema-v2 exact validation
+      └─ 同 exact carrier SHA + residual SHA 的 PASS record 缓存复用
 → 1080 TF rows
 → ZMX archive / MODEL_INDEX
 → Web review
 ```
+
+不新增独立 validation-preflight orchestration 层；现有“first EDOF materialization 前 hard gate”已满足 MVP 所需 fail-closed 语义。
 
 不要求 TASK-013 scientific PASS 才能开始 TASK-014；二者是平行扩展。TASK-013 的成功结果仅作为方法学验证经验，不作为 TASK-014 光学输入。
 
@@ -287,12 +290,11 @@ MVP 明确不增加：
 # 10. 当前最短后续路径
 
 ```text
-A. 收拢文档/代码 authority + offline QA
-B. Web review TASK-013 local evidence
-C. local TASK-014 72-config acquisition
-D. Web review TASK-014
-E. combine accepted N0 + A0V12/B0V12/C0V12 = 96 configs
-F. render all through-focus supplement
+A. Web review TASK-013 local evidence
+B. local TASK-014 72-config acquisition
+C. Web review TASK-014
+D. combine accepted N0 + A0V12/B0V12/C0V12 = 96 configs
+E. render all through-focus supplement
 ```
 
-PR #26 在 B/C/D 完成前继续保持 Draft / open / unmerged。
+PR #26 在 A/B/C 完成前继续保持 Draft / open / unmerged。
