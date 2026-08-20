@@ -90,9 +90,46 @@
 | TDD-TEST-207 | limited independent MFE extraction diagnostic in TASK-009 evidence |
 | URD-AC-009 | Run72 acceptance in `src/whole_eye_mvp/acceptance.py`, `src/whole_eye_mvp/run72.py`, `scripts/run_task_011_run72.py` |
 | TASK-011 formal matrix | 72 configs / 36 matched pairs / 1080 through-focus rows in `docs/evidence/task011/` |
-| TASK-012 analysis | frozen plan in `docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md`; implementation pending |
+| TASK-012 source reconstruction | `src/whole_eye_mvp/run72_analysis.py` + `tests/unit/test_task012_run72_analysis.py` |
+| TASK-012 factor/censor/contrast analysis | `src/whole_eye_mvp/run72_analysis.py` + `scripts/analyze_task_012_run72.py` |
+| TASK-012 figures | `src/whole_eye_mvp/run72_figures.py` |
+| TASK-012 reproducible generation | `.github/workflows/task012-analysis.yml` |
+| TASK-012 formal derived evidence | `docs/evidence/task012/TASK_012_ANALYSIS_EVIDENCE.json`, pair/contrast/matrix CSVs, 24 figures |
+| TASK-012 independent results review | `docs/TASK_012_RESULTS_REVIEW_2026-08-20.md` |
 
-## 6. Versioned settings / acquisition trace
+## 6. TASK-012 analysis trace
+
+```text
+analysis_plan = docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md
+source_task011_commit = f28b3032136aa28f54abb5fe5129765a125d3926
+analysis_code_commit = 330b59171e1dab2ea76d1425d56d8e5175d233ef
+analysis_evidence_commit = e92960b1f687ff844da07141f6e0aef50f32cea6
+result_review = PASS_WITH_SCIENTIFIC_CAVEATS
+opticstudio_used = false
+```
+
+Formal TASK-012 acceptance:
+
+```text
+pairs = 36
+contrasts = 1152
+coupling_cells = 9
+figures = 24
+DOF50 exact = 31
+DOF50 lower_bound = 5
+peak-window-censored pairs = 8
+reconstruction_gate = PASS
+censor_propagation = PASS
+```
+
+TASK-012 source verification preserves two separate provenance layers:
+
+- Git checkout repository-byte SHA256 for all four TASK-011 evidence files;
+- producer-export SHA256 recorded by TASK-011 evidence JSON for the three CSV files.
+
+These identities are both checked and are not substituted for each other.
+
+## 7. Versioned settings / acquisition trace
 
 | Identity | SHA-256 | Scope |
 | --- | --- | --- |
@@ -114,7 +151,7 @@ pair_reference_count = 36
 pair_reference_set_sha256 = a1cb8a899718d0327d8b1ecde21a4324e54090fd3db12cab36e649bb3cfc5b5d
 ```
 
-## 7. Frozen provenance
+## 8. Frozen provenance
 
 - TASK-007 reviewed evidence: `docs/evidence/task007/consolidated_review/TASK_007_CONSOLIDATED_REVIEW.json`.
 - TASK-008 formal evidence: `docs/evidence/task008/TASK_008_LOCK_MANIFEST_EVIDENCE.json`.
@@ -124,4 +161,7 @@ pair_reference_set_sha256 = a1cb8a899718d0327d8b1ecde21a4324e54090fd3db12cab36e6
 - TASK-011 formal evidence commit: `f28b3032136aa28f54abb5fe5129765a125d3926`.
 - TASK-011 formal evidence: `docs/evidence/task011/TASK_011_RUN72_EVIDENCE.json` plus config, through-focus and paired-delta CSVs.
 - TASK-012 frozen analysis plan: `docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md`.
-- TASK-005–009 scientific/method locks remain read-only during TASK-011/TASK-012.
+- TASK-012 analysis code baseline: `330b59171e1dab2ea76d1425d56d8e5175d233ef`.
+- TASK-012 formal derived evidence commit: `e92960b1f687ff844da07141f6e0aef50f32cea6`.
+- TASK-012 independent results review: `docs/TASK_012_RESULTS_REVIEW_2026-08-20.md`.
+- TASK-005–009 scientific/method locks remain read-only during TASK-011/TASK-012 and subsequent paper writing.
