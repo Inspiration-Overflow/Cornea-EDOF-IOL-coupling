@@ -5,7 +5,7 @@
 ## Metadata
 
 - document_id: `RMD-0001`
-- version: `2.2`
+- version: `2.3`
 - status: `active`
 - last_updated: `2026-08-20`
 - active_branch: `feat/task-011-run72`
@@ -46,7 +46,7 @@ N0
 = 24 configs
 ```
 
-第三次本地正式 acquisition 已完成：
+正式 acquisition：
 
 ```text
 run_id = task013-183dcffcd1da4f1cb1a219d9eedb39db
@@ -61,12 +61,21 @@ MODEL_INDEX records = 43
 model archive = complete
 ```
 
-其中 ATC+N0 的 WFS/RAD/HOA 位于历史 power coverage 之外，因此：
+Web mechanism review 已完成。ATC+N0 WFS/RAD/HOA 虽位于历史 power coverage 之外，但 exact-carrier numerical validation、与 LB+N0 的机制连续性及冻结 TASK-007 mechanism signature 均支持接受。
 
 ```text
-local acquisition acceptance = PASS
-final scientific acceptance = PENDING WEB MECHANISM REVIEW
+acquisition acceptance = PASS
+exact-carrier validation = PASS
+out-of-coverage mechanism review = PASS
+scientific acceptance = PASS_WITH_SCIENTIFIC_CAVEATS
+review artifact = docs/evidence/task013/TASK_013_SCIENTIFIC_REVIEW.json
 ```
+
+保留三项 caveat：
+
+1. HOA EDOF EPD5 的 distance peak 在两个基础眼均落于冻结搜索窗 `-0.50 D` 边界，peak location 属于 censored；
+2. N0 的 EPD5 下 WFS/RAD/HOA 均可出现 `ΔDOF50 < 0`，保留为 pupil-dependent mechanism behavior，不作 residual failure；
+3. TASK-007 calibration 与 TASK-013 production 只比较机制方向/波前 signature，不主张绝对 DOF50 或 peak shift 数值等同。
 
 **不重跑 TASK-013**，除非后续发现 evidence/hash/archive 完整性问题。
 
@@ -90,7 +99,7 @@ IDs = A0V12 / B0V12 / C0V12
 1080 TF rows
 ```
 
-TASK-014 尚未产生正式 OpticStudio acquisition。
+TASK-014 尚未产生正式 OpticStudio acquisition；这是当前下一项本地任务。
 
 ---
 
@@ -172,15 +181,18 @@ Final scientific acceptance 还要求 Web 审核 structured evidence。任何 `w
 
 ---
 
-# 5. TASK-013 下一步
+# 5. TASK-013 状态
 
-只做 Web evidence review，不再做新的 OpticStudio acquisition：
+TASK-013 已完成 acquisition 与 Web scientific review。其 structured review 绑定：
 
-1. 导入本地 `docs/evidence/task013/` 与 validation index；
-2. 核对 6 carrier SHA / residual SHA / schema-v2 validation；
-3. 对 ATC+N0 WFS/RAD/HOA 审核 EPD3/5 through-focus、distance peak、DOF50、MTFa@0D、TF mean、C4/C6/HOA RMS；
-4. 形成 scientific PASS/FAIL；
-5. PASS 后将 N0 纳入最终96配置层。
+```text
+formal run = task013-183dcffcd1da4f1cb1a219d9eedb39db
+acquisition code = a3877f5682a9067c1cd420dc31d4f14a6a4e13ab
+review bundle SHA256 = 7fd359c0e72785d76ebeb1e6c115e5d953355da396d3da5534aa5807903050aa
+scientific verdict = PASS_WITH_SCIENTIFIC_CAVEATS
+```
+
+N0 可进入后续 accepted 96-config 汇总层；在 TASK-014 尚未完成前不提前生成最终96配置结论。
 
 ---
 
@@ -205,7 +217,7 @@ verify frozen provenance
 
 不新增独立 validation-preflight orchestration 层；现有“first EDOF materialization 前 hard gate”已满足 MVP 所需 fail-closed 语义。
 
-不要求 TASK-013 scientific PASS 才能开始 TASK-014；二者是平行扩展。TASK-013 的成功结果仅作为方法学验证经验，不作为 TASK-014 光学输入。
+TASK-013 与 TASK-014 是平行扩展；TASK-013 已 PASS，但其结果不作为 TASK-014 光学输入。
 
 首次正式 TASK-014 run 默认不使用 `--overwrite-models`。
 
@@ -290,11 +302,11 @@ MVP 明确不增加：
 # 10. 当前最短后续路径
 
 ```text
-A. Web review TASK-013 local evidence
+A. 将本地原始 TASK-013 repo evidence 按原 SHA 入库
 B. local TASK-014 72-config acquisition
 C. Web review TASK-014
 D. combine accepted N0 + A0V12/B0V12/C0V12 = 96 configs
 E. render all through-focus supplement
 ```
 
-PR #26 在 A/B/C 完成前继续保持 Draft / open / unmerged。
+A 仅是 provenance 入库，不需要任何 OpticStudio 重跑。PR #26 在 B/C 完成前继续保持 Draft / open / unmerged。
