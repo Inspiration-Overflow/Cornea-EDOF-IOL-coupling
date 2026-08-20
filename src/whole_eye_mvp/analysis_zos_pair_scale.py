@@ -131,7 +131,9 @@ class ZosMtfaPairScaleAnalysisBackend(ZosMtfaGridAnalysisBackend):
     pair_reference_effl_mm: Mapping[str, float] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        super().__post_init__()
+        # Explicit parent call is intentional: zero-argument super() is unreliable with
+        # this dataclass(slots=True) inheritance shape on the supported Python versions.
+        ZosMtfaGridAnalysisBackend.__post_init__(self)
         normalized = {str(key): float(value) for key, value in self.pair_reference_effl_mm.items()}
         if not normalized:
             raise ValueError("paired-MONO backend requires at least one pair reference EFFL")
