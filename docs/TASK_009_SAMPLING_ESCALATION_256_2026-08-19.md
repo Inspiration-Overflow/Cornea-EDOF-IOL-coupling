@@ -1,9 +1,11 @@
 # TASK-009 sampling escalation：128 → 256
 
 日期：2026-08-19  
-状态：Web decision frozen；local 256→512 validation pending
+状态：**HOLD / not executable**；paired-MONO angular-scale correction 必须先完成真实验证
 
-## 1. 触发证据
+> 本文记录一次基于 v2 evidence 的 sampling escalation 决策。随后 Web review 发现 HOA EDOF 的 per-state EFFL=9.633 mm 导致异常的 cpd 轴缩放，因此该 sampling 决策在任何本地 256→512 执行前即被暂停。当前执行 authority 为 `TASK_009_PAIR_FIXED_ANGULAR_SCALE_2026-08-19.md`。本文保留作为 provenance，不是当前 handoff。
+
+## 1. 原触发证据
 
 TASK-009 `MTFA Grid=1` representative batch 已完成真实 OpticStudio 验证：
 
@@ -12,9 +14,9 @@ TASK-009 `MTFA Grid=1` representative batch 已完成真实 OpticStudio 验证�
 - 6-config `ZosMtfaGridAnalysisBackend → run_analysis_batch` production integration PASS；
 - entity invariants / ray-health / vignetting PASS；
 - `MTFA = (MTFT+MTFS)/2` 的 20/40/60 cpd diagnostic 在三个 representative 中均为 exact match；
-- 唯一失败项为 HOA EPD5 的 sampling convergence。
+- 原始 per-state EFFL frequency scaling 下，HOA EPD5 的 sampling convergence 略超 gate。
 
-HOA EPD5：
+HOA EPD5 原始结果：
 
 ```text
 TF_MTFa_mean
@@ -26,152 +28,58 @@ relative change 128→256 = 0.020188291791026776
 frozen gate              = 0.020000000000000000
 ```
 
-因此 128 candidate 按预注册 gate **FAIL**。不得因只超 0.0001883 而 post-hoc 放宽 2% threshold。
+按该原始坐标定义，128 candidate 不可 post-hoc 视为通过。
 
-同时趋势为单调收敛，且 HOA 的其它 128→256 gate 均通过：
+## 2. 为什么暂停本 escalation
 
-- distance-peak MTFa relative = 0.01774635813552245；
-- distance peak shift = 0 D；
-- DOF50 width change = 0.026781428708645083 D。
+同一 evidence 显示 HOA EDOF：
 
-WFS/RAD 的 128→256 convergence 全部 PASS。
+```text
+EFFL = 9.633329064114418 mm
+mm/degree = 0.16815038428900272
+60 cpd -> 356.82 cycles/mm
+```
 
-## 2. 新 production candidate
+明显偏离其它 representative 的约 16.5–17.2 mm / 0.288–0.300 mm/deg。
 
-将 production sampling candidate 从 128 升级为 **256**。
+由于 EFFL 是 paraxial first-order quantity，而 HOA residual 是中心高阶结构，Web 决定不能让 EDOF residual 自身重新定义 matched-pair 的 angular-frequency coordinate。
 
-新增 numerical settings identity：
+因此必须先采用 paired-MONO fixed angular scale 重跑 64/128/256 convergence。
+
+## 3. 原拟议 256 candidate（暂不激活）
+
+以下 settings identity 仅在 paired-MONO scale 下 128→256 仍失败后才允许重新激活：
 
 ```text
 NOMINAL_MAIN_FFT_MTF_555_v3
 SHA256 = dd58f5e40e218488e8ad22b8fc4fc9c4f054371ba9cf00953cabbdfbae7287f8
-```
 
-与 v2 相比只改变：
-
-```text
 fft_mtf_sampling = 256
 fft_mtf_convergence_samplings = (256, 512)
-settings_id = NOMINAL_MAIN_FFT_MTF_555_v3
 ```
 
-其它 scientific settings 全部不变：
+其它 scientific settings 与 gate 均不变。
 
-- wavelength = 555 nm；
-- EPD = 3 / 5 mm；
-- field = 0；
-- defocus = +0.50 → -3.00 D，step=-0.25 D；
-- 0..60 cpd，step=1 cpd；
-- MTFa / distance peak / DOF50 / TF_MTFa_mean 定义；
-- fixed MTF10/20/30/40/50/60；
-- polarization=false。
+## 4. 当前执行规则
 
-`TASK009_MFE_MTFA_GRID1_v1` acquisition contract 不变。
+当前不得执行 256→512 escalation。
 
-## 3. 256→512 convergence gate
+先执行：
 
-不改变任何 threshold。
+`docs/TASK_009_PAIR_FIXED_ANGULAR_SCALE_2026-08-19.md`
 
-三个 frozen EDOF representatives 均比较 production 256 vs 512：
+若 corrected paired-MONO scale 下三个 128→256 convergence 全 PASS，则保留 128，不启用本文 v3。
 
-1. `LB_AL2395 × A0 × WFS × EPD3`；
-2. `ATC_M3_AL24477 × B0 × RAD × EPD5`；
-3. `ATC_M3_AL24477 × C0 × HOA × EPD5`。
+只有 corrected evidence 仍有任一 128→256 convergence FAIL，Web 才可重新激活本文并要求 256→512 validation。
 
-每个必须同时满足：
+## 5. 不变项
 
-```text
-distance-peak MTFa relative change <= 2%
-TF_MTFa_mean relative change       <= 2%
-distance peak shift                <= 0.25 D
-DOF50 width change                 <= 0.25 D
-```
-
-512 对应 MFE `Samp=5`，必须本地真实 header/readback 确认。
-
-## 4. 256 repeatability gate
-
-production candidate 改为 256 后，repeatability 也必须在 256 重新验证。
-
-三个 EDOF representatives：
-
-```text
-same distance-peak grid sample
-peak MTFa relative change <= 0.1%
-TF_MTFa_mean relative change <= 0.1%
-C4 delta <= 0.001 µm
-C6 delta <= 0.001 µm
-```
-
-## 5. 最小但完整的新实机批次
-
-不重复已经通过的 API/cross-check science work。
-
-一次本地任务只需要：
-
-### A. six-config production integration @256
-
-三个 frozen pair 的 MONO+EDOF，共 6 configs，通过：
-
-```text
-ZosMtfaGridAnalysisBackend(sampling=256)
-→ run_analysis_batch
-```
-
-该 integration 的三个 EDOF 结果同时作为 convergence 的 256 anchor。
-
-### B. three EDOF @512
-
-只跑三个 representative EDOF，sampling=512，用于 256→512 convergence。
-
-### C. three independent repeat256
-
-只跑三个 representative EDOF，独立 sampling=256，用于 production repeatability。
-
-因此新批次共：
-
-```text
-6 × 15 planes @256 integration
-+ 3 × 15 planes @512 convergence
-+ 3 × 15 planes @256 repeatability
-```
-
-无需重跑：
-
-- 64；
-- 128；
-- MTFA/MTFT/MTFS fixed-frequency semantic diagnostic；
-- AS_FftMtf；
-- TASK-007/008 calibration/locks。
-
-既有 evidence commit `e508a83f41a63bc74a4a4ae1fc1bf060f0de4ea9` 保留为 v2 candidate failure + acquisition/production-chain validation provenance。
-
-## 6. 决策规则
-
-若三个 256→512 convergence 和三个 repeat256 全 PASS，且 six-config @256 integration PASS：
-
-```text
-production_sampling_candidate_passed = true
-production_sampling_locked = false
-```
-
-随后 STOP，由 Web 读取 evidence 并创建 formal sampling lock。
-
-若任一 256→512 convergence fail：
-
-- 不放宽 gate；
-- 不自动升到 512；
-- STOP 返回 Web 重新评估 sampling strategy。
-
-## 7. 不变项
-
-本 sampling escalation 不改变：
+无论本文件是否重新激活，都不得改变：
 
 - A0 / B0.20 / C0；
 - 18 carrier locks；
 - 3 residuals；
 - TASK-008 72-config manifest identity/hash；
-- acquisition contract `TASK009_MFE_MTFA_GRID1_v1`；
 - convergence/repeatability thresholds；
 - representative set；
 - Run72 尚未启动。
