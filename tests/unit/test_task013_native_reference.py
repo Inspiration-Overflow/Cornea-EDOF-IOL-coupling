@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from whole_eye_mvp.carriers import SA_TARGETS_UM, CarrierKey, ProvisionalCarrier
 from whole_eye_mvp.domain import (
     CURRENT_SCIENTIFIC_BASELINE_ID,
@@ -26,7 +24,6 @@ from whole_eye_mvp.task013_native_reference import (
     TASK013_EXPECTED_CONFIG_COUNT,
     TASK013_EXPECTED_PAIR_COUNT,
     ResidualProvenance,
-    Task013Error,
     build_task013_manifest,
     make_native_carrier_lock,
     require_residual_power_envelopes,
@@ -106,7 +103,7 @@ def test_task013_manifest_is_exact_6_carrier_24_config_12_pair_extension() -> No
     )
 
 
-def test_task013_residual_power_envelope_is_fail_closed() -> None:
+def test_task013_residual_power_envelope_is_validation_trigger() -> None:
     existing = [
         _carrier(str(base), str(cornea), str(platform), power)
         for base, offset in ((BaseId.LB_AL2395, 0.0), (BaseId.ATC_M3_AL24477, 1.0))
@@ -122,6 +119,7 @@ def test_task013_residual_power_envelope_is_fail_closed() -> None:
     checks = require_residual_power_envelopes(existing, native)
     assert len(checks) == 6
     assert all(check.passed for check in checks)
+    assert not any(check.extension_validation_required for check in checks)
 
     outside = list(native)
     outside[0] = _carrier(
@@ -130,8 +128,11 @@ def test_task013_residual_power_envelope_is_fail_closed() -> None:
         str(PlatformId.WFS),
         30.0,
     )
-    with pytest.raises(Task013Error, match="additional residual replay validation"):
-        require_residual_power_envelopes(existing, outside)
+    outside_checks = require_residual_power_envelopes(existing, outside)
+    flagged = [check for check in outside_checks if check.extension_validation_required]
+    assert len(flagged) == 1
+    assert flagged[0].carrier_id == outside[0].key.carrier_id
+    assert flagged[0].passed is False
 
 
 def test_model_archive_hashes_copy_and_index(tmp_path: Path) -> None:
