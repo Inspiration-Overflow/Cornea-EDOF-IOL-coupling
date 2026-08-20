@@ -17,7 +17,7 @@
 | URD-REQ-008 | refines_to | FR-005, FR-008 | matched MONO/EDOF identity; residual-only difference |
 | URD-REQ-009 | refines_to | FR-005 | residual payload / low-order / calibration gate |
 | URD-REQ-010 | refines_to | FR-006 | exact 18/72 immutable manifests and strict reload |
-| URD-REQ-011 | refines_to | FR-007 | frozen FFT-MTF main settings and acquisition |
+| URD-REQ-011 | refines_to | FR-007 | frozen main numerical settings + MFE MTFA Grid=1 acquisition + paired residual-free MONO EFFL angular scale |
 | URD-REQ-012 | refines_to | FR-007 | retina/carrier/IOL/ELP/entity invariants |
 | URD-REQ-013 | refines_to | FR-007 | per-config MTFa/MTF/aberration/footprint/settings/provenance |
 | URD-REQ-014 | refines_to | FR-008 | 36 EDOF−MONO matched deltas |
@@ -76,30 +76,52 @@
 | Requirement / test | Implemented or exercised by |
 | --- | --- |
 | URD-REQ-010 / TDD-TEST-110 | `src/whole_eye_mvp/manifest_io.py` |
-| URD-REQ-011 / TDD-TEST-201 | `src/whole_eye_mvp/zos/fft_mtf.py` |
-| TDD-TEST-202 | `src/whole_eye_mvp/zos/mfe_effl.py` |
+| URD-REQ-011 / TDD-TEST-201 | `src/whole_eye_mvp/zos/mfe_mtfa.py`, `src/whole_eye_mvp/zos/mfe_mtf_grid.py`, `src/whole_eye_mvp/analysis_zos_pair_scale.py` |
+| TDD-TEST-202 | `src/whole_eye_mvp/zos/mfe_effl.py` + `measure_pair_mono_reference()` in `analysis_zos_pair_scale.py` |
+| TDD-TEST-203 | `frequencies_for_pair_reference()` + `paired_residual_free_MONO_EFFL` contract in `analysis_zos_pair_scale.py` |
 | URD-REQ-013 aberrations | `src/whole_eye_mvp/zos/mfe_hoa_full.py` |
 | URD-REQ-011 metrics | `src/whole_eye_mvp/metrics.py` |
 | URD-REQ-012 / TDD-TEST-302 | `capture_entity_snapshot` in `src/whole_eye_mvp/analysis_zos.py` |
-| URD-REQ-013 / TDD-TEST-301 | `ConfigResult` + `ZosFftMtfAnalysisBackend` |
+| URD-REQ-013 / TDD-TEST-301 | `ConfigResult` + `ZosMtfaPairScaleAnalysisBackend` |
 | URD-REQ-014 / TDD-TEST-303 | `matched_pair_delta` |
-| URD-REQ-015 | `run_analysis_batch` / `rerun_failed` |
-| TDD-TEST-204/205 | TASK-009 representative batch |
-| TDD-TEST-206 | frozen-manifest selection + `ZosFftMtfAnalysisBackend` + `run_analysis_batch` |
-| TDD-TEST-207 | limited FFT-family extraction diagnostic |
-| URD-AC-009 | Run72 acceptance in `src/whole_eye_mvp/acceptance.py` |
+| URD-REQ-015 | `run_analysis_batch` / failed-only TASK-011 resume path |
+| TDD-TEST-204/205 | corrected paired-MONO-scale TASK-009 representative batch |
+| TDD-TEST-206 | frozen-manifest selection + `ZosMtfaPairScaleAnalysisBackend` + `run_analysis_batch` |
+| TDD-TEST-207 | limited independent MFE extraction diagnostic in TASK-009 evidence |
+| URD-AC-009 | Run72 acceptance in `src/whole_eye_mvp/acceptance.py`, `src/whole_eye_mvp/run72.py`, `scripts/run_task_011_run72.py` |
+| TASK-011 formal matrix | 72 configs / 36 matched pairs / 1080 through-focus rows in `docs/evidence/task011/` |
+| TASK-012 analysis | frozen plan in `docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md`; implementation pending |
 
-## 6. Versioned settings trace
+## 6. Versioned settings / acquisition trace
 
 | Identity | SHA-256 | Scope |
 | --- | --- | --- |
-| `NOMINAL_MAIN_FFT_MTF_555_v2` | `0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc` | main FFT-MTF/MTFa Run72 analysis |
+| `NOMINAL_MAIN_FFT_MTF_555_v2` | `0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc` | historical settings ID retained for hash continuity; current Run72 numerical grid/settings |
+| `TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2` | `f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d` | active production MFE MTFA Grid=1 acquisition with paired residual-free MONO EFFL scale |
 | `TASK009_MFE_ZERN_HOA_555_v1` | `7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2` | whole-eye C4/C6/HOA RMS readback |
 | `CORNEA_LOCK_B0_555_v2` | `aee210e884aa59f74e2963efddca9fc789f2b4e85de521606348d1e586790b8e` | historical frozen B0 selection acquisition |
+
+Active frequency-scale mode:
+
+```text
+paired_residual_free_MONO_EFFL
+```
+
+Formal Run72 pair-reference set:
+
+```text
+pair_reference_count = 36
+pair_reference_set_sha256 = a1cb8a899718d0327d8b1ecde21a4324e54090fd3db12cab36e649bb3cfc5b5d
+```
 
 ## 7. Frozen provenance
 
 - TASK-007 reviewed evidence: `docs/evidence/task007/consolidated_review/TASK_007_CONSOLIDATED_REVIEW.json`.
 - TASK-008 formal evidence: `docs/evidence/task008/TASK_008_LOCK_MANIFEST_EVIDENCE.json`.
-- TASK-009 analysis freeze: `docs/TASK_009_FFT_MTF_MAIN_ANALYSIS_FREEZE_2026-08-19.md`.
-- TASK-005–008 scientific assets and hashes are read-only during TASK-009.
+- TASK-009 corrected representative evidence commit: `47f901dad36fb9d407826a6da8baceeef4c2edfd`.
+- TASK-009 active production acquisition: `TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2` with `paired_residual_free_MONO_EFFL`, sampling 128.
+- TASK-011 formal Run72 code baseline: `01f13b768cf1eca361703469b2fdce3d21f3376d`.
+- TASK-011 formal evidence commit: `f28b3032136aa28f54abb5fe5129765a125d3926`.
+- TASK-011 formal evidence: `docs/evidence/task011/TASK_011_RUN72_EVIDENCE.json` plus config, through-focus and paired-delta CSVs.
+- TASK-012 frozen analysis plan: `docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md`.
+- TASK-005–009 scientific/method locks remain read-only during TASK-011/TASK-012.
