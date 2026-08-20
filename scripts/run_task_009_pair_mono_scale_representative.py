@@ -39,8 +39,12 @@ from whole_eye_mvp.manifest_io import load_formal_manifest_bundle
 from whole_eye_mvp.quality import settings_hash
 from whole_eye_mvp.store import open_project_store, sha256_file
 from whole_eye_mvp.workflows import run_analysis_batch
-from whole_eye_mvp.zos import TASK009_MFE_FULL_HOA_555_V1, MfeMtfGridRunner, MfeMtfGridSettings
-from whole_eye_mvp.zos import open_zos_session
+from whole_eye_mvp.zos import (
+    TASK009_MFE_FULL_HOA_555_V1,
+    MfeMtfGridRunner,
+    MfeMtfGridSettings,
+    open_zos_session,
+)
 
 INSTALL_ENV = "WHOLE_EYE_ZOS_INSTALL_DIR"
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
