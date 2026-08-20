@@ -275,14 +275,10 @@ def residual_provenance_from_existing_locks(
         platform_id = str(carrier.key.platform_id)
         candidate = ResidualProvenance(
             platform_id=platform_id,
-            residual_id=str(getattr(lock, "residual_id")),
-            residual_sha256=str(getattr(lock, "residual_sha256")),
-            residual_validation_policy_id=str(
-                getattr(lock, "residual_validation_policy_id")
-            ),
-            residual_validation_policy_hash=str(
-                getattr(lock, "residual_validation_policy_hash")
-            ),
+            residual_id=str(lock.residual_id),
+            residual_sha256=str(lock.residual_sha256),
+            residual_validation_policy_id=str(lock.residual_validation_policy_id),
+            residual_validation_policy_hash=str(lock.residual_validation_policy_hash),
         )
         candidate.validate()
         prior = by_platform.get(platform_id)
