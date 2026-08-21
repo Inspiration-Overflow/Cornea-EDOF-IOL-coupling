@@ -1,24 +1,37 @@
 """Run the post-human-audit R2/R3 OpticStudio gate in one local batch.
 
-The batch intentionally stops before any EDoF mechanism fitting.  It builds two
+The batch intentionally stops before any EDoF mechanism fitting. It builds two
 curved-retina/physical-STOP base eyes, solves one Q=0 analytical A0 carrier per
 base, converts each carrier into the three platform-specific degenerate Binary 4
 MONO structures, and verifies analytical-vs-Binary4 equivalence at 3 and 5 mm
 physical STOP diameters.
+
+Native FFT MTF is intentionally acquired here, in the diagnostic script, rather
+than reintroduced into the production ``src`` analysis path.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import subprocess
 from dataclasses import asdict
 from pathlib import Path
 
 from whole_eye_mvp.carriers import sha256_path
-from whole_eye_mvp.domain import CURRENT_SCIENTIFIC_BASELINE_ID, BaseId, PlatformId, ScientificBaseline
-from whole_eye_mvp.revision_base_zos import build_revision_base_asset, revision_base_prescriptions
+from whole_eye_mvp.domain import (
+    CURRENT_SCIENTIFIC_BASELINE_ID,
+    BaseId,
+    PlatformId,
+    ScientificBaseline,
+)
+from whole_eye_mvp.model_revision_zos import apply_revision_to_full_eye
+from whole_eye_mvp.revision_base_zos import (
+    build_revision_base_asset,
+    revision_base_prescriptions,
+)
 from whole_eye_mvp.revision_binary4_zos import (
     DegenerateEquivalenceThresholds,
     build_degenerate_binary4_mono,
@@ -33,6 +46,9 @@ DEFAULT_PROJECT_DIR = REPOSITORY_ROOT / "project_mvp_2026_v2_zmx"
 DEFAULT_A0_RELATIVE_PATH = Path("diagnostics/task005d/corneas/CORNEA_A0.zmx")
 OUTPUT_RELATIVE_DIR = Path("diagnostics/model_revision/r2_r3")
 REPORT_NAME = "MODEL_REVISION_R2_R3_EVIDENCE.json"
+FFT_MTF_MAX_FREQUENCY_CYC_PER_MM = 100.0
+FFT_MTF_SAMPLE_SIZE = 128
+FFT_MTF_EQUIVALENCE_TOLERANCE = 1.0e-6
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -72,8 +88,125 @@ def _clean_git_head() -> str:
 def _guard_outputs(output_dir: Path, *, overwrite: bool) -> None:
     report = output_dir / REPORT_NAME
     if report.exists() and not overwrite:
-        raise SystemExit(f"R2/R3 evidence already exists; pass --overwrite: {report}")
+        raise SystemExit(
+            f"R2/R3 evidence already exists; pass --overwrite: {report}"
+        )
     output_dir.mkdir(parents=True, exist_ok=True)
+
+
+def _native_fft_mtf_snapshot(
+    session,
+    base_id: str,
+    path: Path,
+    *,
+    pupil_diameter_mm: float,
+) -> tuple[tuple[float, ...], ...]:
+    """Acquire native FFT MTF only for the R2/R3 audit-equivalence diagnostic."""
+
+    session.system.LoadFile(str(path.resolve()), False)
+    apply_revision_to_full_eye(
+        session,
+        base_id,
+        pupil_diameter_mm=pupil_diameter_mm,
+    )
+    try:
+        analysis = session.system.Analyses.New_FftMtf()
+    except AttributeError as exc:
+        raise RuntimeError("installed API exposes no New_FftMtf analysis") from exc
+    try:
+        raw_settings = analysis.GetSettings()
+        settings = getattr(raw_settings, "__implementation__", raw_settings)
+        settings.MaximumFrequency = FFT_MTF_MAX_FREQUENCY_CYC_PER_MM
+        sample_sizes = session.zosapi.Analysis.SampleSizes
+        settings.SampleSize = getattr(
+            sample_sizes,
+            f"S_{FFT_MTF_SAMPLE_SIZE}x{FFT_MTF_SAMPLE_SIZE}",
+        )
+        analysis.ApplyAndWaitForCompletion()
+        results = analysis.GetResults()
+        series_count = int(results.NumberOfDataSeries)
+        if series_count < 1:
+            raise RuntimeError("native FFT MTF returned no data series")
+
+        flattened: list[tuple[float, ...]] = []
+        for series_number in range(series_count):
+            data = results.GetDataSeries(series_number)
+            x_data = data.XData
+            y_data = data.YData
+            length = int(x_data.Length)
+            if length < 2 or int(data.NumSeries) < 2:
+                raise RuntimeError(
+                    f"native FFT MTF series {series_number} has an invalid shape"
+                )
+            frequencies = tuple(
+                float(x_data.GetValueAt(index)) for index in range(length)
+            )
+            tangential = tuple(
+                float(y_data.GetValueAt(index, 0)) for index in range(length)
+            )
+            sagittal = tuple(
+                float(y_data.GetValueAt(index, 1)) for index in range(length)
+            )
+            numeric = (*frequencies, *tangential, *sagittal)
+            if not all(math.isfinite(value) for value in numeric):
+                raise RuntimeError(
+                    f"native FFT MTF series {series_number} contains non-finite values"
+                )
+            flattened.extend((frequencies, tangential, sagittal))
+        return tuple(flattened)
+    finally:
+        close = getattr(analysis, "Close", None)
+        if callable(close):
+            close()
+
+
+def _native_fft_mtf_max_difference(
+    session,
+    base_id: str,
+    analytical_path: Path,
+    binary4_path: Path,
+    *,
+    pupil_diameter_mm: float,
+) -> float:
+    left = _native_fft_mtf_snapshot(
+        session,
+        base_id,
+        analytical_path,
+        pupil_diameter_mm=pupil_diameter_mm,
+    )
+    right = _native_fft_mtf_snapshot(
+        session,
+        base_id,
+        binary4_path,
+        pupil_diameter_mm=pupil_diameter_mm,
+    )
+    if len(left) != len(right):
+        return math.inf
+    difference = 0.0
+    for index, (left_values, right_values) in enumerate(
+        zip(left, right, strict=True)
+    ):
+        if len(left_values) != len(right_values):
+            return math.inf
+        # Every group of three rows is frequency, tangential, sagittal.
+        if index % 3 == 0:
+            if any(
+                abs(a - b) > 1.0e-12
+                for a, b in zip(left_values, right_values, strict=True)
+            ):
+                return math.inf
+            continue
+        difference = max(
+            difference,
+            max(
+                (
+                    abs(a - b)
+                    for a, b in zip(left_values, right_values, strict=True)
+                ),
+                default=0.0,
+            ),
+        )
+    return difference
 
 
 def main() -> None:
@@ -145,7 +278,7 @@ def main() -> None:
                     "sha256": sha256_path(destination),
                 }
                 for pupil in (3.0, 5.0):
-                    comparison = compare_degenerate_binary4_to_analytical(
+                    core = compare_degenerate_binary4_to_analytical(
                         session,
                         base_id,
                         platform,
@@ -154,10 +287,32 @@ def main() -> None:
                         pupil_diameter_mm=pupil,
                         thresholds=thresholds,
                     )
+                    fft_difference = _native_fft_mtf_max_difference(
+                        session,
+                        base_id,
+                        analytical_path,
+                        destination,
+                        pupil_diameter_mm=pupil,
+                    )
+                    fft_passed = (
+                        math.isfinite(fft_difference)
+                        and fft_difference <= FFT_MTF_EQUIVALENCE_TOLERANCE
+                    )
+                    findings = list(core.findings)
+                    if not fft_passed:
+                        findings.append(
+                            "max_abs_fft_mtf_error: "
+                            f"{fft_difference:.12g} exceeds "
+                            f"{FFT_MTF_EQUIVALENCE_TOLERANCE:.12g}"
+                        )
                     comparisons.append(
                         {
                             "pupil_diameter_mm": pupil,
-                            **asdict(comparison),
+                            **asdict(core),
+                            "max_abs_fft_mtf_error": fft_difference,
+                            "fft_mtf_tolerance": FFT_MTF_EQUIVALENCE_TOLERANCE,
+                            "passed": core.passed and fft_passed,
+                            "findings": findings,
                         }
                     )
 
@@ -172,7 +327,10 @@ def main() -> None:
             "a0_path": str(a0_path),
             "a0_sha256": sha256_path(a0_path),
         },
-        "equivalence_thresholds": asdict(thresholds),
+        "equivalence_thresholds": {
+            **asdict(thresholds),
+            "max_abs_fft_mtf_error": FFT_MTF_EQUIVALENCE_TOLERANCE,
+        },
         "revised_bases": base_results,
         "revised_q0_analytical_carriers": carrier_results,
         "binary4_degenerate_mono": binary_results,
@@ -184,8 +342,17 @@ def main() -> None:
             else "STOP: return full evidence to Web review; do not start R4"
         ),
     }
-    report_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps({"report_path": str(report_path.resolve()), **payload}, ensure_ascii=False, indent=2))
+    report_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    print(
+        json.dumps(
+            {"report_path": str(report_path.resolve()), **payload},
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
     if not passed:
         raise SystemExit(2)
 
