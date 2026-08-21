@@ -21,10 +21,7 @@ from whole_eye_mvp.revision_r4_1_zos import (
     rad_powp_improves_source,
     rad_powp_sign_consistent,
 )
-from whole_eye_mvp.revision_r4_2_rad_fit import (
-    R4_2_GLOBAL_DEFOCUS_TOLERANCE_D,
-    fit_r4_2_rad_mechanism,
-)
+from whole_eye_mvp.revision_r4_2_rad_fit import R4_2_GLOBAL_DEFOCUS_TOLERANCE_D
 from whole_eye_mvp.revision_r4_2_zos import run_r4_2_platform_pilot
 from whole_eye_mvp.revision_r4_fit import R4_REPRESENTATIVE_POWER_D, representative_radius_mm
 from whole_eye_mvp.revision_r4_zos import r4_platform_summary, solve_r4_platform_qs
