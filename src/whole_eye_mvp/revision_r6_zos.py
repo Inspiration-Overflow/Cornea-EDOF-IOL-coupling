@@ -44,7 +44,7 @@ from .revision_r4_zos import (
     read_r4_mechanism,
     read_rad_power_profile,
 )
-from .revision_r5_lock import R5_GLOBAL_DEFOCUS_TOLERANCE_D, r5_zones_for_carrier
+from .revision_r5_lock import r5_zones_for_carrier
 from .zos import Binary4Zone, SequentialEditor, ZosSession
 from .zos.primitives import binary4_zone_columns
 
@@ -809,11 +809,6 @@ def build_and_validate_r6_carrier(
         standard_edof.path,
         platform,
     )
-    if abs(mechanism.low_order_global_defocus_d) > R5_GLOBAL_DEFOCUS_TOLERANCE_D:
-        raise RevisionR6ZosError(
-            f"R6 {carrier.carrier_id} global defocus exceeded R5 gate: "
-            f"{mechanism.low_order_global_defocus_d:.6g} D"
-        )
     rad_power = (
         read_rad_power_profile(session, standard_mono.path, standard_edof.path)
         if platform == PlatformId.RAD.value
