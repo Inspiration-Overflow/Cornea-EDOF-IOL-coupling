@@ -411,20 +411,62 @@ def main() -> None:
         }
 
         validations: dict[str, R6CarrierValidationResult] = {}
+        validation_failures: dict[str, dict[str, object]] = {}
         for carrier_id in sorted(solved):
             item = solved[carrier_id]
-            validations[carrier_id] = build_and_validate_r6_carrier(
-                session,
-                standard_eye,
-                item,
-                output_dir / "validated",
-                full_standard_audit=carrier_id in heavy_ids,
-            )
+            try:
+                validations[carrier_id] = build_and_validate_r6_carrier(
+                    session,
+                    standard_eye,
+                    item,
+                    output_dir / "validated",
+                    full_standard_audit=carrier_id in heavy_ids,
+                )
+            except Exception as error:  # noqa: BLE001 - isolate per-carrier failures
+                validation_failures[carrier_id] = {
+                    "carrier_id": carrier_id,
+                    "base_id": item.base_id,
+                    "cornea_id": item.cornea_id,
+                    "platform_id": item.platform_id,
+                    "power_d": item.power_d,
+                    "q_ant": item.q_ant,
+                    "p_q_recheck_cycles": len(item.recheck_cycles),
+                    "final_focus_vergence_shift_d": (
+                        item.final_focus.equivalent_vergence_shift_d
+                    ),
+                    "standard_eye_sa_target_um": item.q_solution.target_sa_um,
+                    "standard_eye_sa_replay_um": item.standard_eye_sa_replay_um,
+                    "standard_eye_sa_error_um": item.standard_eye_sa_error_um,
+                    "validation_error": f"{type(error).__name__}: {error}",
+                    "selected_complexity": (
+                        "R"
+                        if item.platform_id == "WFS"
+                        else "R+Q+A4"
+                        if item.platform_id == "RAD"
+                        else "R+Q+A4+A6"
+                    ),
+                    "serialized_mechanism_engineering_target_passed": False,
+                    "serialized_mechanism_rms_fraction": None,
+                    "serialized_mechanism_max_fraction": None,
+                    "low_order_global_defocus_d": None,
+                    "defocus_reference_passed": False,
+                    "rad_powp_sign_identity_passed": None,
+                    "rad_powp_rms_error_d": None,
+                    "rad_powp_max_abs_error_d": None,
+                    "rad_powp_local_gate_passed": (
+                        False if item.platform_id == "RAD" else None
+                    ),
+                    "actual_eye_ray_health_passed": False,
+                    "minimum_conic_radicand": 0.0,
+                    "max_abs_c1_slope_jump": None,
+                    "full_standard_audit_acquired": False,
+                }
 
     summaries = {
         carrier_id: _validation_summary(result)
         for carrier_id, result in validations.items()
     }
+    summaries.update(validation_failures)
     wfs_hoa_mechanism_passed = all(
         row["serialized_mechanism_engineering_target_passed"] is True
         for row in summaries.values()
@@ -448,12 +490,12 @@ def main() -> None:
         float(row["minimum_conic_radicand"]) > 0.0 for row in summaries.values()
     )
     heavy_audit_all_passed = all(
-        result.full_standard_audit_mono is not None
-        and result.full_standard_audit_edof is not None
-        and result.full_standard_audit_mono.ray_health_passed
-        and result.full_standard_audit_edof.ray_health_passed
-        for carrier_id, result in validations.items()
-        if carrier_id in heavy_ids
+        carrier_id in validations
+        and validations[carrier_id].full_standard_audit_mono is not None
+        and validations[carrier_id].full_standard_audit_edof is not None
+        and validations[carrier_id].full_standard_audit_mono.ray_health_passed
+        and validations[carrier_id].full_standard_audit_edof.ray_health_passed
+        for carrier_id in heavy_ids
     )
     local_passed = (
         len(summaries) == R6_EXPECTED_CARRIER_COUNT
