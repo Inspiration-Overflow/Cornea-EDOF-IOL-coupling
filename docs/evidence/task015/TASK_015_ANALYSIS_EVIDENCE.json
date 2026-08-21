@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "phase": "TASK-015-EXTENSION96-OFFLINE-INTEGRATION",
+  "formal_scientific_lock": false,
+  "analysis_code_commit": "b0e7aeba208bddfe42026350eb92bea58fccad9e",
+  "source_task013_evidence_commit": "38ad14a12a18b1a7a30d259cde644d360442f57b",
+  "source_task014_evidence_commit": "6ffb2eaf88e386729aa3965c0f12c9b7ca134081",
+  "source_run_ids": {
+    "task013": "task013-183dcffcd1da4f1cb1a219d9eedb39db",
+    "task014": "task014-e270a185207543149c21da83202c4b73"
+  },
+  "source_git_blob_sha1": {
+    "task013/TASK_013_NATIVE_REFERENCE_CONFIG_RESULTS.csv": "fd3c578e40f695de7db2ff4b220c282fe7d6b51f",
+    "task013/TASK_013_NATIVE_REFERENCE_THROUGH_FOCUS.csv": "43bab42103b3b2d5609898438569c9d66b9546ce",
+    "task013/TASK_013_NATIVE_REFERENCE_PAIRED_DELTAS.csv": "2ce3220f7ac24b3a91447607ea06c9a602eb5849",
+    "task013/TASK_013_NATIVE_REFERENCE_EVIDENCE.json": "c567809f371ee567fd53e8003558e23040e8e1d5",
+    "task013/TASK_013_SCIENTIFIC_REVIEW.json": "27933c505614f5e1fb0d0510b660f90b3ceb8e9b",
+    "task014/TASK_014_CONFIG_RESULTS.csv": "fa3bdfe834a15702d00a6e86d09ffaf708b05873",
+    "task014/TASK_014_THROUGH_FOCUS.csv": "e0121414803d948ea0fd1e072b9b7f7389e371b7",
+    "task014/TASK_014_PAIRED_DELTAS.csv": "595a546dba61a557ea53edf20e4a4c771ba702dc",
+    "task014/TASK_014_EVIDENCE.json": "0e3b4595f9c9c03ce55d45bbe10bef356d542455",
+    "task014/TASK_014_SCIENTIFIC_REVIEW.json": "96c5354c95d15d52e012488697af343bbd29b125"
+  },
+  "accepted_config_count": 96,
+  "accepted_through_focus_row_count": 1440,
+  "matched_pair_count": 48,
+  "n0_referenced_interaction_count": 288,
+  "coupling_cell_count": 12,
+  "dof50_effect_status_counts": {
+    "exact": 43,
+    "lower_bound": 5
+  },
+  "pair_peak_censored_count": 10,
+  "delta_mtfa_at_zero_negative_pair_count": 47,
+  "delta_tf_mtfa_mean_negative_pair_count": 48,
+  "source_reviews_required_and_passed": true,
+  "reconstruction_gate_passed": true,
+  "censor_propagation_passed": true,
+  "opticstudio_used": false,
+  "output_files": {
+    "TASK_015_PAIR_ANALYSIS.csv": "097c216a7d4a3106e28ee1256720831cda9b9c28d642df3bbaea464f0b11be67",
+    "TASK_015_N0_REFERENCED_INTERACTIONS.csv": "3ea8030970b80b9c4c0b56f370ccf619e63aac79d172c805d80362a20497e6fe",
+    "TASK_015_COUPLING_MATRIX.csv": "30004cbef0418687981aff02d1f99f259adedf73b4b6316a5f7ec2bc75f0a930"
+  }
+}
