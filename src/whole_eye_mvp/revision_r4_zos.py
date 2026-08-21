@@ -507,17 +507,21 @@ def build_r4_binary4_mono(
 
 def build_r4_binary4_edof(
     session: ZosSession,
-    mono_path: str | Path,
+    analytical_path: str | Path,
     fit: R4MechanismFitResult,
     destination: str | Path,
 ) -> R4Binary4BuildResult:
     platform = _platform(fit.platform_id)
-    source = Path(mono_path)
+    source = Path(analytical_path)
     if not source.is_file():
-        raise RevisionR4ZosError(f"R4 Binary4 MONO is missing: {source}")
+        raise RevisionR4ZosError(f"R4 analytical carrier is missing: {source}")
     session.system.LoadFile(str(source.resolve()), False)
     _set_epd6(session)
+    _require_standard_carrier(session)
     prescriptions = fit.selected.zones
+    # Build EDoF directly from the same analytical Standard carrier as MONO. Reconfiguring
+    # an already-serialized Binary4 surface can preserve ParN readback while leaving the
+    # automatic inter-zone sag-offset state inconsistent with the final prescriptions.
     _configure_binary4_from_prescriptions(session, platform, prescriptions)
     output = Path(destination)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -880,7 +884,7 @@ def run_r4_platform_pilot(
         base_conic=base_conic,
     )
     binary4_mono = build_r4_binary4_mono(session, analytical_path, platform, mono_path)
-    binary4_edof = build_r4_binary4_edof(session, mono_path, fit, edof_path)
+    binary4_edof = build_r4_binary4_edof(session, analytical_path, fit, edof_path)
     mechanism = read_r4_mechanism(session, mono_path, edof_path, platform)
     if fit.engineering_target_passed and not mechanism.engineering_target_passed:
         raise RevisionR4ZosError(
