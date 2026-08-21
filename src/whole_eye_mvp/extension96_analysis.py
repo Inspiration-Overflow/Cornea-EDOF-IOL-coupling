@@ -66,7 +66,13 @@ class Task015Analysis:
 
 
 def git_blob_sha1(path: Path) -> str:
-    payload = path.read_bytes()
+    """Blob SHA-1 of a checked-out file after Git-style text normalization.
+
+    SOURCE_FILES records the repository blob hashes, which with core.autocrlf
+    are LF-normalized even though a Windows working tree holds CRLF. Normalize
+    CRLF -> LF so the comparison is independent of the checkout line-ending mode.
+    """
+    payload = path.read_bytes().replace(b"\r\n", b"\n")
     header = f"blob {len(payload)}\0".encode("ascii")
     return hashlib.sha1(header + payload).hexdigest()
 
