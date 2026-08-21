@@ -4,11 +4,12 @@
 
 ```text
 scientific / numeric / provenance QC = PASS
+semantic-label manuscript QC = PASS
 presentation / journal-format QC = PENDING
 OpticStudio rerun required = NO
 ```
 
-本 QC 只判断最终投稿主分析、数字、censoring、figure provenance 与参考文献是否与 accepted evidence 一致；不把期刊版式或组合主图的视觉样式提前视为科学 gate。
+本 QC 判断最终投稿主分析、数字、censoring、figure provenance、参考文献以及读者可见命名是否与 accepted evidence 一致；期刊版式和最终主图视觉样式仍属于 presentation layer，不提前视为科学 gate。
 
 ---
 
@@ -17,13 +18,13 @@ OpticStudio rerun required = NO
 投稿主分析只允许：
 
 ```text
-TASK-013 N0 raw evidence commit
+TASK-013 未治疗参照角膜 raw evidence commit
 = 38ad14a12a18b1a7a30d259cde644d360442f57b
 
-TASK-014 A0V12/B0V12/C0V12 raw evidence commit
+TASK-014 三个顶点距规范化术后角膜 raw evidence commit
 = 6ffb2eaf88e386729aa3965c0f12c9b7ca134081
 
-TASK-015 analysis
+TASK-015 final 96-config analysis
 = PASS_WITH_SCIENTIFIC_CAVEATS
 
 TASK-015 formal figure commit
@@ -33,257 +34,157 @@ TASK-015 figure review
 = PASS
 ```
 
-Legacy direct-cornea `A0/B0/C0` TASK-011/012 仅为工程历史，不作为最终投稿主结果。
+Legacy direct-cornea A0/B0/C0 TASK-011/012 仅为工程历史，不作为最终投稿主结果。
+
+QC：**PASS**。
 
 ---
 
 ## 2. Final model / prescription identity
 
-必须同时满足：
+最终矩阵必须保持：2 个基础模型眼、4 个角膜光学条件、3 类人工晶状体延焦机制、2 个瞳孔、2 个光学状态，共 24 个物理载体、96 个配置、48 个严格匹配配对和 1440 个贯焦采样点。
 
-```text
-Base eyes = 2
-Corneas = N0 / A0V12 / B0V12 / C0V12
-Platforms = WFS-like / RAD-like / HOA-like
-Pupils = EPD3 / EPD5
-Optic states = MONO / EDOF
-physical carriers = 24
-configs = 96
-matched pairs = 48
-through-focus rows = 1440
-```
-
-术后处方语义：
-
-```text
-spectacle sphere = -3.00 D
-vertex distance = 12.00 mm
-corneal-plane equivalent = -2.895752895753 D
-```
-
-ATC source refraction 只定义基础眼表型，不再次叠加到手术处方。
+术后处方固定为镜片平面 −3.00 D、顶点距 12.00 mm、角膜平面等效治疗量 −2.895752895753 D。Atchison −3 D 近视模型眼的屈光状态只定义基础眼表型，不再次叠加到手术处方。
 
 QC：**PASS**。
 
 ---
 
-## 3. Primary outcome counts
+## 3. Reader-facing nomenclature QC
 
-最终整合稿必须保持：
+正文展示层使用以下语义化名称：
+
+- Liou–Brennan 模型眼（眼轴 23.95 mm）；
+- Atchison −3 D 近视模型眼（眼轴 24.48 mm）；
+- 未治疗参照角膜；
+- 近视术后准单焦角膜；
+- 连续非球面角膜延焦原型；
+- 中央近用径向多焦角膜；
+- 波前塑形型延焦；
+- 径向屈光力调制型延焦；
+- 高阶像差调制型延焦；
+- 3 mm 瞳孔 / 5 mm 瞳孔；
+- 匹配单焦对照 / EDoF 状态。
+
+工程 ID `LB_AL2395 / ATC_M3_AL24477 / N0 / A0V12 / B0V12 / C0V12 / WFS / RAD / HOA` 在 assembled manuscript 中仅允许出现在 Methods 的“研究设计与命名原则”首次映射处。`WFS-like / RAD-like / HOA-like / EPD3 / EPD5` 不再作为主稿读者可见称谓。文件名、source CSV、config ID 和 manifest 继续保留内部 ID 以维持 provenance。
+
+对 `docs/MANUSCRIPT_DRAFT_96_CONFIG_2026-08-20.md` 的残留扫描确认：`A0V12` 和 `LB_AL2395` 等内部 ID 只在 Methods 命名映射中出现；`WFS-like`、`EPD3` 等旧展示标签不再出现于主稿。
+
+QC：**PASS**。
+
+---
+
+## 4. Primary outcome counts
+
+最终稿必须保持：
 
 ```text
-ΔDOF50 > 0 = 35 / 48
-ΔDOF50 < 0 = 13 / 48
+DOF50 增加 = 35 / 48
+DOF50 减少 = 13 / 48
 DOF50 exact = 43
-DOF50 lower_bound = 5
-pair peak-window censored = 10
-ΔMTFa@0D < 0 = 47 / 48
-ΔTF MTFa mean < 0 = 48 / 48
+DOF50 lower bound = 5
+距离峰值搜索窗删失 = 10
+0 D MTFa 下降 = 47 / 48
+全贯焦平均 MTFa 下降 = 48 / 48
 ```
 
-唯一 `ΔMTFa@0D > 0` 条件：
-
-```text
-ATC_M3_AL24477 × N0 × RAD-like × EPD5
-ΔMTFa@0D ≈ +0.0184
-ΔTF MTFa mean ≈ -0.00731
-```
-
-因此稿件不得将其解释为无代价增益。
+唯一 0 D MTFa 正向条件为：Atchison −3 D 近视模型眼 × 未治疗参照角膜 × 径向屈光力调制型延焦 × 5 mm 瞳孔，0 D MTFa 改变量约 +0.0184，但全贯焦平均 MTFa 改变量仍约 −0.00731。因此不得解释为无代价增益。
 
 QC：**PASS**。
 
 ---
 
-## 4. N0-referenced coupling definition
+## 5. Untreated-reference coupling definition
 
-唯一正式术后 coupling 定义：
-
-```text
-(EDOF - MONO)_postop - (EDOF - MONO)_N0
-```
-
-同一 Base×Platform×Pupil 内进行比较。
-
-关键 DOF50 interaction 与稿件一致：
+唯一正式术后净耦合定义为：
 
 ```text
-B0V12 × WFS-like × EPD3
-LB  >= +0.266 D
-ATC >= +0.260 D
-
-B0V12 × RAD-like × EPD5
-LB  +0.275 D
-ATC +0.307 D
-
-C0V12 × RAD-like × EPD5
-LB  >= +0.379 D
-ATC >= +0.471 D
-
-C0V12 × HOA-like × EPD5
-LB  +0.246 D
-ATC >= +0.689 D
+术后角膜中的 (EDoF - 匹配单焦对照)
+-
+同一基础眼、同一延焦机制、同一瞳孔下未治疗参照角膜中的 (EDoF - 匹配单焦对照)
 ```
 
-接近零且基础眼间符号不一致的 EPD3 interactions 只解释为 near-zero/base-dependent，不写成稳定的方向反转。
+关键 DOF50 净调制与稿件一致：
+
+```text
+连续非球面角膜延焦原型 × 波前塑形型延焦 × 3 mm 瞳孔
+Liou–Brennan >= +0.266 D
+Atchison      >= +0.260 D
+
+连续非球面角膜延焦原型 × 径向屈光力调制型延焦 × 5 mm 瞳孔
+Liou–Brennan +0.275 D
+Atchison      +0.307 D
+
+中央近用径向多焦角膜 × 径向屈光力调制型延焦 × 5 mm 瞳孔
+Liou–Brennan >= +0.379 D
+Atchison      >= +0.471 D
+
+中央近用径向多焦角膜 × 高阶像差调制型延焦 × 5 mm 瞳孔
+Liou–Brennan +0.246 D
+Atchison      >= +0.689 D
+```
+
+接近零且基础眼间符号不一致的 3 mm interactions 只解释为 near-zero/base-dependent，不写成稳定方向反转。
 
 QC：**PASS**。
 
 ---
 
-## 5. Censoring semantics
+## 6. Censoring semantics
 
-必须保留：
-
-- 5 个 DOF50 effects 为 lower bounds；
-- 10 个 pair 的 distance peak 位于预注册搜索窗边界；
-- lower bound 用 `>=` / `≥` 表示；
-- peak-window boundary 不解释为真实精确 peak；
-- 不扩大 `+0.50 -> -3.00 D` through-focus window；
-- 不扩大 `-0.50 -> +0.50 D` distance-peak search window。
-
-整合稿、结果模块、图表计划与 figure supplement 均遵守上述规则。
+必须保留：5 个 DOF50 效应为下界；10 个配对的距离峰值位于预注册搜索窗边界；下界用“≥”或明确文字说明；距离峰值搜索窗边界不解释为真实精确峰值；不扩大 +0.50 至 −3.00 D 贯焦窗口；不扩大 −0.50 至 +0.50 D 距离峰值搜索窗。
 
 QC：**PASS**。
 
 ---
 
-## 6. Tables
+## 7. Tables
 
-### Supplementary Table S1
+Canonical source S1 为 `docs/evidence/task015/TASK_015_PAIR_ANALYSIS.csv`，48 行匹配配对。Canonical source S2 为 `docs/evidence/task015/TASK_015_SUPPLEMENTARY_TABLE_S2.csv`，36 行术后相对未治疗参照结果。
 
-Canonical source：
-
-```text
-docs/evidence/task015/TASK_015_PAIR_ANALYSIS.csv
-rows = 48 matched pairs
-```
-
-### Supplementary Table S2
-
-Canonical publication table：
-
-```text
-docs/evidence/task015/TASK_015_SUPPLEMENTARY_TABLE_S2.csv
-rows = 36
-= 2 Base × 3 postoperative corneas × 3 platforms × 2 pupils
-```
-
-S2 只持久化投稿所需的 N0-referenced `ΔDOF50`、`ΔMTFa@0D` 和 `ΔTF MTFa mean`；288 个 outcome-specific interactions 继续由 accepted source evidence + TASK-015 code 确定性重建，不复制冗余全表。
+投稿展示版 S1/S2 必须以完整中文光学名称作为前置展示列，并把内部 ID 移到表尾追溯列；source evidence 本身不得为了可读性被改写。Web 端已从 accepted source 确定性生成 48 行 S1 和 36 行 S2 的可读标签版本，行数与数值结构核对一致。
 
 QC：**PASS**。
 
 ---
 
-## 7. Complete figure supplement
+## 8. Complete figure supplement
 
-正式 figure set：
+正式 figure set 保持 48 张逐配对原始贯焦图、24 张汇总图，共 72 张 PNG，source through-focus rows=1440。正式 figure archive commit 为 `bc4e451c22b0cbe1a3f08798b0119942bb9bc5c5`，figure review=PASS。
 
-```text
-raw single-pair through-focus = 48
-summary figures = 24
-total PNG = 72
-manifest entries = 72
-source through-focus rows = 1440
-```
-
-Formal render：
-
-```text
-portability-only code fix
-= cfb659063c8177223d29711f6b778ec566be3bc5
-
-figure archive commit
-= bc4e451c22b0cbe1a3f08798b0119942bb9bc5c5
-
-manifest SHA256
-= e1892a0ad547e99c5a0c7816b31f06a059ecdaca6f09ff51748aca834e1a967c
-
-formal ZIP SHA256
-= fa2ed14194ed91ff419bc9e4316c76007a953975e7ec9b53b580e1099c5b6c97
-```
-
-正式 ZIP 已在 Web 端独立复核：73 entries、72/72 PNG manifest SHA/size match、48/48 raw pair coverage complete。
-
-用户要求“原始 figures 都画出来”已满足并冻结：正文可以少选，但48张 raw figures 不删除、不抽样。
+用户要求“原始 figures 都画出来”已满足并冻结：正文可以少选，但 48 张 raw figures 不删除、不抽样。后续可读标签版只允许修改标题、坐标、图例与排版，不改变曲线、数值、删失标记或采样点。
 
 QC：**PASS**。
 
 ---
 
-## 8. Manuscript identity
+## 9. Manuscript identity
 
-最终自包含稿：
+最终自包含稿为：
 
 ```text
 docs/MANUSCRIPT_DRAFT_96_CONFIG_2026-08-20.md
 ```
 
-当前稿件已统一使用：
+当前稿件已统一使用未治疗参照、三个顶点距规范化术后角膜、12 mm vertex-corrected prescription、96 configs / 48 pairs / 1440 TF rows、43 exact + 5 lower-bound DOF effects、10 peak-window-censored pairs、未治疗参照耦合、47/48 0 D MTFa下降和48/48全贯焦平均 MTFa下降。
 
-- N0 内部参照；
-- A0V12/B0V12/C0V12；
-- 12 mm vertex-corrected prescription；
-- 96 configs / 48 pairs / 1440 TF rows；
-- 43 exact + 5 lower-bound DOF effects；
-- 10 peak-window-censored pairs；
-- N0-referenced postop coupling；
-- 47/48 `ΔMTFa@0D<0`；
-- 48/48 `ΔTF MTFa mean<0`。
-
-旧 direct-cornea A0/B0/C0 只在 Discussion 中以“工程历史”语义出现，不作为最终结果来源。
+旧 direct-cornea A0/B0/C0 只以“工程历史”语义出现在 Discussion，不作为最终结果来源。
 
 QC：**PASS**。
 
 ---
 
-## 9. Reference QC
+## 10. Reference QC
 
-2026-08-20 通过 PubMed/期刊元数据复核正文实际引用的6篇外部文献：
-
-1. Ting DSJ, Gatinel D, Ang M. *Curr Opin Ophthalmol*. 2024;35(1):4-10. DOI `10.1097/ICU.0000000000001006`, PMID 37962882.
-2. Sun Y, Hong Y, Rong X, Ji Y. *Front Med (Lausanne)*. 2022;9:834805. DOI `10.3389/fmed.2022.834805`, PMID 35479941.
-3. Fan W, Zhu M, Zhang G. *Front Med (Lausanne)*. 2025;12:1509889. DOI `10.3389/fmed.2025.1509889`, PMID 40470056.
-4. Micheletti JM, Hall B. *Clin Ophthalmol*. 2026;20:566800. DOI `10.2147/OPTH.S566800`, PMID 41858986.
-5. Lago CM, de Castro A, Marcos S. *J Cataract Refract Surg*. 2023;49(11):1153-1159. DOI `10.1097/J.JCRS.0000000000001260`, PMID 37458453.
-6. Garzón N, Gómez-Pedrero JA, Albarrán-Diego C, et al. *Graefes Arch Clin Exp Ophthalmol*. 2024;262(9):2897-2906. DOI `10.1007/s00417-024-06469-y`, PMID 38597962.
-
-整合稿原未引用的 Schmid 2024 条目已删除，而不是为了保留参考文献人为扩写正文。
+正文实际引用的 6 篇外部文献已于 2026-08-20 通过 PubMed/期刊元数据复核：Ting 2024、Sun 2022、Fan 2025、Micheletti & Hall 2026、Lago 2023、Garzón 2024。整合稿未引用的 Schmid 2024 条目已删除，而不是为了保留参考文献人为扩写正文。
 
 QC：**PASS**。
 
 ---
 
-## 10. Offline quality gate
+## 11. Repository quality gate
 
-在 manuscript integration + S2 后的 CI run #232：
-
-```text
-pytest = 239 passed
-Ruff = PASS
-compileall = PASS
-uv lock --check = PASS
-```
-
-后续 reference-only 文档修订不改变代码或 scientific evidence；仍需等待该最终 HEAD 的常规 CI 绿灯后再视为 repo-level QC closure。
-
----
-
-## 11. Main manuscript figures
-
-Web 端已从正式 figure ZIP 做 presentation-only composition：
-
-```text
-Figure 1 = 4-panel ΔDOF50 heatmaps
-Figure 2 = 4-panel ΔMTFa@0D heatmaps
-Figure 3 = 2-panel extension-quality trade-off
-Figure 4 = 12-panel direct N0 vs postop raw through-focus comparison
-Figure 5 = whole-eye HOA mechanism map
-```
-
-Figure 4 采用3列机制：WFS-like EPD3、RAD-like EPD5、HOA-like EPD5；4行分别为 LB-N0、LB-postop、ATC-N0、ATC-postop。术后行为分别使用 B0V12-WFS、C0V12-RAD、C0V12-HOA，从而在同一主图中直接保留 N0 对照。
-
-这些组合图不重新计算、不平移、不重采样、不改变原图 censoring；在视觉样式确认前不作为新的 scientific evidence，也不替代72张正式 figure supplement。
+最近一次已完成的完整质量门为 239 tests PASS、Ruff PASS、compileall PASS、`uv lock --check` PASS。语义化正文重写均为 documentation/presentation-layer changes，不改变代码、模型、evidence 或科学值；最终 semantic-rewrite HEAD 仍需等待常规 CI 绿灯后完成 repo-level closure。
 
 ---
 
@@ -295,6 +196,7 @@ NUMERIC_QC = PASS
 CENSORING_QC = PASS
 PROVENANCE_QC = PASS
 REFERENCE_QC = PASS
+SEMANTIC_LABEL_QC = PASS
 COMPLETE_RAW_FIGURE_QC = PASS
 
 PRESENTATION_QC = PENDING
@@ -303,4 +205,4 @@ PR_READY_FOR_REVIEW = NO
 PR_MERGE_AUTHORIZED = NO
 ```
 
-剩余工作只属于投稿呈现层：主图视觉确认、caption/表格最终排版、期刊格式与语言润色。不得重新进入 OpticStudio acquisition 或修改冻结光学合同。
+剩余工作只属于投稿呈现层：归档可读标签版主图、caption/表格最终排版、期刊格式与语言润色。不得重新进入 OpticStudio acquisition 或修改冻结光学合同。
