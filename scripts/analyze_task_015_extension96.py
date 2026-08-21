@@ -81,6 +81,8 @@ def _evidence_payload(
         "accepted_through_focus_row_count": 1440,
         "matched_pair_count": len(analysis.pairs),
         "n0_referenced_interaction_count": len(analysis.n0_interactions),
+        "n0_referenced_interactions_persisted": False,
+        "n0_referenced_interactions_reproducible_from_source": True,
         "coupling_cell_count": len(analysis.coupling_matrix),
         "dof50_effect_status_counts": statuses,
         "pair_peak_censored_count": sum(pair.pair_peak_censored for pair in analysis.pairs),
@@ -106,17 +108,14 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     pair_csv = output_dir / "TASK_015_PAIR_ANALYSIS.csv"
-    interaction_csv = output_dir / "TASK_015_N0_REFERENCED_INTERACTIONS.csv"
     matrix_csv = output_dir / "TASK_015_COUPLING_MATRIX.csv"
     evidence_json = output_dir / "TASK_015_ANALYSIS_EVIDENCE.json"
 
     _write_csv(pair_csv, [pair.to_row() for pair in analysis.pairs])
-    _write_csv(interaction_csv, list(analysis.n0_interactions))
     _write_csv(matrix_csv, list(analysis.coupling_matrix))
 
     output_hashes = {
         pair_csv.name: sha256_file(pair_csv),
-        interaction_csv.name: sha256_file(interaction_csv),
         matrix_csv.name: sha256_file(matrix_csv),
     }
     evidence_json.write_text(
