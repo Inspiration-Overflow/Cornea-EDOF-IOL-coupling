@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .base_assets import (
+    CORNEA_POST_ROLE,
     IMAGE_ROLE,
     IOL_ANT_ROLE,
     STOP_ROLE,
@@ -66,16 +67,19 @@ def _require_cornea_scaffold(session: ZosSession, path: Path) -> None:
             f"revised carrier requires a 6-surface cornea scaffold, got {int(lde.NumberOfSurfaces)}"
         )
     expected = {
-        2: FIXED_CORNEA_POST_ROLE,
-        3: STOP_ROLE,
-        4: IOL_ANT_ROLE,
-        5: IMAGE_ROLE,
+        # Postop scaffolds tag the fixed posterior cornea CORNEA_POST_FIXED;
+        # the frozen R2/R3 native bases keep the legacy CORNEA_POST_REF tag
+        # for the same non-revised surface.
+        2: (FIXED_CORNEA_POST_ROLE, CORNEA_POST_ROLE),
+        3: (STOP_ROLE,),
+        4: (IOL_ANT_ROLE,),
+        5: (IMAGE_ROLE,),
     }
-    for surface_number, role in expected.items():
+    for surface_number, roles in expected.items():
         actual = str(lde.GetSurfaceAt(surface_number).Comment).strip()
-        if actual != role:
+        if actual not in roles:
             raise RevisionCarrierZosError(
-                f"surface {surface_number} role mismatch: expected {role!r}, got {actual!r}"
+                f"surface {surface_number} role mismatch: expected {roles!r}, got {actual!r}"
             )
 
 
