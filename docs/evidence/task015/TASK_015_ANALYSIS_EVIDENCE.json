@@ -25,6 +25,8 @@
   "accepted_through_focus_row_count": 1440,
   "matched_pair_count": 48,
   "n0_referenced_interaction_count": 288,
+  "n0_referenced_interactions_persisted": false,
+  "n0_referenced_interactions_reproducible_from_source": true,
   "coupling_cell_count": 12,
   "dof50_effect_status_counts": {
     "exact": 43,
@@ -39,7 +41,6 @@
   "opticstudio_used": false,
   "output_files": {
     "TASK_015_PAIR_ANALYSIS.csv": "097c216a7d4a3106e28ee1256720831cda9b9c28d642df3bbaea464f0b11be67",
-    "TASK_015_N0_REFERENCED_INTERACTIONS.csv": "3ea8030970b80b9c4c0b56f370ccf619e63aac79d172c805d80362a20497e6fe",
     "TASK_015_COUPLING_MATRIX.csv": "30004cbef0418687981aff02d1f99f259adedf73b4b6316a5f7ec2bc75f0a930"
   }
 }
