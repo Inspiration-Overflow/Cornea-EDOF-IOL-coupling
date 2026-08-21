@@ -50,16 +50,50 @@ postop-minus-N0 interaction
 - N0-referenced DOF50 interaction 按区间算术传播 censoring；
 - distance peak 位于搜索边界时只标记 censored，不把边界值解释为真实精确峰值。
 
-## 输出
+## 结构化输出
 
 ```text
 docs/evidence/task015/
   TASK_015_PAIR_ANALYSIS.csv
   TASK_015_COUPLING_MATRIX.csv
   TASK_015_ANALYSIS_EVIDENCE.json
+  TASK_015_SCIENTIFIC_REVIEW.json
 ```
 
 288 个 N0-referenced interactions 由分析代码在内存中确定性重建并受单元测试约束，不另存一份冗余明细 CSV。TASK-013/014 的原始 96 config rows 与 1440 TF rows 同样保持各自原 evidence 为单一来源。
+
+## Figure supplement
+
+主文 summary figures 可以精简，但原始贯焦 figures 必须完整保留。
+
+正式绘图输出：
+
+```text
+docs/evidence/task015/figures/
+  raw/
+    48 × single-pair through-focus figures
+  summary/
+    24 × matrix/heatmap/panel/trade-off/sensitivity/mechanism figures
+  TASK_015_FIGURE_MANIFEST.json
+```
+
+`raw/` 必须一一覆盖全部 48 个 `Base × Cornea × Platform × Pupil` matched pairs。每张图同时绘制该 pair 的 MONO 与 EDOF 15-plane MTFa 曲线，并显式标记 DOF50 censoring 与 distance-peak censoring。
+
+`summary/` 保留与 TASK-012 同一层级的完整总结型图组，只把角膜维度扩展为 `N0/A0V12/B0V12/C0V12`：
+
+- 12 张 outcome heatmaps；
+- 4 张 Base×Pupil 全矩阵 through-focus panels（每张 4×3）；
+- 3 张 extension–quality trade-off 图；
+- 4 张 pupil/base sensitivity 图；
+- 1 张 whole-eye HOA mechanism map。
+
+合计：
+
+```text
+48 raw + 24 summary = 72 figures
+```
+
+补充材料必须保留 48 张 raw figures；不得因为主文只引用 summary figures 就删除或抽样原始贯焦图。
 
 ## STOP
 
@@ -70,4 +104,5 @@ docs/evidence/task015/
 3. config / TF / pair 数量不再为 24+72 / 360+1080 / 12+36；
 4. 15-plane defocus grid、0D MTFa 或 TF mean 无法从原始 TF rows 重建；
 5. formal paired deltas 无法从 MONO/EDOF config 重建；
-6. 需要新 OpticStudio acquisition 或改变冻结窗口才能继续。
+6. figure renderer 不能生成 48/48 raw pair figures 或 72/72 total figures；
+7. 需要新 OpticStudio acquisition 或改变冻结窗口才能继续。
