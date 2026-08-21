@@ -171,7 +171,7 @@ backend = MFE MTFA/MTFS/MTFT with Grid=1
 exception_reason = AS_FftMtf / ZemaxEngine.dll Python.NET load failure
 ```
 
-因此不能把该 readback 写成“native FFT analysis object”；正式术语为 `grid-based diffraction MTF via MFE Grid=1`。
+因此不能把该 readback 写成“native FFT analysis object”；正式术语为 `grid-based diffraction MTF via MFE Grid=1`。R0 中要求的 100 lp/mm MTF audit 意图保持不变，但在该工作站上的可执行 acquisition backend 由这一 R2/R3 exception 记录具体化。
 
 ## 5. 本地单批次命令
 
