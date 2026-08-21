@@ -90,19 +90,34 @@ def _prepare_cornea_geometry_for_base(
 ) -> float:
     lde = session.system.LDE
     cornea_thickness = float(lde.GetSurfaceAt(1).Thickness)
-    if not math.isfinite(cornea_thickness) or cornea_thickness <= 0:
-        raise RevisionCarrierZosError("cornea thickness must be finite and positive")
+    # Frozen TASK-005A native bases keep a zero-thickness coincident corneal
+    # reference slot (see BaseAssetPrescription.surfaces); only the postop
+    # A0/B0/C0 modules replace that slot with a real positive thickness.
+    if not math.isfinite(cornea_thickness) or cornea_thickness < 0:
+        raise RevisionCarrierZosError(
+            "cornea thickness must be finite and non-negative"
+        )
     post_to_iol = float(lde.GetSurfaceAt(2).Thickness) + float(lde.GetSurfaceAt(3).Thickness)
     spec = base_spec_for_id(baseline, base_id)
     if abs(post_to_iol - spec.post_cornea_to_iol_ant_mm) > GEOMETRY_TOLERANCE_MM:
         raise RevisionCarrierZosError(
             "cornea input post-cornea→IOL distance differs from the frozen base landmark"
         )
-    iol_to_retina = iol_ant_to_image_mm_for_base(
-        baseline,
-        base_id,
-        cornea_thickness_mm=cornea_thickness,
-    )
+    if cornea_thickness > 0:
+        iol_to_retina = iol_ant_to_image_mm_for_base(
+            baseline,
+            base_id,
+            cornea_thickness_mm=cornea_thickness,
+        )
+    else:
+        iol_to_retina = spec.axial_length_mm - spec.post_cornea_to_iol_ant_mm
+        if (
+            not math.isfinite(iol_to_retina)
+            or iol_to_retina <= CONTROLLED_IOL_CARRIER_546_V1.center_thickness_mm
+        ):
+            raise RevisionCarrierZosError(
+                "base geometry leaves no valid post-IOL image space"
+            )
     lde.GetSurfaceAt(4).Thickness = iol_to_retina
     return iol_to_retina
 
