@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "phase": "TASK-015-EXTENSION96-WEB-SCIENTIFIC-REVIEW",
+  "task_id": "TASK-015-EXTENSION96-OFFLINE-INTEGRATION",
+  "formal_artifact": true,
+  "source_task013_evidence_commit": "38ad14a12a18b1a7a30d259cde644d360442f57b",
+  "source_task014_evidence_commit": "6ffb2eaf88e386729aa3965c0f12c9b7ca134081",
+  "analysis_code_commit": "b0e7aeba208bddfe42026350eb92bea58fccad9e",
+  "source_output_git_blob_sha1": {
+    "TASK_015_PAIR_ANALYSIS.csv": "ab5fb194cabfe2994960893623de3cff43e2de0b",
+    "TASK_015_COUPLING_MATRIX.csv": "0b1a704417d393c668d11035ebdf590084ac18f6",
+    "TASK_015_ANALYSIS_EVIDENCE.json": "91ffa7c3d6a5a855ccff02d335f8baac631fb55d"
+  },
+  "reconstruction_review": {
+    "accepted_config_count": 96,
+    "accepted_through_focus_row_count": 1440,
+    "matched_pair_count": 48,
+    "n0_referenced_interaction_count": 288,
+    "coupling_cell_count": 12,
+    "source_git_blob_identity_passed": true,
+    "through_focus_reconstruction_passed": true,
+    "formal_pair_delta_reconstruction_passed": true,
+    "censor_propagation_passed": true,
+    "opticstudio_used": false
+  },
+  "global_pair_result": {
+    "dof50_exact_pairs": 43,
+    "dof50_lower_bound_pairs": 5,
+    "peak_censored_pairs": 10,
+    "delta_tf_mtfa_mean_negative_pairs": 48,
+    "delta_mtfa_at_zero_negative_pairs": 47,
+    "delta_mtfa_at_zero_positive_pairs": 1,
+    "interpretation": "Across the accepted 96-config extension layer, EDOF residuals redistribute through-focus quality rather than providing a free image-quality gain. The single positive MTFa@0D pair is ATC+N0+RAD+EPD5; its through-focus mean remains negative."
+  },
+  "n0_referenced_coupling_review": {
+    "definition": "(EDOF-MONO)_postop - (EDOF-MONO)_N0 within the same Base x Platform x Pupil stratum",
+    "A0V12": {
+      "WFS": "DOF50 interaction is positive in both base eyes at EPD3 and EPD5; the EPD5 increase is larger than EPD3.",
+      "RAD": "DOF50 interaction is negative in both base eyes at EPD3 and positive in both base eyes at EPD5.",
+      "HOA": "DOF50 interaction is negative in both base eyes at EPD3 and small positive in both base eyes at EPD5."
+    },
+    "B0V12": {
+      "WFS": "EPD3 DOF50 interaction is strongly positive in both base eyes but is a lower bound because both postoperative EDOF pairs are far-censored; EPD5 is positive and exact.",
+      "RAD": "EPD5 DOF50 interaction is strongly positive in both base eyes; EPD3 is small and changes sign between base eyes.",
+      "HOA": "EPD3 interaction is near zero and changes sign across base eyes; EPD5 is positive but modest."
+    },
+    "C0V12": {
+      "WFS": "EPD3 interaction is near zero and changes sign across base eyes; EPD5 is positive in both base eyes.",
+      "RAD": "EPD5 DOF50 interaction is strongly positive in both base eyes and is a lower bound in both; EPD3 is small and changes sign across base eyes.",
+      "HOA": "EPD3 interaction is negative in both base eyes; EPD5 is strongly positive, with the ATC stratum a lower bound."
+    },
+    "interpretation": "The postoperative corneal background changes the magnitude and pupil dependence of the same frozen EDOF mechanisms. The most robust amplification patterns are B0V12-WFS at EPD3 and B0V12-RAD / C0V12-RAD / C0V12-HOA at EPD5. Small sign-discordant interactions are treated as base-dependent near-zero effects, not as stable directional coupling."
+  },
+  "scientific_caveats": [
+    "Five pair-level DOF50 effects are far-censored lower bounds; any N0-referenced interaction containing them must also be reported as a bound rather than an exact width difference.",
+    "Ten pair-level distance-peak locations are censored at the frozen search boundary; boundary locations are not exact peak estimates.",
+    "Several small N0-referenced DOF50 interactions change sign between LB and ATC base eyes. These near-zero effects should not be promoted to robust directional coupling claims.",
+    "The deterministic 2-base-eye matrix is a mechanism study, not a random patient sample; no population-level inferential claim is made.",
+    "The frozen focus window is retained. Censoring is part of the result and is not removed by additional OpticStudio acquisition."
+  ],
+  "verdict": {
+    "reconstruction_acceptance": "PASS",
+    "censor_aware_integration": "PASS",
+    "n0_referenced_coupling_review": "PASS",
+    "scientific_acceptance": "PASS_WITH_SCIENTIFIC_CAVEATS"
+  },
+  "requires_opticstudio_rerun": false,
+  "scientific_settings_changed": false,
+  "source_acquisition_changed": false,
+  "next_step": "Generate the complete 96-config through-focus supplement and update manuscript extension results using the accepted TASK-015 interpretation; no new OpticStudio acquisition is required."
+}
