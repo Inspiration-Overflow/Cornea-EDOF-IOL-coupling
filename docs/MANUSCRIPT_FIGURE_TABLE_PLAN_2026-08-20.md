@@ -1,261 +1,113 @@
-# 论文图表计划 — accepted 96-config layer
+# 论文图表计划 — 最终 96 配置分析层
 
-> 目的：把冻结的 TASK-013/014/015 evidence 转换为投稿级呈现，而不改变分析定义。  
-> 原则：正文突出 N0-referenced interaction、pupil/base dependence 与焦深—质量交换；**48张逐 pair 原始贯焦图全部保留在补充材料中，不因正文简化而删除。**
+> 目的：把冻结的 TASK-013/014/015 evidence 转换为投稿级呈现，而不改变分析定义。正文与读者可见图表统一使用具有明确光学含义的名称；工程 ID 只保留在 provenance、文件名和机器可追踪字段中。48 张逐配对原始贯焦图全部保留在补充材料中，不因正文简化而删除。
 
 ## 1. 呈现原则
 
-1. 所有 paired effect 固定为 `EDOF − MONO`。
-2. 术后耦合固定为 `(EDOF−MONO)_postop − (EDOF−MONO)_N0`。
-3. DOF50 lower-bound 必须显示 `≥`；peak-window-conditioned 指标必须显式标记。
-4. Base 与 Pupil 不得在主图中被静默平均掉；4-strata cell mean 仅作导航性描述。
-5. `ΔTF MTFa mean` 是最稳健的全窗质量代价指标，48/48 pair均为负；`ΔMTFa@0D` 在47/48 pair为负。
-6. distance-peak MTFa 只作为辅助质量指标，因为10个 pair 存在 peak-window censoring。
-7. WFS-like / RAD-like / HOA-like 保持机制标签，不用商业产品名称替换。
+1. 所有配对效应固定为“EDoF − 匹配单焦对照”。
+2. 术后角膜净耦合固定为“术后角膜配对效应 − 同条件未治疗参照角膜配对效应”。
+3. DOF50 下界必须显示“≥”；距离峰值受搜索窗边界限制时必须显式说明。
+4. 两种基础眼与两种瞳孔不得在主图中被静默平均；四条件均值仅作为导航性描述。
+5. 全贯焦窗口平均 MTFa 是最稳定的质量代价指标，48/48 配对均下降；0 D 处 MTFa 在 47/48 配对中下降。
+6. 距离峰值 MTFa 只作为辅助指标，因为 10 个配对存在搜索窗边界删失。
+7. 人工晶状体机制统一表述为“波前塑形型延焦”“径向屈光力调制型延焦”“高阶像差调制型延焦”，不使用商业产品名称替代。
 8. 数值来源只允许 accepted structured evidence；PNG 仅作为可视化派生，不反向作为数值来源。
 
 ---
 
-## 2. 主表
+## 2. 正文主表
 
-### Table 1. Cornea × Platform 的四-strata描述性汇总
+### Table 1. 角膜光学表型 × 人工晶状体延焦机制的四条件描述性汇总
 
-正文保留一个紧凑4×3表，列出：
+正文保留一个紧凑的 4×3 表，展示 DOF50 改变量、0 D 处 MTFa 改变量、全贯焦平均 MTFa 改变量、DOF50 方向计数以及删失状态。表值如下：
 
-- Cornea condition；
-- Platform mechanism；
-- 四-strata `ΔDOF50 mean`，保留 bound status；
-- `ΔMTFa@0D mean`；
-- `ΔTF MTFa mean`；
-- DOF方向计数；
-- DOF-censored strata 数；
-- peak-window-censored strata 数。
+| 角膜光学表型 × 人工晶状体延焦机制 | DOF50 改变量均值，D | 0 D MTFa 改变量均值 | 全贯焦平均 MTFa 改变量均值 | DOF50 方向（增加/减少） | DOF50 下界数 | 距离峰值删失数 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 未治疗参照角膜 × 波前塑形型延焦 | +0.061 | -0.117 | -0.0094 | 2/2 | 0 | 0 |
+| 未治疗参照角膜 × 径向屈光力调制型延焦 | +0.041 | -0.147 | -0.0117 | 2/2 | 0 | 0 |
+| 未治疗参照角膜 × 高阶像差调制型延焦 | +0.221 | -0.328 | -0.0542 | 2/2 | 0 | 2 |
+| 近视术后准单焦角膜 × 波前塑形型延焦 | +0.139 | -0.120 | -0.0106 | 4/0 | 0 | 0 |
+| 近视术后准单焦角膜 × 径向屈光力调制型延焦 | +0.078 | -0.167 | -0.0146 | 3/1 | 0 | 0 |
+| 近视术后准单焦角膜 × 高阶像差调制型延焦 | +0.193 | -0.321 | -0.0525 | 2/2 | 0 | 2 |
+| 连续非球面角膜延焦原型 × 波前塑形型延焦 | ≥+0.224 | -0.138 | -0.0113 | 3/1 | 2 | 2 |
+| 连续非球面角膜延焦原型 × 径向屈光力调制型延焦 | +0.196 | -0.166 | -0.0152 | 4/0 | 0 | 2 |
+| 连续非球面角膜延焦原型 × 高阶像差调制型延焦 | +0.241 | -0.288 | -0.0507 | 2/2 | 0 | 2 |
+| 中央近用径向多焦角膜 × 波前塑形型延焦 | +0.124 | -0.118 | -0.0081 | 4/0 | 0 | 0 |
+| 中央近用径向多焦角膜 × 径向屈光力调制型延焦 | ≥+0.242 | -0.216 | -0.0091 | 4/0 | 2 | 0 |
+| 中央近用径向多焦角膜 × 高阶像差调制型延焦 | ≥+0.432 | -0.346 | -0.0553 | 3/1 | 1 | 0 |
 
-建议正文表值：
+脚注必须说明：这些均值来自“2 个基础眼 × 2 个瞳孔”的完整确定性矩阵，是描述性中心而不是临床总体均值；带“≥”的值包含 DOF50 下界。
 
-| Cornea × Platform | ΔDOF50 mean, D | ΔMTFa@0D | ΔTF mean | 解释提示 |
-| --- | ---: | ---: | ---: | --- |
-| N0 × WFS-like | +0.061 | -0.117 | -0.0094 | residual 基线、pupil-dependent |
-| N0 × RAD-like | +0.041 | -0.147 | -0.0117 | residual 基线、pupil-dependent |
-| N0 × HOA-like | +0.221 | -0.328 | -0.0542 | 强基线 pupil dependence |
-| A0V12 × WFS-like | +0.139 | -0.120 | -0.0106 | 温和一致增强 |
-| A0V12 × RAD-like | +0.078 | -0.167 | -0.0146 | EPD3减弱、EPD5增强 |
-| A0V12 × HOA-like | +0.193 | -0.321 | -0.0525 | EPD3减弱、EPD5轻度增强 |
-| B0V12 × WFS-like | ≥+0.224 | -0.138 | -0.0113 | EPD3 interaction最明显 |
-| B0V12 × RAD-like | +0.196 | -0.166 | -0.0152 | EPD5 interaction明显 |
-| B0V12 × HOA-like | +0.241 | -0.288 | -0.0507 | 相对N0整体接近零 |
-| C0V12 × WFS-like | +0.124 | -0.118 | -0.0081 | EPD3近零、EPD5增强 |
-| C0V12 × RAD-like | ≥+0.242 | -0.216 | -0.0091 | EPD5强增强、lower bound |
-| C0V12 × HOA-like | ≥+0.432 | -0.346 | -0.0553 | EPD5强增强、强质量再分配 |
+### Supplementary Table S1. 48 个匹配配对的完整结果
 
-脚注说明：mean 是2 base ×2 pupil确定性矩阵的描述性中心，不是临床总体均值；带 `≥` 为 lower-bound mean。
+源 evidence 仍为 `docs/evidence/task015/TASK_015_PAIR_ANALYSIS.csv`，不得改写其内部 ID。投稿版 S1 另生成展示列，至少包括：基础模型眼、角膜光学表型、人工晶状体延焦机制、瞳孔、DOF50 改变量及下界状态、0 D 处 MTFa 改变量、全贯焦平均 MTFa 改变量、距离峰值 MTFa 改变量、C4⁰/C6⁰/高阶像差均方根改变量，以及距离峰值删失状态。
 
-### Supplementary Table S1. 48-pair完整结果
+投稿版的读者可见名称为：Liou–Brennan 模型眼（眼轴 23.95 mm）、Atchison −3 D 近视模型眼（眼轴 24.48 mm）、未治疗参照角膜、近视术后准单焦角膜、连续非球面角膜延焦原型、中央近用径向多焦角膜、波前塑形型延焦、径向屈光力调制型延焦、高阶像差调制型延焦、3 mm 瞳孔和 5 mm 瞳孔。
 
-直接基于 `docs/evidence/task015/TASK_015_PAIR_ANALYSIS.csv`，保留：
+### Supplementary Table S2. 相对于未治疗参照角膜的术后净耦合
 
-- base_id；
-- cornea_id；
-- platform_label；
-- pupil_label；
-- ΔDOF50 + bound status；
-- ΔMTFa@0D；
-- ΔTF MTFa mean；
-- observed peak ΔMTFa；
-- ΔC4⁰ / ΔC6⁰ / ΔHOA RMS；
-- pair_peak_censored。
-
-该表作为正文 paired 数值的最终可追踪来源。
-
-### Supplementary Table S2. N0-referenced postoperative interactions
-
-由 TASK-015 确定性重建函数从 accepted TASK-013/014 evidence 生成，不要求仓库另存冗余288行 CSV。投稿表只保留最相关的 `ΔDOF50`、`ΔMTFa@0D` 和 `ΔTF MTFa mean`，按：
-
-```text
-Base × Postop Cornea × Platform × Pupil
-```
-
-列出，并保留 DOF bound status。
+S2 共 36 行，对应“2 个基础眼 × 3 个术后角膜表型 × 3 类延焦机制 × 2 个瞳孔”。投稿版展示 DOF50 净调制、0 D 处 MTFa 净调制和全贯焦平均 MTFa 净调制，并保留 DOF50 的 exact/lower-bound 语义。工程版 `TASK_015_SUPPLEMENTARY_TABLE_S2.csv` 保持不变，投稿版另加语义化展示列。
 
 ---
 
 ## 3. 正文主图
 
-### Figure 1. Base×Pupil 分层的 ΔDOF50 4×3 heatmaps
+### Figure 1. 两种基础眼、两种瞳孔分层的 DOF50 改变量热图
 
-布局：2×2 panel：
+布局为 2×2 panel：Liou–Brennan 模型眼 3 mm 瞳孔、Liou–Brennan 模型眼 5 mm 瞳孔、Atchison −3 D 近视模型眼 3 mm 瞳孔、Atchison −3 D 近视模型眼 5 mm 瞳孔。每个 panel 为四种角膜光学表型 × 三类人工晶状体延焦机制的 4×3 矩阵，并共享同一色标。任何 DOF50 下界单元格必须保留“≥”。
 
-```text
-A: LB / EPD3
-B: LB / EPD5
-C: ATC / EPD3
-D: ATC / EPD5
-```
+### Figure 2. 两种基础眼、两种瞳孔分层的 0 D 处 MTFa 改变量热图
 
-每个 panel 为 Cornea(N0/A0V12/B0V12/C0V12) × Platform(WFS-like/RAD-like/HOA-like) 的4×3矩阵，共享色标。lower-bound cell 必须保留 `≥`。
+与 Figure 1 使用相同 2×2 布局和语义化标签。图注需指出 47/48 配对为负；唯一正值出现在 Atchison −3 D 近视模型眼、未治疗参照角膜、径向屈光力调制型延焦、5 mm 瞳孔，但其全贯焦平均 MTFa 仍下降。
 
-正式来源：
+### Figure 3. 焦深扩展—光学质量交换
 
-```text
-docs/evidence/task015/figures/summary/heatmap_delta_dof50_width_d_*.png
-```
+主 panel 以 DOF50 改变量为横轴、0 D 处 MTFa 改变量为纵轴；辅助 panel 以全贯焦平均 MTFa 改变量为纵轴。DOF50 下界使用独立 marker。核心视觉信息是多数配置可增加焦深，但全贯焦平均质量 48/48 下降。
 
-### Figure 2. Base×Pupil 分层的 ΔMTFa@0D 4×3 heatmaps
+### Figure 4. 具有未治疗参照对照的代表性原始贯焦曲线
 
-同 Figure 1 的2×2布局，共享色标。图注强调：47/48 pair为负；唯一正值为 ATC+N0+RAD-like+EPD5，但其 `ΔTF MTFa mean` 仍为负。
+正文展示三类最具机制信息量的比较：连续非球面角膜延焦原型与波前塑形型延焦在 3 mm 瞳孔下的小瞳孔增强；中央近用径向多焦角膜与径向屈光力调制型延焦在 5 mm 瞳孔下的大瞳孔增强；中央近用径向多焦角膜与高阶像差调制型延焦在 5 mm 瞳孔下的强增强。每列同时显示对应的未治疗参照角膜原始贯焦曲线，并分别展示两种基础眼。
 
-正式来源：
+所有曲线直接来自正式 raw figure set，不进行峰值横向平移、不更改 y 轴定义、不删除删失标记。
 
-```text
-docs/evidence/task015/figures/summary/heatmap_delta_mtfa_at_zero_d_*.png
-```
+### Figure 5. 完整眼高阶像差机制图
 
-### Figure 3. 延焦—质量 trade-off
-
-主 panel：x=`ΔDOF50`，y=`ΔMTFa@0D`；辅助 panel：y=`ΔTF MTFa mean`。
-
-正式来源：
-
-```text
-docs/evidence/task015/figures/summary/tradeoff_dof50_vs_mtfa_zero.png
-docs/evidence/task015/figures/summary/tradeoff_dof50_vs_tf_mean.png
-```
-
-DOF lower-bound 点使用独立 marker；核心视觉信息是大部分组合可增加焦深，但完整贯焦平均质量48/48下降。
-
-### Figure 4. 代表性 N0-referenced coupling 的贯焦曲线
-
-正文只选少量机制最有信息量的 raw curves，但不替代补充材料中的48张全量图。建议包括：
-
-1. N0 × WFS-like：作为同机制内部参照；
-2. B0V12 × WFS-like × EPD3：小瞳孔强增强、lower bound；
-3. C0V12 × RAD-like × EPD5：两基础眼强增强、lower bound；
-4. C0V12 × HOA-like × EPD5：强增强与明显质量再分配。
-
-所有代表性图均从 `docs/evidence/task015/figures/raw/` 直接选取，不重新平移峰值、不改纵横轴定义。
-
-### Figure 5. Whole-eye HOA mechanism map
-
-正式来源：
-
-```text
-docs/evidence/task015/figures/summary/mechanism_delta_c40_c60.png
-```
-
-用于说明三种 surrogate 保持不同的 ΔC4⁰/ΔC6⁰机制路径，并为 N0-referenced coupling 提供波前机制背景。
+以 C4⁰ 改变量与 C6⁰ 改变量为坐标，按三类人工晶状体延焦机制分组。正文用于说明三种 surrogate 保持不同的高阶像差路径，并为不同角膜表型下的贯焦耦合提供机制背景。
 
 ---
 
 ## 4. 完整补充图 — 不抽样
 
-### Supplementary Figure Set S1. 48张 raw through-focus figures
+Supplementary Figure Set S1 为全部 48 张逐配对原始贯焦图；每张同时显示匹配单焦对照和 EDoF 状态的 15 个贯焦采样点。Supplementary Figure Set S2 为 4 张完整的 4×3 贯焦总览 panel，分别对应两种基础眼和两种瞳孔。Supplementary Figure Set S3 为 4 张全贯焦平均 MTFa 改变量热图。Supplementary Figure Set S4 为瞳孔敏感性和基础眼敏感性图。Supplementary Figure Set S5 为距离峰值搜索窗删失感知的焦深—峰值质量图。
 
-**全部保留。**
-
-目录：
-
-```text
-docs/evidence/task015/figures/raw/
-```
-
-覆盖：
-
-```text
-2 Base × 4 Cornea × 3 Platform × 2 Pupil = 48 matched pairs
-```
-
-每张图同时显示 MONO + EDOF 的15-plane MTFa曲线，并显式保留 DOF50 censoring / peak-window censoring 标记。
-
-### Supplementary Figure Set S2. 4张完整4×3 through-focus panels
-
-```text
-docs/evidence/task015/figures/summary/through_focus_*.png
-```
-
-分别为 LB/ATC × EPD3/EPD5，用于快速浏览全部12个 Cornea×Platform 条件。
-
-### Supplementary Figure Set S3. ΔTF MTFa mean heatmaps
-
-4张 Base×Pupil heatmaps 全部进入补充材料，完整展示48/48 `ΔTF MTFa mean<0` 的结构。
-
-### Supplementary Figure Set S4. Pupil/base sensitivity
-
-保留4张：
-
-```text
-pupil_sensitivity_dof50.png
-pupil_sensitivity_mtfa_zero.png
-base_sensitivity_dof50.png
-base_sensitivity_mtfa_zero.png
-```
-
-### Supplementary Figure Set S5. Peak-window-conditioned trade-off
-
-```text
-tradeoff_dof50_vs_window_peak_mtfa.png
-```
-
-放补充材料，不作为主要质量结论，因为10个 pair 的 observed peak 受预注册搜索窗限制。
+所有补充图的读者可见标题、坐标和图例均使用语义化名称；文件名和 manifest 仍可保留内部 ID 以维持 provenance。
 
 ---
 
 ## 5. 正文结果与图表对应
 
-| Results 小节 | 主证据 | 正文图/表 |
+| 正文结果主题 | 主证据 | 正文呈现 |
 | --- | --- | --- |
-| 数据完整性/censoring | TASK-015 analysis evidence | 文字 |
-| 总体 trade-off | 48-pair CSV | Fig 3 + Table 1 |
-| N0 residual baseline | N0 pair rows | Fig 1/2 + Fig 4 |
-| A0V12 modulation | N0-referenced interactions | Fig 1/2 |
-| B0V12×WFS/RAD | N0-referenced interactions | Fig 1 + Fig 4 |
-| C0V12×RAD/HOA | N0-referenced interactions | Fig 1/2 + Fig 4 |
-| 高阶像差机制 | pair CSV C4⁰/C6⁰/HOA RMS | Fig 5 |
+| 数据完整性与删失 | TASK-015 analysis evidence | 文字 |
+| 总体焦深—质量交换 | 48 配对结果 | Figure 3 + Table 1 |
+| 未治疗参照中的 residual 基线 | 未治疗参照配对结果 | Figures 1、2、4 |
+| 近视术后准单焦角膜的温和调制 | 未治疗参照耦合 | Figures 1、2 |
+| 连续非球面角膜延焦的机制选择性调制 | 未治疗参照耦合 | Figures 1、4 |
+| 中央近用径向多焦角膜的大瞳孔调制 | 未治疗参照耦合 | Figures 1、2、4 |
+| 高阶像差机制 | C4⁰/C6⁰/高阶像差均方根 | Figure 5 |
 
 ---
 
-## 6. 正式 figure provenance
+## 6. Figure provenance
 
-完整72张 figure supplement 已归档：
-
-```text
-figure commit = bc4e451c22b0cbe1a3f08798b0119942bb9bc5c5
-render code commit = cfb659063c8177223d29711f6b778ec566be3bc5
-manifest = docs/evidence/task015/figures/TASK_015_FIGURE_MANIFEST.json
-figure review = docs/evidence/task015/TASK_015_FIGURE_REVIEW.json
-```
-
-数量：
-
-```text
-raw = 48
-summary = 24
-total PNG = 72
-manifest entries = 72
-source TF rows = 1440
-OpticStudio used for render = false
-```
-
-跨平台 PNG 字节完全相同不作为科学 gate；正式一次 render 的 manifest 负责绑定该次文件 identity。
+正式 72 张 figure supplement 已归档于 `docs/evidence/task015/figures/`，原始 figure commit 为 `bc4e451c22b0cbe1a3f08798b0119942bb9bc5c5`。该归档负责锁定科学曲线与删失语义。后续“可读标签版”属于纯 presentation 重绘或排版层，不改变科学数值、采样点、曲线形态、focus window、残差或 OpticStudio acquisition。
 
 ---
 
 ## 7. 不进入正文的内容
 
-为保持 MVP 论文主线清楚，以下内容不作为正文主结果：
+为保持主线清楚，正文不列出 288 个 outcome-specific interaction 的全部中间明细，不构造单一 composite score，不按四条件均值生成“最佳组合排行榜”，不把 residual 离焦量作为主要终点，不以商业产品名称替代机制 surrogate，不因 5 个 DOF50 下界或 10 个距离峰值删失而扩大贯焦窗口，也不删除 48 张 raw figure 只保留支持主叙事的代表图。
 
-- 把288个 outcome-specific N0 interactions 全部逐项列举；
-- 将12个 cell 强行合成为单一 composite score；
-- 按四-strata均值生成“最佳组合排行榜”；
-- 把 `ΔF_residual` 当作主要效果终点；
-- 以商业产品名称替代 WFS-like/RAD-like/HOA-like；
-- 因5个 lower-bound DOF 或10个 peak-window pair 而补跑更宽焦轴；
-- 删除48张 raw figure 只保留“好看的”代表图。
+## 8. 当前剩余工作
 
-## 8. 下一步
-
-只剩投稿层整理：
-
-1. 从已归档 summary/raw figures 组合正文5张主图，不重新分析；
-2. 生成 Supplementary Table S1/S2；
-3. 合并 Introduction、Methods、Results、Discussion 为单一稿件；
-4. 完成 evidence / number / figure caption / reference QC。
+科学分析已经冻结。剩余工作仅包括：生成语义化展示版 Supplementary Tables S1/S2；把可读标签版主图和图注正式归档；完成整篇稿件的语言、期刊格式和最终 evidence/figure/table QC。无需新的 OpticStudio acquisition。
