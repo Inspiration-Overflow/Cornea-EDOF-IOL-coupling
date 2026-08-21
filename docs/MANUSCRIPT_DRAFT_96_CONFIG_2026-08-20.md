@@ -206,10 +206,9 @@ C0V12×RAD-like 和 C0V12×HOA-like 的主要增强位于5 mm。C0V12 与 RAD-li
 
 # References
 
-1. Ting DSJ, Gatinel D, Ang M. Cataract surgery after corneal refractive surgery: preoperative considerations and management. *Curr Opin Ophthalmol*. 2024. PMID: 37962882.
+1. Ting DSJ, Gatinel D, Ang M. Cataract surgery after corneal refractive surgery: preoperative considerations and management. *Curr Opin Ophthalmol*. 2024;35(1):4-10. doi:10.1097/ICU.0000000000001006.
 2. Sun Y, Hong Y, Rong X, Ji Y. Presbyopia-Correcting Intraocular Lenses Implantation in Eyes After Corneal Refractive Laser Surgery: A Meta-Analysis and Systematic Review. *Front Med (Lausanne)*. 2022;9:834805. doi:10.3389/fmed.2022.834805.
 3. Fan W, Zhu M, Zhang G. Visual outcomes and spectacle independence of a non-diffractive wavefront-shaping intraocular lens in post-LASIK patients. *Front Med (Lausanne)*. 2025;12:1509889. doi:10.3389/fmed.2025.1509889.
 4. Micheletti JM, Hall B. Satisfaction and Visual Outcomes with a Non-Diffractive EDOF IOL in Post-Myopic LASIK and PRK Patients with High Corneal Spherical Aberration. *Clin Ophthalmol*. 2026;20:566800. doi:10.2147/OPTH.S566800.
 5. Lago CM, de Castro A, Marcos S. Computational simulation of the optical performance of an EDOF intraocular lens in post-LASIK eyes. *J Cataract Refract Surg*. 2023;49(11):1153-1159. doi:10.1097/J.JCRS.0000000000001260.
 6. Garzón N, Gómez-Pedrero JA, Albarrán-Diego C, et al. Optical power profiles and aberrations of a non-diffractive wavefront-shaping extended depth of focus intraocular lens. *Graefes Arch Clin Exp Ophthalmol*. 2024;262(9):2897-2906. doi:10.1007/s00417-024-06469-y.
-7. Schmid R, Borkenstein AF. Optical Bench Evaluation of the Latest Refractive Enhanced Depth of Focus Intraocular Lens. *Clin Ophthalmol*. 2024;18:1921-1932. doi:10.2147/OPTH.S469849.
