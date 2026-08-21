@@ -29,6 +29,7 @@ class RevisionGeometryReadback:
     iol_ant_semi_diameter_mm: float
     iol_post_semi_diameter_mm: float | None
     retina_semi_diameter_mm: float
+    retina_is_image: bool
     retina_surface_type: str
     retina_radius_y_mm: float
     retina_conic_y: float
@@ -36,14 +37,18 @@ class RevisionGeometryReadback:
     retina_conic_x: float | None
 
 
-def _set_clear_semi_diameter(editor: SequentialEditor, surface_number: int, value_mm: float) -> None:
+def _set_clear_semi_diameter(
+    editor: SequentialEditor,
+    surface_number: int,
+    value_mm: float,
+) -> None:
     value = float(value_mm)
     if not math.isfinite(value) or value <= 0:
         raise ValueError("clear semi-diameter must be finite and positive")
     row = editor.surface(surface_number)
     try:
         row.SemiDiameter = value
-    except Exception as exc:  # noqa: BLE001 - installed API capability is validated locally
+    except Exception as exc:
         raise ModelRevisionZosError(
             f"failed to set clear semi-diameter at surface {surface_number}: {exc}"
         ) from exc
@@ -150,7 +155,9 @@ def configure_physical_pupil(
     aperture_types = session.zosapi.SystemData.ZemaxApertureType
     aperture_type = getattr(aperture_types, "FloatByStopSize", None)
     if aperture_type is None:
-        raise ModelRevisionZosError("installed API exposes no ZemaxApertureType.FloatByStopSize")
+        raise ModelRevisionZosError(
+            "installed API exposes no ZemaxApertureType.FloatByStopSize"
+        )
     session.system.SystemData.Aperture.ApertureType = aperture_type
     _set_clear_semi_diameter(
         SequentialEditor(session.system, session.zosapi),
@@ -165,16 +172,13 @@ def apply_revision_to_cornea_scaffold(
     *,
     pupil_diameter_mm: float = 3.0,
 ) -> None:
-    """Apply post-audit geometry to a 6-surface cornea-only scaffold.
-
-    Surface numbering is OBJECT, anterior cornea, posterior cornea, STOP,
-    IOL reference, retina/IMAGE.
-    """
+    """Apply post-audit geometry to a 6-surface cornea-only scaffold."""
 
     editor = SequentialEditor(session.system, session.zosapi)
     if int(editor.lde.NumberOfSurfaces) != 6:
         raise ModelRevisionZosError(
-            f"cornea scaffold revision expects 6 surfaces, got {int(editor.lde.NumberOfSurfaces)}"
+            "cornea scaffold revision expects 6 surfaces, "
+            f"got {int(editor.lde.NumberOfSurfaces)}"
         )
     configure_physical_pupil(session, pupil_diameter_mm, stop_surface=3)
     _set_clear_semi_diameter(editor, 1, CORNEA_CLEAR_SEMI_DIAMETER_MM)
@@ -189,7 +193,7 @@ def apply_revision_to_full_eye(
     *,
     pupil_diameter_mm: float,
 ) -> None:
-    """Apply post-audit clear apertures, physical STOP and curved retina to a 7-surface eye."""
+    """Apply post-audit clear apertures, physical STOP and curved retina to a full eye."""
 
     editor = SequentialEditor(session.system, session.zosapi)
     if int(editor.lde.NumberOfSurfaces) != 7:
@@ -224,7 +228,8 @@ def read_revision_geometry(
     expected_count = 7 if full_eye else 6
     if int(editor.lde.NumberOfSurfaces) != expected_count:
         raise ModelRevisionZosError(
-            f"revision readback expects {expected_count} surfaces, got {int(editor.lde.NumberOfSurfaces)}"
+            f"revision readback expects {expected_count} surfaces, "
+            f"got {int(editor.lde.NumberOfSurfaces)}"
         )
     if int(editor.lde.StopSurface) != 3:
         raise ModelRevisionZosError("revision readback requires STOP surface 3")
@@ -238,8 +243,8 @@ def read_revision_geometry(
         _require_parameter_header(editor, retina_number, 1, "X Radius")
         _require_parameter_header(editor, retina_number, 2, "X Conic")
         columns = session.zosapi.Editors.LDE.SurfaceColumn
-        radius_x = float(retina.GetSurfaceCell(getattr(columns, "Par1")).DoubleValue)
-        conic_x = float(retina.GetSurfaceCell(getattr(columns, "Par2")).DoubleValue)
+        radius_x = float(retina.GetSurfaceCell(columns.Par1).DoubleValue)
+        conic_x = float(retina.GetSurfaceCell(columns.Par2).DoubleValue)
 
     stop_semi = float(editor.surface(3).SemiDiameter)
     return RevisionGeometryReadback(
@@ -254,6 +259,7 @@ def read_revision_geometry(
             float(editor.surface(5).SemiDiameter) if full_eye else None
         ),
         retina_semi_diameter_mm=float(retina.SemiDiameter),
+        retina_is_image=bool(retina.IsImage),
         retina_surface_type=_surface_type_name(retina),
         retina_radius_y_mm=float(retina.Radius),
         retina_conic_y=float(retina.Conic),
@@ -271,32 +277,71 @@ def validate_revision_geometry(
     expected = retina_prescription_for_base(base_id)
     findings: list[str] = []
 
-    def close(label: str, actual: float, target: float, tolerance: float = 1.0e-9) -> None:
+    def close(
+        label: str,
+        actual: float,
+        target: float,
+        tolerance: float = 1.0e-9,
+    ) -> None:
         if not math.isfinite(actual) or abs(actual - target) > tolerance:
             findings.append(f"{label}: expected {target:.12g}, got {actual:.12g}")
 
-    if "float" not in measurement.aperture_type.casefold() or "stop" not in measurement.aperture_type.casefold():
+    aperture_name = measurement.aperture_type.casefold()
+    if "float" not in aperture_name or "stop" not in aperture_name:
         findings.append(
-            f"aperture_type: expected Float By Stop Size, got {measurement.aperture_type!r}"
+            "aperture_type: expected Float By Stop Size, "
+            f"got {measurement.aperture_type!r}"
         )
-    close("physical_pupil_diameter_mm", measurement.physical_pupil_diameter_mm, expected_pupil_diameter_mm)
+    close(
+        "physical_pupil_diameter_mm",
+        measurement.physical_pupil_diameter_mm,
+        expected_pupil_diameter_mm,
+    )
     close("cornea_ant_semi_diameter_mm", measurement.cornea_ant_semi_diameter_mm, 5.0)
     close("cornea_post_semi_diameter_mm", measurement.cornea_post_semi_diameter_mm, 5.0)
-    close("stop_semi_diameter_mm", measurement.stop_semi_diameter_mm, 0.5 * expected_pupil_diameter_mm)
+    close(
+        "stop_semi_diameter_mm",
+        measurement.stop_semi_diameter_mm,
+        0.5 * expected_pupil_diameter_mm,
+    )
     close("iol_ant_semi_diameter_mm", measurement.iol_ant_semi_diameter_mm, 3.0)
     if measurement.iol_post_semi_diameter_mm is not None:
         close("iol_post_semi_diameter_mm", measurement.iol_post_semi_diameter_mm, 3.0)
-    close("retina_semi_diameter_mm", measurement.retina_semi_diameter_mm, RETINA_CLEAR_SEMI_DIAMETER_MM)
+    close(
+        "retina_semi_diameter_mm",
+        measurement.retina_semi_diameter_mm,
+        RETINA_CLEAR_SEMI_DIAMETER_MM,
+    )
+    if not measurement.retina_is_image:
+        findings.append("retina final surface lost IMAGE identity")
     if expected.surface_type.casefold() not in measurement.retina_surface_type.casefold():
         findings.append(
-            f"retina_surface_type: expected {expected.surface_type}, got {measurement.retina_surface_type!r}"
+            f"retina_surface_type: expected {expected.surface_type}, "
+            f"got {measurement.retina_surface_type!r}"
         )
-    close("retina_radius_y_mm", measurement.retina_radius_y_mm, expected.radius_y_mm, 1.0e-6)
+    close(
+        "retina_radius_y_mm",
+        measurement.retina_radius_y_mm,
+        expected.radius_y_mm,
+        1.0e-6,
+    )
     close("retina_conic_y", measurement.retina_conic_y, expected.conic_y, 1.0e-6)
     if expected.radius_x_mm is not None:
         if measurement.retina_radius_x_mm is None or measurement.retina_conic_x is None:
             findings.append("Biconic retina X readback is missing")
         else:
-            close("retina_radius_x_mm", measurement.retina_radius_x_mm, expected.radius_x_mm, 1.0e-6)
-            close("retina_conic_x", measurement.retina_conic_x, expected.conic_x, 1.0e-6)
+            close(
+                "retina_radius_x_mm",
+                measurement.retina_radius_x_mm,
+                expected.radius_x_mm,
+                1.0e-6,
+            )
+            if expected.conic_x is None:
+                raise ModelRevisionZosError("Biconic retina source lock has no X conic")
+            close(
+                "retina_conic_x",
+                measurement.retina_conic_x,
+                expected.conic_x,
+                1.0e-6,
+            )
     return tuple(findings)
