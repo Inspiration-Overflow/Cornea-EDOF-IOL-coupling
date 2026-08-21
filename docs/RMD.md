@@ -1,11 +1,11 @@
 # RMD — 角膜屈光术后 × 非衍射 EDOF IOL Zemax 自动化研究软件
 
-> **角色：** 当前项目唯一执行路线图。坚持 MVP / 奥卡姆剃刀：科学 acquisition、analysis 和完整原始 figures 已结束；现在只做投稿呈现与最终格式 QC。
+> **角色：** 当前项目唯一执行路线图。坚持 MVP / 奥卡姆剃刀：科学 acquisition、analysis 和完整原始 figures 已结束；现在只做投稿呈现、语义化命名和最终格式 QC。
 
 ## Metadata
 
 - document_id: `RMD-0001`
-- version: `2.8`
+- version: `2.9`
 - status: `active`
 - last_updated: `2026-08-20`
 - active_branch: `feat/task-011-run72`
@@ -32,9 +32,10 @@ Legacy direct-cornea `A0/B0/C0` 不再作为投稿主分析。
 
 # 2. Accepted final acquisition layer
 
-## TASK-013 — N0
+## TASK-013 — 未治疗参照角膜
 
 ```text
+internal ID = N0
 run = task013-183dcffcd1da4f1cb1a219d9eedb39db
 raw evidence commit = 38ad14a12a18b1a7a30d259cde644d360442f57b
 24 configs / 360 TF rows / 12 pairs
@@ -42,7 +43,9 @@ raw evidence commit = 38ad14a12a18b1a7a30d259cde644d360442f57b
 scientific acceptance = PASS_WITH_SCIENTIFIC_CAVEATS
 ```
 
-## TASK-014 — A0V12 / B0V12 / C0V12
+## TASK-014 — 三个顶点距规范化术后角膜
+
+读者可见名称：近视术后准单焦角膜、连续非球面角膜延焦原型、中央近用径向多焦角膜。内部 ID 仅为 `A0V12 / B0V12 / C0V12`。
 
 ```text
 contract = TASK014_SPECTACLE_M3_VERTEX12_v1
@@ -62,56 +65,52 @@ TASK-013/014 均冻结：**不重跑，不扩展 focus window，不修改 residu
 
 # 3. TASK-015 — accepted final 96-config analysis
 
+正式科学结构：
+
 ```text
-2 Base
-× 4 Cornea = N0 / A0V12 / B0V12 / C0V12
-× 3 Platform
-× MONO/EDOF
-× EPD3/EPD5
+2 基础眼
+× 4 角膜光学条件（未治疗参照 + 3 个术后表型）
+× 3 人工晶状体延焦机制
+× 匹配单焦 / EDoF
+× 3 mm / 5 mm 瞳孔
 = 96 configs
 = 1440 TF rows
 = 48 matched pairs
 ```
 
+读者可见人工晶状体机制统一写为：波前塑形型延焦、径向屈光力调制型延焦、高阶像差调制型延焦。内部 ID `WFS / RAD / HOA` 只用于 provenance。
+
 唯一正式 coupling：
 
 ```text
-(EDOF - MONO)_postop - (EDOF - MONO)_N0
+术后角膜中的 (EDoF - 匹配单焦)
+-
+同条件未治疗参照角膜中的 (EDoF - 匹配单焦)
 ```
 
 正式结果：
 
 ```text
-ΔDOF50 > 0 = 35/48
-ΔDOF50 < 0 = 13/48
+DOF50 增加 = 35/48
+DOF50 减少 = 13/48
 DOF50 = 43 exact + 5 lower_bound
-peak-window censored = 10
-ΔMTFa@0D < 0 = 47/48
-ΔTF MTFa mean < 0 = 48/48
+距离峰值搜索窗删失 = 10
+0 D MTFa 下降 = 47/48
+全贯焦平均 MTFa 下降 = 48/48
 scientific acceptance = PASS_WITH_SCIENTIFIC_CAVEATS
 ```
 
-主要 interaction：
+主要 interaction：连续非球面角膜延焦原型 × 波前塑形型延焦在 3 mm 瞳孔强增强；连续非球面角膜延焦原型 × 径向屈光力调制型延焦在 5 mm 瞳孔增强；中央近用径向多焦角膜 × 径向屈光力调制型延焦在 5 mm 瞳孔强增强且两基础眼均为 lower bound；中央近用径向多焦角膜 × 高阶像差调制型延焦在 3 mm 相对参照减弱、5 mm 强增强。小幅基础眼间符号不一致的 effect 仅解释为 near-zero/base-dependent。
 
-- B0V12×WFS-like：EPD3 强增强，两基础眼均为 lower bound；
-- B0V12×RAD-like：主要增强位于 EPD5；
-- C0V12×RAD-like：EPD5 强增强，两基础眼均为 lower bound；
-- C0V12×HOA-like：EPD3 相对 N0减弱，EPD5 强增强；
-- 小幅基础眼间符号不一致的 effect 仅解释为 near-zero/base-dependent。
-
-所有结果继续按焦深扩展—光学质量再分配解释，不建立“最佳 IOL 排名”。
+所有结果继续按焦深扩展—光学质量再分配解释，不建立“最佳人工晶状体排名”。
 
 ---
 
-# 4. Complete figure supplement — accepted
+# 4. Complete figure supplement — accepted science, presentation relabeling allowed
 
 ```text
-portability-only CRLF/LF fix
-= cfb659063c8177223d29711f6b778ec566be3bc5
-
-formal figure commit
-= bc4e451c22b0cbe1a3f08798b0119942bb9bc5c5
-
+portability-only CRLF/LF fix = cfb659063c8177223d29711f6b778ec566be3bc5
+formal figure commit = bc4e451c22b0cbe1a3f08798b0119942bb9bc5c5
 raw figures = 48
 summary figures = 24
 total PNG = 72
@@ -120,19 +119,11 @@ source TF rows = 1440
 figure review acceptance = PASS
 ```
 
-目录：
-
-```text
-docs/evidence/task015/figures/raw/
-docs/evidence/task015/figures/summary/
-docs/evidence/task015/figures/TASK_015_FIGURE_MANIFEST.json
-```
-
-**48张 raw figures 必须全部保留。** 正文可以少选，但不能删除或抽样替代完整补充图。
+48 张 raw figures 必须全部保留。正式 figure commit 锁定科学曲线、采样点和 censoring。后续可读标签版只允许修改读者可见文字与排版，不允许重算曲线、改变数值、重采样、peak-align 或删除边界标记。
 
 ---
 
-# 5. Manuscript layer
+# 5. Manuscript layer — semantic rewrite complete
 
 最终自包含稿：
 
@@ -149,11 +140,12 @@ docs/MANUSCRIPT_RESULTS_DISCUSSION_DRAFT_2026-08-20.md
 docs/MANUSCRIPT_FIGURE_TABLE_PLAN_2026-08-20.md
 ```
 
-补充表：
+正文已完成语义化重写。工程 ID 只允许在 Methods 的命名映射处首次出现；Results、Discussion、Conclusion、Table 1 和正文图注不再以 `N0/A0V12/B0V12/C0V12`、`LB/ATC`、`WFS/RAD/HOA`、`EPD3/EPD5`、`MONO` 等变量名作为主要称谓。
+
+展示标签规范：
 
 ```text
-S1 = docs/evidence/task015/TASK_015_PAIR_ANALYSIS.csv      # 48 rows
-S2 = docs/evidence/task015/TASK_015_SUPPLEMENTARY_TABLE_S2.csv  # 36 rows
+docs/MANUSCRIPT_DISPLAY_LABELS_2026-08-20.md
 ```
 
 科学 QC：
@@ -163,29 +155,38 @@ docs/MANUSCRIPT_SCIENTIFIC_QC_2026-08-20.md
 scientific / numeric / censoring / provenance / reference / raw-figure QC = PASS
 ```
 
-正文实际引用的6篇外部文献已核对 PubMed/DOI；未引用条目不为了“保留参考文献”而扩写正文。
+正文实际引用的 6 篇外部文献已核对 PubMed/DOI；未引用条目不为了“保留参考文献”而扩写正文。
 
 ---
 
-# 6. Main manuscript figures — presentation only
+# 6. Tables
 
-Web 端已从正式 figure supplement 做5张组合主图：
+冻结 source tables 保持机器可追溯：
 
 ```text
-Figure 1 = 4-panel ΔDOF50 heatmaps
-Figure 2 = 4-panel ΔMTFa@0D heatmaps
-Figure 3 = 2-panel extension-quality trade-off
-Figure 4 = 12-panel N0 vs postop raw through-focus comparison
-Figure 5 = whole-eye HOA mechanism map
+source S1 = docs/evidence/task015/TASK_015_PAIR_ANALYSIS.csv            # 48 rows
+source S2 = docs/evidence/task015/TASK_015_SUPPLEMENTARY_TABLE_S2.csv   # 36 rows
 ```
 
-这些仅做排版组合：不重新计算、不重采样、不 peak-align、不改变 censoring，也不替代72张正式图。
-
-在视觉样式确认前，不需要把组合图提升为新的 scientific evidence。
+投稿展示版必须另行生成，使用完整中文光学名称作为前置列，并把内部 ID 移到表尾追溯列。不得为了易读性改写 source evidence。
 
 ---
 
-# 7. Residual validation rule remains frozen
+# 7. Main manuscript figures — presentation only
+
+主文计划保留 5 张组合图：
+
+1. DOF50 改变量 4-panel heatmaps；
+2. 0 D MTFa 改变量 4-panel heatmaps；
+3. 焦深扩展—光学质量交换；
+4. 未治疗参照 vs 术后表型的代表性原始贯焦曲线；
+5. 完整眼 C4⁰/C6⁰ 高阶像差机制图。
+
+所有读者可见标签使用完整名称：Liou–Brennan 模型眼、Atchison −3 D 近视模型眼、未治疗参照角膜、三个术后角膜表型、三类延焦机制、3 mm/5 mm 瞳孔、匹配单焦对照。文件名可保留内部 ID。
+
+---
+
+# 8. Residual validation rule remains frozen
 
 历史 carrier-power envelope = validation coverage classifier only。
 
@@ -202,39 +203,25 @@ Actual-eye SSAG Mode-0 piston/defocus 仅为 diagnostic；不得为 RAD 建例�
 
 ---
 
-# 8. Current STOP rules
+# 9. Current STOP rules
 
-立即停止，如果任何工作试图：
-
-1. 重跑 TASK-011/013/014；
-2. 扩展 through-focus 或 peak-search window；
-3. 修改 residual、B0.20、vertex contract、sampling、frequency scale；
-4. 把 lower bound / peak-window-conditioned 值改写成精确值；
-5. 把 legacy A0/B0/C0 数字重新混入投稿主结果；
-6. 删除48张 raw figures 以简化叙事；
-7. 将机制 surrogate 转成商业 IOL 排名或患者级推荐。
+立即停止，如果任何工作试图：重跑 TASK-011/013/014；扩展 through-focus 或 peak-search window；修改 residual、B0.20、vertex contract、sampling、frequency scale；把 lower bound 或 peak-window-conditioned 值改写成精确值；把 legacy direct-cornea A0/B0/C0 数字重新混入投稿主结果；删除 48 张 raw figures；或将机制 surrogate 转成商业人工晶状体排名或患者级推荐。
 
 ---
 
-# 9. MVP 明确不做
+# 10. MVP 明确不做
 
-- patient-specific optimization；
-- 多色、偏心/倾斜扩展；
-- 新 composite score；
-- 新 acquisition；
-- retune B0/residual；
-- 新数据库/GUI/调度框架；
-- 为排版方便重新分析科学数据。
+不做 patient-specific optimization、多色或偏心/倾斜扩展、新 composite score、新 acquisition、retune B0/residual、新数据库/GUI/调度框架，也不为排版方便重新分析科学数据。
 
 ---
 
-# 10. Current shortest path
+# 11. Current shortest path
 
 ```text
-A. visual QC of the 5 manuscript composite figures
-B. finalize figure captions + Table 1/S1/S2 formatting
-C. journal/style/language formatting
-D. final repo/PR review
+A. archive/read-QC the reader-facing main figures
+B. add publication-facing S1/S2 with semantic labels
+C. language/journal formatting
+D. final evidence/figure/table/manuscript repo QC
 E. only then decide PR ready/merge under separate explicit authorization
 ```
 
