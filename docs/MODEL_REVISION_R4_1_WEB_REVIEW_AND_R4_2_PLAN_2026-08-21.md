@@ -3,7 +3,8 @@
 > 日期：2026-08-21  
 > R4.1 execution commit：`f0332eea21921ba4aa7ce43ae0fa5e290bb55ba2`  
 > R4.1 Web 判定：**REVISE**  
-> 下一允许阶段：**仅 R4.2 RAD low-order-constrained pilot**
+> R4.2 reviewed Web implementation：offline gate passed before local OpticStudio execution  
+> 下一允许阶段：**仅 R4.2 RAD low-order-constrained local pilot**
 
 ## 1. R4.1 的实际结论
 
@@ -32,7 +33,7 @@ R4.1 的主要修订目标已经成功：RAD 不再以 integrated OPD 作为机�
 
 ## 2. 失败的物理含义
 
-R4.1 的局部 spherical-power optimum 本身不是一个可直接冻结的生产 surrogate，因为它在改善局部 power shape 的同时，引入了额外低阶功率偏置。
+R4.1 的局部 spherical-power optimum 本身不是一个可直接冻结的 production surrogate，因为它在改善局部 power shape 的同时，引入了额外低阶功率偏置。
 
 关键是：冻结 RAD source 自己并不是零 defocus。
 
@@ -138,7 +139,29 @@ R4.2 **不要求** POWP RMS/max 必须继续优于 R4.1 的 `0.5532/1.3760 D`，
 
 R4.1 与 R4.2 的 POWP 数值变化必须完整记录，交给 Web manual review 判断，但不作为自动 hard gate。
 
-## 7. 预期
+## 7. Web 离线验证
+
+R4.2 新增的纯 Python fitter 测试实际运行完整 projected-LM，并验证：
+
+- frozen source global defocus = `+0.10449993581993025 D`；
+- source 本身位于 `0.125 D` hard reference 内；
+- R4.2 仍停留在 `R+Q+A4`；
+- pure-fit modeled global defocus 回到 hard reference 内；
+- p2 / A6 仍为 0；
+- RAD zones 5/6 仍为 neutral；
+- spherical-power proxy 保持合理。
+
+最终 Web offline gate：
+
+- `252 passed`；
+- Ruff：PASS；
+- compileall：PASS；
+- `uv lock --check`：PASS；
+- final offline enforce：PASS。
+
+因此 Web implementation 层已通过，可以进入一次本地 OpticStudio R4.2 pilot。
+
+## 8. 预期
 
 离线数值预检显示，加入 source-defocus consistency 后：
 
@@ -150,9 +173,11 @@ R4.1 与 R4.2 的 POWP 数值变化必须完整记录，交给 Web manual review
 
 真实结果必须由 R4.2 local pilot 的 serialized Binary4、POWP、ray health、low-order、HOA、MTF evidence 决定。
 
-## 8. 阶段边界
+## 9. 阶段边界
 
 R4.1：**REVISE**。
+
+R4.2 Web implementation：**OFFLINE ACCEPT / READY FOR LOCAL PILOT**。
 
 下一步仅允许：
 
