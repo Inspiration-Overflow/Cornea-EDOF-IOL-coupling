@@ -14,7 +14,6 @@ from .carrier_scaffold import CONTROLLED_IOL_CARRIER_546_V1
 from .domain import PlatformId
 from .grid_sag_residual import apply_grid_sag_residual, write_grid_sag_dat
 from .model_revision import IOL_CLEAR_SEMI_DIAMETER_MM, binary4_mechanism_spec
-from .ref_mono import symmetric_biconvex_power_d
 from .residual_payload import (
     RadialResidualCandidate,
     build_hoa_residual_candidate,
@@ -613,10 +612,15 @@ def read_r4_mechanism(
     raw_difference = tuple(
         actual - wanted for actual, wanted in zip(residual_opd, target, strict=True)
     )
-    piston = math.fsum(weight * value for weight, value in zip(weights, raw_difference, strict=True))
+    piston = math.fsum(
+        weight * value for weight, value in zip(weights, raw_difference, strict=True)
+    )
     difference = tuple(value - piston for value in raw_difference)
     rms = math.sqrt(
-        math.fsum(weight * value * value for weight, value in zip(weights, difference, strict=True))
+        math.fsum(
+            weight * value * value
+            for weight, value in zip(weights, difference, strict=True)
+        )
     )
     maximum = max(abs(value) for value in difference)
     target_peak_to_peak = max(target) - min(target)
@@ -866,7 +870,9 @@ def run_r4_platform_pilot(
         analytical_path,
     )
     surface_number = _surface_number(platform)
-    base_radius = analytical.radius_ant_mm if surface_number == 3 else analytical.radius_post_mm
+    base_radius = (
+        analytical.radius_ant_mm if surface_number == 3 else analytical.radius_post_mm
+    )
     base_conic = analytical.q_ant if surface_number == 3 else analytical.q_post
     fit = fit_r4_mechanism(
         platform,
