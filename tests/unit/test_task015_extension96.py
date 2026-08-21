@@ -20,7 +20,7 @@ def test_task015_source_git_blobs_are_exact() -> None:
     observed = verify_source_blobs(TASK013_DIR, TASK014_DIR)
     assert len(observed) == 10
     for task_name in ("task013", "task014"):
-        for _, (filename, expected) in SOURCE_FILES[task_name].items():
+        for filename, expected in SOURCE_FILES[task_name].values():
             assert observed[f"{task_name}/{filename}"] == expected
 
 
