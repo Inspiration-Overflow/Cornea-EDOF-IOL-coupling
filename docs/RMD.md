@@ -5,7 +5,7 @@
 ## Metadata
 
 - document_id: `RMD-0001`
-- version: `2.5`
+- version: `2.6`
 - status: `active`
 - last_updated: `2026-08-20`
 - active_branch: `feat/task-011-run72`
@@ -132,7 +132,7 @@ review = docs/evidence/task015/TASK_015_SCIENTIFIC_REVIEW.json
 - C0V12：RAD/HOA 在 EPD5 的 DOF50 interaction 最明显，其中部分为 lower bound；EPD3 的 WFS/RAD 接近零或基础眼间符号不一致；
 - 这些变化描述的是角膜背景对冻结 EDOF 机制的幅度/瞳孔依赖调制，不改变全局的焦深—质量 trade-off。
 
-MVP 输出只持久化：
+MVP 结构化输出只持久化：
 
 ```text
 docs/evidence/task015/TASK_015_PAIR_ANALYSIS.csv
@@ -145,7 +145,44 @@ docs/evidence/task015/TASK_015_SCIENTIFIC_REVIEW.json
 
 ---
 
-# 4. Residual validation — 唯一当前规则
+# 4. Figure supplement — 原始 figures 全保留
+
+主文可以只选少量 summary figures，但完整补充材料必须绘制并保留所有原始 matched-pair 贯焦曲线。
+
+正式 figure contract：
+
+```text
+docs/evidence/task015/figures/
+  raw/      = 48 single-pair through-focus figures
+  summary/  = 24 summary figures
+  TASK_015_FIGURE_MANIFEST.json
+```
+
+其中：
+
+```text
+48 raw = 每个 Base × Cornea × Platform × Pupil 各1张
+         每张同时绘制 MONO + EDOF 的15-plane MTFa 曲线
+
+24 summary =
+  12 outcome heatmaps
+  4 Base×Pupil 4×3 through-focus panels
+  3 extension–quality trade-off figures
+  4 pupil/base sensitivity figures
+  1 whole-eye HOA mechanism map
+```
+
+总计：
+
+```text
+72 figures
+```
+
+raw figure 中必须显式标记 DOF50 censoring 与 distance-peak censoring。不得因为 summary 图更简洁而抽样或删除 48 张 raw figure。
+
+---
+
+# 5. Residual validation — 唯一当前规则
 
 历史 carrier-power envelope 只是 `existing validation coverage`，越界本身不构成 STOP。
 
@@ -162,7 +199,7 @@ Actual-eye SSAG Mode-0 piston/defocus 继续保存，但固定为 `diagnostic_on
 
 ---
 
-# 5. Acceptance / provenance 语义
+# 6. Acceptance / provenance 语义
 
 始终区分 `acquisition_acceptance` 与 `scientific_acceptance`。
 
@@ -180,36 +217,40 @@ source accepted
 
 派生 CSV 用 Git blob identity 绑定，避免 CRLF/LF 平台差异造成假漂移。
 
+Figure manifest 只绑定一次正式 render 的文件 identity；不把跨平台 PNG 字节完全一致作为科学 gate。
+
 ---
 
-# 6. 当前下一步：补充材料与论文整合
+# 7. 当前下一步：完成绘图并整合论文
 
-**不再需要新的 OpticStudio acquisition。**
+**不需要新的 OpticStudio acquisition。**
 
 下一步按最短路径：
 
-1. 从已接受的 TASK-013/014 1440 TF rows 渲染完整 96-config through-focus supplement；
-2. 生成少量必要的 96-config summary figures/tables；
-3. 将 TASK-015 的 censor-aware coupling 结果写入论文结果与讨论；
-4. 最后做一次 evidence / manuscript / figure QC。
+1. 从已接受 TASK-013/014 的 1440 TF rows 正式渲染 72 张 TASK-015 figures；
+2. 保留 48 张 raw through-focus figures 作为完整补充材料；
+3. 从 24 张 summary figures 中挑选少量主文图；
+4. 将 TASK-015 的 censor-aware coupling 结果写入论文结果与讨论；
+5. 最后做 evidence / manuscript / figure QC。
 
 不得为消除 censoring 而扩大窗口重算。
 
 ---
 
-# 7. STOP conditions
+# 8. STOP conditions
 
 立即停止，如果：
 
 1. TASK-013/TASK-014 accepted evidence Git blob identity 漂移；
 2. source run/config identity 无法唯一对应；
 3. TASK-008 / TASK-009 frozen provenance drift；
-4. 分析或作图代码试图改变 residual、B0.20、vertex contract、focus window、sampling 或 frequency scale；
-5. 为获得“更好”结论而重跑 OpticStudio 或重新优化光学参数。
+4. 48/48 raw 或 72/72 total figures 无法从 accepted TF rows 完整渲染；
+5. 分析或作图代码试图改变 residual、B0.20、vertex contract、focus window、sampling 或 frequency scale；
+6. 为获得“更好”结论而重跑 OpticStudio 或重新优化光学参数。
 
 ---
 
-# 8. MVP 明确不做
+# 9. MVP 明确不做
 
 - patient-specific optimization；
 - 多色、偏心/倾斜扩展；
@@ -221,10 +262,10 @@ source accepted
 
 ---
 
-# 9. 当前最短后续路径
+# 10. 当前最短后续路径
 
 ```text
-A. render accepted 96-config through-focus supplement
+A. render all 72 TASK-015 figures
 B. manuscript/results integration
 C. final evidence/manuscript/figure QC
 ```
