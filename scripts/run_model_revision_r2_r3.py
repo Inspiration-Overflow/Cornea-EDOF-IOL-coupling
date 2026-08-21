@@ -6,8 +6,12 @@ base, converts each carrier into the three platform-specific degenerate Binary 4
 MONO structures, and verifies analytical-vs-Binary4 equivalence at 3 and 5 mm
 physical STOP diameters.
 
-Native FFT MTF is intentionally acquired here, in the diagnostic script, rather
-than reintroduced into the production ``src`` analysis path.
+OpticStudio 2026 R1 on the validated workstation cannot load the Python.NET
+``AS_FftMtf`` analysis-settings type because ``ZemaxEngine.dll`` fails to load.
+The R3 audit therefore uses the already-validated MFE MTFA/MTFS/MTFT ``Grid=1``
+path, which exercises the grid-based diffraction-MTF algorithm without creating
+that analysis-settings object. This is an acquisition-backend exception only;
+the 0--100 cyc/mm, 128-sample equivalence requirement is retained.
 """
 
 from __future__ import annotations
@@ -38,7 +42,11 @@ from whole_eye_mvp.revision_binary4_zos import (
     compare_degenerate_binary4_to_analytical,
 )
 from whole_eye_mvp.revision_carrier_zos import build_revision_q0_analytical_carrier
-from whole_eye_mvp.zos import open_zos_session
+from whole_eye_mvp.zos import (
+    MfeMtfGridRunner,
+    MfeMtfGridSettings,
+    open_zos_session,
+)
 
 INSTALL_ENV = "WHOLE_EYE_ZOS_INSTALL_DIR"
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -46,9 +54,11 @@ DEFAULT_PROJECT_DIR = REPOSITORY_ROOT / "project_mvp_2026_v2_zmx"
 DEFAULT_A0_RELATIVE_PATH = Path("diagnostics/task005d/corneas/CORNEA_A0.zmx")
 OUTPUT_RELATIVE_DIR = Path("diagnostics/model_revision/r2_r3")
 REPORT_NAME = "MODEL_REVISION_R2_R3_EVIDENCE.json"
-FFT_MTF_MAX_FREQUENCY_CYC_PER_MM = 100.0
-FFT_MTF_SAMPLE_SIZE = 128
-FFT_MTF_EQUIVALENCE_TOLERANCE = 1.0e-6
+MTF_ACQUISITION_ID = "R3_EQUIVALENCE_MFE_GRID1_128_0_100_v1"
+MTF_FREQUENCIES_CYC_PER_MM = tuple(float(value) for value in range(0, 101, 5))
+MTF_SAMPLE_GRID_SIZE = 128
+MTF_OPERAND_TYPES = ("MTFA", "MTFS", "MTFT")
+MTF_EQUIVALENCE_TOLERANCE = 1.0e-6
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -94,14 +104,30 @@ def _guard_outputs(output_dir: Path, *, overwrite: bool) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
 
-def _native_fft_mtf_snapshot(
+def _require_cycles_per_mm(session) -> None:
+    units = getattr(session.system.SystemData, "Units", None)
+    value = getattr(units, "MTFUnits", None)
+    if value is None:
+        raise RuntimeError("installed API exposes no SystemData.Units.MTFUnits")
+    text = str(value).casefold().replace("_", "")
+    if "millimeter" in text or "millimetre" in text:
+        return
+    try:
+        if int(value) == 0:
+            return
+    except (TypeError, ValueError):
+        pass
+    raise RuntimeError(f"R3 equivalence requires cycles/mm MTF units; got {value!r}")
+
+
+def _grid_mtf_snapshot(
     session,
     base_id: str,
     path: Path,
     *,
     pupil_diameter_mm: float,
-) -> tuple[tuple[float, ...], ...]:
-    """Acquire native FFT MTF only for the R2/R3 audit-equivalence diagnostic."""
+) -> tuple[tuple[str, tuple[float, ...], tuple[float, ...]], ...]:
+    """Acquire grid-based diffraction MTF without constructing ``AS_FftMtf``."""
 
     session.system.LoadFile(str(path.resolve()), False)
     apply_revision_to_full_eye(
@@ -109,58 +135,28 @@ def _native_fft_mtf_snapshot(
         base_id,
         pupil_diameter_mm=pupil_diameter_mm,
     )
-    try:
-        analysis = session.system.Analyses.New_FftMtf()
-    except AttributeError as exc:
-        raise RuntimeError("installed API exposes no New_FftMtf analysis") from exc
-    try:
-        raw_settings = analysis.GetSettings()
-        settings = getattr(raw_settings, "__implementation__", raw_settings)
-        settings.MaximumFrequency = FFT_MTF_MAX_FREQUENCY_CYC_PER_MM
-        sample_sizes = session.zosapi.Analysis.SampleSizes
-        settings.SampleSize = getattr(
-            sample_sizes,
-            f"S_{FFT_MTF_SAMPLE_SIZE}x{FFT_MTF_SAMPLE_SIZE}",
+    _require_cycles_per_mm(session)
+    runner = MfeMtfGridRunner(session.system, session.zosapi)
+    snapshots: list[tuple[str, tuple[float, ...], tuple[float, ...]]] = []
+    for operand_type in MTF_OPERAND_TYPES:
+        result = runner.run(
+            MfeMtfGridSettings(
+                frequencies_cyc_per_mm=MTF_FREQUENCIES_CYC_PER_MM,
+                sampling_grid_size=MTF_SAMPLE_GRID_SIZE,
+                operand_type=operand_type,
+                wavelength_number=1,
+                field_number=1,
+                grid=1,
+                data_type=0,
+            )
         )
-        analysis.ApplyAndWaitForCompletion()
-        results = analysis.GetResults()
-        series_count = int(results.NumberOfDataSeries)
-        if series_count < 1:
-            raise RuntimeError("native FFT MTF returned no data series")
-
-        flattened: list[tuple[float, ...]] = []
-        for series_number in range(series_count):
-            data = results.GetDataSeries(series_number)
-            x_data = data.XData
-            y_data = data.YData
-            length = int(x_data.Length)
-            if length < 2 or int(data.NumSeries) < 2:
-                raise RuntimeError(
-                    f"native FFT MTF series {series_number} has an invalid shape"
-                )
-            frequencies = tuple(
-                float(x_data.GetValueAt(index)) for index in range(length)
-            )
-            tangential = tuple(
-                float(y_data.GetValueAt(index, 0)) for index in range(length)
-            )
-            sagittal = tuple(
-                float(y_data.GetValueAt(index, 1)) for index in range(length)
-            )
-            numeric = (*frequencies, *tangential, *sagittal)
-            if not all(math.isfinite(value) for value in numeric):
-                raise RuntimeError(
-                    f"native FFT MTF series {series_number} contains non-finite values"
-                )
-            flattened.extend((frequencies, tangential, sagittal))
-        return tuple(flattened)
-    finally:
-        close = getattr(analysis, "Close", None)
-        if callable(close):
-            close()
+        snapshots.append(
+            (result.operand_type, result.frequencies_cyc_per_mm, result.values)
+        )
+    return tuple(snapshots)
 
 
-def _native_fft_mtf_max_difference(
+def _grid_mtf_max_difference(
     session,
     base_id: str,
     analytical_path: Path,
@@ -168,13 +164,13 @@ def _native_fft_mtf_max_difference(
     *,
     pupil_diameter_mm: float,
 ) -> float:
-    left = _native_fft_mtf_snapshot(
+    left = _grid_mtf_snapshot(
         session,
         base_id,
         analytical_path,
         pupil_diameter_mm=pupil_diameter_mm,
     )
-    right = _native_fft_mtf_snapshot(
+    right = _grid_mtf_snapshot(
         session,
         base_id,
         binary4_path,
@@ -183,19 +179,13 @@ def _native_fft_mtf_max_difference(
     if len(left) != len(right):
         return math.inf
     difference = 0.0
-    for index, (left_values, right_values) in enumerate(
-        zip(left, right, strict=True)
-    ):
-        if len(left_values) != len(right_values):
+    for left_item, right_item in zip(left, right, strict=True):
+        left_type, left_frequency, left_values = left_item
+        right_type, right_frequency, right_values = right_item
+        if left_type != right_type:
             return math.inf
-        # Every group of three rows is frequency, tangential, sagittal.
-        if index % 3 == 0:
-            if any(
-                abs(a - b) > 1.0e-12
-                for a, b in zip(left_values, right_values, strict=True)
-            ):
-                return math.inf
-            continue
+        if left_frequency != right_frequency or len(left_values) != len(right_values):
+            return math.inf
         difference = max(
             difference,
             max(
@@ -287,38 +277,39 @@ def main() -> None:
                         pupil_diameter_mm=pupil,
                         thresholds=thresholds,
                     )
-                    fft_difference = _native_fft_mtf_max_difference(
+                    mtf_difference = _grid_mtf_max_difference(
                         session,
                         base_id,
                         analytical_path,
                         destination,
                         pupil_diameter_mm=pupil,
                     )
-                    fft_passed = (
-                        math.isfinite(fft_difference)
-                        and fft_difference <= FFT_MTF_EQUIVALENCE_TOLERANCE
+                    mtf_passed = (
+                        math.isfinite(mtf_difference)
+                        and mtf_difference <= MTF_EQUIVALENCE_TOLERANCE
                     )
                     findings = list(core.findings)
-                    if not fft_passed:
+                    if not mtf_passed:
                         findings.append(
-                            "max_abs_fft_mtf_error: "
-                            f"{fft_difference:.12g} exceeds "
-                            f"{FFT_MTF_EQUIVALENCE_TOLERANCE:.12g}"
+                            "max_abs_grid_mtf_error: "
+                            f"{mtf_difference:.12g} exceeds "
+                            f"{MTF_EQUIVALENCE_TOLERANCE:.12g}"
                         )
                     comparisons.append(
                         {
                             "pupil_diameter_mm": pupil,
                             **asdict(core),
-                            "max_abs_fft_mtf_error": fft_difference,
-                            "fft_mtf_tolerance": FFT_MTF_EQUIVALENCE_TOLERANCE,
-                            "passed": core.passed and fft_passed,
+                            "max_abs_grid_mtf_error": mtf_difference,
+                            "grid_mtf_tolerance": MTF_EQUIVALENCE_TOLERANCE,
+                            "mtf_acquisition_id": MTF_ACQUISITION_ID,
+                            "passed": core.passed and mtf_passed,
                             "findings": findings,
                         }
                     )
 
     passed = all(bool(item["passed"]) for item in comparisons)
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
         "formal_artifact": False,
         "phase": "MODEL-REVISION-R2-R3",
         "baseline_id": baseline.baseline_id,
@@ -329,7 +320,21 @@ def main() -> None:
         },
         "equivalence_thresholds": {
             **asdict(thresholds),
-            "max_abs_fft_mtf_error": FFT_MTF_EQUIVALENCE_TOLERANCE,
+            "max_abs_grid_mtf_error": MTF_EQUIVALENCE_TOLERANCE,
+        },
+        "mtf_acquisition": {
+            "acquisition_id": MTF_ACQUISITION_ID,
+            "backend": "MFE MTFA/MTFS/MTFT with Grid=1",
+            "sampling_grid_size": MTF_SAMPLE_GRID_SIZE,
+            "frequencies_cyc_per_mm": MTF_FREQUENCIES_CYC_PER_MM,
+            "field_number": 1,
+            "wavelength_number": 1,
+            "data_type": 0,
+            "native_fft_analysis_used": False,
+            "exception_reason": (
+                "OpticStudio 2026 R1 Python.NET cannot create AS_FftMtf/AS_Base "
+                "because ZemaxEngine.dll fails to load on the validated workstation"
+            ),
         },
         "revised_bases": base_results,
         "revised_q0_analytical_carriers": carrier_results,
