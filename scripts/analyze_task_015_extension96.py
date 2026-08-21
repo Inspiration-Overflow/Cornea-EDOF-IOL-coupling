@@ -13,7 +13,7 @@ from whole_eye_mvp.extension96_analysis import (
     TASK014_EVIDENCE_COMMIT,
     Task015Analysis,
     analyze_extension96,
-    sha256_file,
+    git_blob_sha1,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -63,7 +63,7 @@ def _evidence_payload(
     analysis: Task015Analysis,
     *,
     code_commit: str,
-    output_hashes: dict[str, str],
+    output_blob_sha1: dict[str, str],
 ) -> dict[str, object]:
     statuses: dict[str, int] = {}
     for pair in analysis.pairs:
@@ -96,7 +96,7 @@ def _evidence_payload(
         "reconstruction_gate_passed": True,
         "censor_propagation_passed": True,
         "opticstudio_used": False,
-        "output_files": output_hashes,
+        "output_git_blob_sha1": output_blob_sha1,
     }
 
 
@@ -114,13 +114,17 @@ def main() -> None:
     _write_csv(pair_csv, [pair.to_row() for pair in analysis.pairs])
     _write_csv(matrix_csv, list(analysis.coupling_matrix))
 
-    output_hashes = {
-        pair_csv.name: sha256_file(pair_csv),
-        matrix_csv.name: sha256_file(matrix_csv),
+    output_blob_sha1 = {
+        pair_csv.name: git_blob_sha1(pair_csv),
+        matrix_csv.name: git_blob_sha1(matrix_csv),
     }
     evidence_json.write_text(
         json.dumps(
-            _evidence_payload(analysis, code_commit=code_commit, output_hashes=output_hashes),
+            _evidence_payload(
+                analysis,
+                code_commit=code_commit,
+                output_blob_sha1=output_blob_sha1,
+            ),
             ensure_ascii=False,
             indent=2,
         )
@@ -134,7 +138,7 @@ def main() -> None:
         f"coupling_cells={len(analysis.coupling_matrix)}"
     )
     print(f"evidence={evidence_json.relative_to(REPOSITORY_ROOT)}")
-    print(f"evidence_sha256={sha256_file(evidence_json)}")
+    print(f"evidence_git_blob_sha1={git_blob_sha1(evidence_json)}")
 
 
 if __name__ == "__main__":
