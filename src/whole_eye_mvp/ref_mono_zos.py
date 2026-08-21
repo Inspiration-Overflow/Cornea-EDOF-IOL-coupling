@@ -34,6 +34,9 @@ REF_MONO_POST_ROLE = "REF_MONO_POST"
 REF_MONO_RADIUS_BRACKET_SCALE = 0.40
 REF_MONO_FOCUS_SHIFT_TOLERANCE_MM = 0.001
 REF_MONO_RADIUS_ITERATIONS = 40
+REF_MONO_RADIUS_FLOOR_MM = 1.0
+REF_MONO_RADIUS_CAP_MM = 500.0
+REF_MONO_BRACKET_MAX_EXPANSIONS = 12
 INDEX_TOLERANCE = 1.0e-6
 GEOMETRY_TOLERANCE_MM = 0.001
 
@@ -207,6 +210,29 @@ def solve_ref_mono_radius_mm(
     f_lower = _focus_shift_mm(session)
     _set_symmetric_radius(session, upper)
     f_upper = _focus_shift_mm(session)
+
+    # The paraxial starting radius assumes a powered cornea.  Frozen native
+    # reference eyes keep a plano corneal slot, so the emmetropic carrier can
+    # sit far below the nominal bracket; widen geometrically toward the sign
+    # that restores focus before declaring failure.
+    for _ in range(REF_MONO_BRACKET_MAX_EXPANSIONS):
+        if f_lower * f_upper <= 0:
+            break
+        if f_lower > 0:
+            candidate = max(lower * 0.5, REF_MONO_RADIUS_FLOOR_MM)
+            if candidate >= lower:
+                break
+            lower = candidate
+            _set_symmetric_radius(session, lower)
+            f_lower = _focus_shift_mm(session)
+        else:
+            candidate = min(upper * 2.0, REF_MONO_RADIUS_CAP_MM)
+            if candidate <= upper:
+                break
+            upper = candidate
+            _set_symmetric_radius(session, upper)
+            f_upper = _focus_shift_mm(session)
+
     if f_lower * f_upper > 0:
         raise RefMonoZosError(
             "REF_MONO Quick Focus radius bracket does not straddle the fixed retina: "
