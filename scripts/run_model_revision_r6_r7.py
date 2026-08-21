@@ -20,15 +20,20 @@ from pathlib import Path
 
 from whole_eye_mvp.carriers import sha256_path
 from whole_eye_mvp.cornea_candidates_zos import C0_TRANSITION_SLICES_NOMINAL
-from whole_eye_mvp.domain import CURRENT_SCIENTIFIC_BASELINE_ID, BaseId, PlatformId, ScientificBaseline
+from whole_eye_mvp.domain import (
+    CURRENT_SCIENTIFIC_BASELINE_ID,
+    BaseId,
+    PlatformId,
+    ScientificBaseline,
+)
 from whole_eye_mvp.revision_carrier_zos import build_revision_q0_analytical_carrier
 from whole_eye_mvp.revision_r5_lock import R5_FREEZE_ID, R5_GLOBAL_DEFOCUS_TOLERANCE_D
 from whole_eye_mvp.revision_r6 import (
     R6_EXPECTED_CARRIER_COUNT,
     R6_MAX_PQ_RECHECK_CYCLES,
+    R6_R7_PHASE,
     R6_RAD_REJECTED_R4_MAX_ABS_ERROR_D,
     R6_RAD_REJECTED_R4_RMS_ERROR_D,
-    R6_R7_PHASE,
     R6CarrierKey,
     calibration_labels_by_platform,
     expected_r6_carrier_keys,
@@ -295,7 +300,11 @@ def _validation_summary(result: R6CarrierValidationResult) -> dict[str, object]:
         "standard_eye_sa_replay_um": result.carrier.standard_eye_sa_replay_um,
         "standard_eye_sa_error_um": result.carrier.standard_eye_sa_error_um,
         "selected_complexity": (
-            "R" if result.carrier.platform_id == "WFS" else "R+Q+A4" if result.carrier.platform_id == "RAD" else "R+Q+A4+A6"
+            "R"
+            if result.carrier.platform_id == "WFS"
+            else "R+Q+A4"
+            if result.carrier.platform_id == "RAD"
+            else "R+Q+A4+A6"
         ),
         "serialized_mechanism_engineering_target_passed": mechanism.engineering_target_passed,
         "serialized_mechanism_rms_fraction": mechanism.rms_fraction_of_target,
@@ -345,7 +354,11 @@ def main() -> None:
         for base in BaseId:
             base_id = base.value
             for cornea_id in ("N0", "A0", "B0", "C0"):
-                source = _native_source(prerequisites, base_id) if cornea_id == "N0" else postop[cornea_id]
+                source = (
+                    _native_source(prerequisites, base_id)
+                    if cornea_id == "N0"
+                    else postop[cornea_id]
+                )
                 source_path = source["path"]
                 if not isinstance(source_path, Path):
                     raise SystemExit("resolved R6 cornea source path is invalid")
@@ -377,7 +390,9 @@ def main() -> None:
                     solved[result.carrier_id] = result
 
         if len(solved) != R6_EXPECTED_CARRIER_COUNT:
-            raise SystemExit(f"R6 solved {len(solved)} carriers, expected {R6_EXPECTED_CARRIER_COUNT}")
+            raise SystemExit(
+                f"R6 solved {len(solved)} carriers, expected {R6_EXPECTED_CARRIER_COUNT}"
+            )
         solved_keys = tuple(
             R6CarrierKey(item.base_id, item.cornea_id, item.platform_id)
             for item in solved.values()
@@ -416,13 +431,18 @@ def main() -> None:
         if row["platform_id"] in {"WFS", "HOA"}
     )
     rad_rows = [row for row in summaries.values() if row["platform_id"] == "RAD"]
-    rad_identity_passed = all(row["rad_powp_local_gate_passed"] is True for row in rad_rows)
-    defocus_all_passed = all(row["defocus_reference_passed"] is True for row in summaries.values())
+    rad_identity_passed = all(
+        row["rad_powp_local_gate_passed"] is True for row in rad_rows
+    )
+    defocus_all_passed = all(
+        row["defocus_reference_passed"] is True for row in summaries.values()
+    )
     ray_health_all_passed = all(
         row["actual_eye_ray_health_passed"] is True for row in summaries.values()
     )
     sa_all_passed = all(
-        abs(float(row["standard_eye_sa_error_um"])) <= 0.01 for row in summaries.values()
+        abs(float(row["standard_eye_sa_error_um"])) <= 0.01
+        for row in summaries.values()
     )
     geometry_all_passed = all(
         float(row["minimum_conic_radicand"]) > 0.0 for row in summaries.values()
