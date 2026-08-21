@@ -3,6 +3,8 @@
 > 日期：2026-08-21  
 > 前置状态：R4.2 Web ACCEPT；R5 FROZEN  
 > 本阶段：R6 + R7 合并为一次本地 OpticStudio batch  
+> Web implementation reviewed HEAD：`a25251bd9039c6f8beaf16fdd2947ca51412ddfc`  
+> Offline quality gate：261 tests + Ruff + compileall + lock + enforce 全部通过  
 > R8：**未授权**
 
 ## 1. 目的
@@ -259,7 +261,7 @@ Web review 根据失败位置决定是否需要 power-specific mechanism refit�
 R2/R3 = ACCEPT
 R4/R4.2 = ACCEPT
 R5 = FROZEN
-R6/R7 Web implementation = READY
+R6/R7 Web implementation = READY / OFFLINE GREEN
 R6/R7 local execution = PENDING
 R8 = LOCKED
 PR merge = NOT AUTHORIZED
