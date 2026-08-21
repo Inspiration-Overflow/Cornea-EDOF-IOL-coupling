@@ -55,12 +55,11 @@ postop-minus-N0 interaction
 ```text
 docs/evidence/task015/
   TASK_015_PAIR_ANALYSIS.csv
-  TASK_015_N0_REFERENCED_INTERACTIONS.csv
   TASK_015_COUPLING_MATRIX.csv
   TASK_015_ANALYSIS_EVIDENCE.json
 ```
 
-不复制 TASK-013/014 的原始 96 config rows 或 1440 TF rows；它们仍以原 evidence 为单一来源，避免无必要的数据复制。
+288 个 N0-referenced interactions 由分析代码在内存中确定性重建并受单元测试约束，不另存一份冗余明细 CSV。TASK-013/014 的原始 96 config rows 与 1440 TF rows 同样保持各自原 evidence 为单一来源。
 
 ## STOP
 
