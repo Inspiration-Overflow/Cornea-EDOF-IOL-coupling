@@ -1,0 +1,32 @@
+{
+  "schema_version": "1",
+  "task_id": "r4-wfs-serialized-readback-fix-20260821",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "base_commit": "35297ef4477bec555e19c5b0aa6bfe709b122016",
+  "task_branch": "delegate/r4-wfs-serialized-readback-fix-20260821",
+  "task_ref": ".delegate/r4-wfs-serialized-readback-fix-20260821/TASK.md",
+  "result_ref": ".delegate/r4-wfs-serialized-readback-fix-20260821/result.json",
+  "authorized_read_paths": [
+    "src/whole_eye_mvp/revision_r4_zos.py",
+    "src/whole_eye_mvp/revision_r4_fit.py",
+    "scripts/run_model_revision_r4_pilot.py",
+    "tests/unit/test_revision_r4_fit.py",
+    "docs/MODEL_REVISION_R4_MECHANISM_PILOT_AND_LOCAL_HANDOFF_2026-08-21.md",
+    "project_mvp_2026_v2_zmx/diagnostics/model_revision/r4_pilot/R4_ANALYTICAL_MONO_WFS.zmx",
+    "project_mvp_2026_v2_zmx/diagnostics/model_revision/r4_pilot/R4_BINARY4_MONO_WFS.zmx",
+    "project_mvp_2026_v2_zmx/diagnostics/model_revision/r4_pilot/R4_BINARY4_EDOF_WFS.zmx"
+  ],
+  "authorized_write_paths": [
+    ".delegate/r4-wfs-serialized-readback-fix-20260821/",
+    "src/whole_eye_mvp/revision_r4_zos.py",
+    "src/whole_eye_mvp/revision_r4_fit.py",
+    "scripts/run_model_revision_r4_pilot.py",
+    "tests/unit/test_revision_r4_fit.py",
+    "tests/unit/test_revision_r4_zos.py"
+  ],
+  "expected_outputs": [
+    "minimal WFS serialized Binary4 readback fix",
+    "narrow offline regression coverage",
+    ".delegate/r4-wfs-serialized-readback-fix-20260821/result.json"
+  ]
+}
