@@ -6,14 +6,13 @@ from pathlib import Path
 
 from .carrier_focus_zos import P_Q_RECHECK_THRESHOLD_D, image_distance_shift_to_vergence_d
 from .carrier_q_zos import (
-    CarrierQSolution,
     Q_REPLAY_SA_TOLERANCE_UM,
+    CarrierQSolution,
     build_physical_carrier_in_standard_eye,
     measure_standard_eye_c40,
     measure_zero_hoa_reference,
     solve_q_for_platform,
 )
-from .carrier_scaffold import CONTROLLED_IOL_CARRIER_546_V1
 from .carrier_zos import TASK007_CARRIER_ANT_ROLE, TASK007_CARRIER_POST_ROLE
 from .domain import PlatformId, ScientificBaseline
 from .model_revision import IOL_CLEAR_SEMI_DIAMETER_MM, binary4_mechanism_spec
@@ -30,7 +29,12 @@ from .ref_mono_zos import (
     REF_MONO_RADIUS_ITERATIONS,
 )
 from .revision_carrier_zos import RevisionAnalyticalCarrierResult
-from .revision_r4_fit import R4BoundaryDiagnostic, R4ZonePrescription, _boundary_diagnostics, _minimum_radicand
+from .revision_r4_fit import (
+    R4BoundaryDiagnostic,
+    R4ZonePrescription,
+    _boundary_diagnostics,
+    _minimum_radicand,
+)
 from .revision_r4_zos import (
     R4Binary4ZoneReadback,
     R4MechanismReadback,
