@@ -39,8 +39,8 @@
   "reconstruction_gate_passed": true,
   "censor_propagation_passed": true,
   "opticstudio_used": false,
-  "output_files": {
-    "TASK_015_PAIR_ANALYSIS.csv": "097c216a7d4a3106e28ee1256720831cda9b9c28d642df3bbaea464f0b11be67",
-    "TASK_015_COUPLING_MATRIX.csv": "30004cbef0418687981aff02d1f99f259adedf73b4b6316a5f7ec2bc75f0a930"
+  "output_git_blob_sha1": {
+    "TASK_015_PAIR_ANALYSIS.csv": "ab5fb194cabfe2994960893623de3cff43e2de0b",
+    "TASK_015_COUPLING_MATRIX.csv": "0b1a704417d393c668d11035ebdf590084ac18f6"
   }
 }
