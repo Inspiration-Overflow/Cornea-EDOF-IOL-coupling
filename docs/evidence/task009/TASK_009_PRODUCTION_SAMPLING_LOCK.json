@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "lock_id": "TASK009_PRODUCTION_SAMPLING_LOCK_v1",
+  "formal_artifact": true,
+  "selection_locked": true,
+  "production_sampling_locked": true,
+  "production_sampling": 128,
+  "convergence_samplings": [64, 128, 256],
+  "analysis_settings_id": "NOMINAL_MAIN_FFT_MTF_555_v2",
+  "analysis_settings_sha256": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+  "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+  "acquisition_contract_sha256": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+  "frequency_scale_mode": "paired_residual_free_MONO_EFFL",
+  "representative_run_code_commit": "d80b3a1c33fce02deda50f5ce8ebc73326e5b946",
+  "evidence_commit": "47f901dad36fb9d407826a6da8baceeef4c2edfd",
+  "evidence_json_path": "docs/evidence/task009/TASK_009_PAIR_MONO_SCALE_REPRESENTATIVE_EVIDENCE.json",
+  "evidence_json_sha256": "404502231e154ebae0813c6b52151961ad4278bef8cc4d29f412d21db7bc8d49",
+  "through_focus_csv_path": "docs/evidence/task009/TASK_009_PAIR_MONO_SCALE_REPRESENTATIVE_THROUGH_FOCUS.csv",
+  "through_focus_csv_sha256": "e51e524ee1eb009a1e2ae8cd56cc0bc101aa3dda052fe14dfba585d583987006",
+  "through_focus_rows": 90,
+  "local_report_sha256": "fad2824a86ce946c56b269959ed3cf7d4a244fa068a96bd2a0d55d037563d2e8",
+  "all_convergence_passed": true,
+  "all_repeatability_passed": true,
+  "all_six_config_integration_passed": true,
+  "crosscheck_web_review": "PASS",
+  "sampling_escalation_256_active": false,
+  "run72_started": false,
+  "run72_authorized": false,
+  "remaining_run72_web_gates": [
+    "bind acquisition contract id/hash and paired-MONO scale mode into run-level provenance",
+    "consolidate active URD/ADD/MDD/TDD/RMD acquisition semantics"
+  ]
+}

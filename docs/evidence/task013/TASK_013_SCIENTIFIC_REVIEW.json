@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "phase": "TASK-013-WEB-SCIENTIFIC-REVIEW",
+  "task_id": "TASK-013-NATIVE-CORNEA-REFERENCE",
+  "formal_run_id": "task013-183dcffcd1da4f1cb1a219d9eedb39db",
+  "acquisition_code_commit": "a3877f5682a9067c1cd420dc31d4f14a6a4e13ab",
+  "review_base_repo_commit": "3ca9c33666d047c9d5fe158eff5e246a262496e2",
+  "source_bundle": {
+    "filename": "TASK013_WEB_REVIEW_BUNDLE_2026-08-20.zip",
+    "sha256": "7fd359c0e72785d76ebeb1e6c115e5d953355da396d3da5534aa5807903050aa",
+    "manifest_sha256": "643c5459c109acbd0f4052c74177241275c40b8f956da21d562e8aa66f9cc9ae",
+    "validation_index_sha256": "aeadabfdbcdc6ec533364065d49eb144deb319afcf6abfba37fd46615c3bf4ca",
+    "local_run_report_sha256": "48a54130b2b2e0be30cfc900a3f5c819fe788b3c62b532dea819a1c1d3adc2a0"
+  },
+  "source_repo_evidence_sha256": {
+    "TASK_013_NATIVE_REFERENCE_CONFIG_RESULTS.csv": "b0c89644a2e4db88b4330ef08ca451e906b389ef62f6cfc2ad113f9f28eba29a",
+    "TASK_013_NATIVE_REFERENCE_THROUGH_FOCUS.csv": "5f2ce8d64a3a98096ecb4c58f7fe461106c65f2704612aad73a5cc393b9e1afb",
+    "TASK_013_NATIVE_REFERENCE_PAIRED_DELTAS.csv": "ed66646e7801025c023194f1a15feb82e414ebd0acfa350bc18593d77ea82458",
+    "TASK_013_MODEL_INDEX.csv": "586524e54f9905c0aecda4331f45fb5f4e2ff421f96ea9b9493723ac7039ada5",
+    "TASK_013_NATIVE_REFERENCE_EVIDENCE.json": "cc02b3fc5d389e917a7fe645029706ce6da8d9cd086afe05538490ef7d5803d2"
+  },
+  "acquisition_integrity": {
+    "completed_configs": 24,
+    "failed_configs": 0,
+    "through_focus_rows": 360,
+    "matched_pairs": 12,
+    "model_index_records": 43,
+    "model_index_sha_matches": 43,
+    "model_index_sha_mismatches": 0,
+    "passed": true
+  },
+  "exact_carrier_validation": {
+    "schema_version": 2,
+    "validation_count": 6,
+    "all_passed": true,
+    "normative_low_order_gate_domain": "STD_IOL_EYE_2024_EPD6_imported_residual_readback",
+    "actual_eye_low_order_role": "diagnostic_only_aperture_limited_mode0",
+    "task007_consolidated_review_hash": "f325533cb86910399a2290426cdfe52215968450edb3a82c62553c38a8aaecc6"
+  },
+  "mechanism_review": {
+    "scope": "out-of-existing-power-coverage ATC+N0 WFS/RAD/HOA, using LB+N0 as internal in-coverage comparator",
+    "decisions": [
+      {
+        "platform_id": "WFS",
+        "passed": true,
+        "reason": "The out-of-coverage ATC+N0 carrier preserves the same residual readback and through-focus mechanism direction as the in-coverage LB+N0 comparator. At EPD3, delta DOF50 is +0.162255 D in ATC and +0.194123 D in LB, with distance-peak shift 0 D in both. Residual-induced EPD3 wavefront signatures are nearly identical (delta C4 about +0.03303 um; delta C6 about -0.01617 um)."
+      },
+      {
+        "platform_id": "RAD",
+        "passed": true,
+        "reason": "The ATC+N0 actual-eye diagnostic piston (-0.042042 um) is continuous with both LB+N0 and the historical TASK-007 RAD pattern, while standard-eye low-order and MONO/EDOF ray-health gates pass. At EPD3, delta DOF50 is +0.233807 D in ATC and +0.189130 D in LB, with 0 D distance-peak shift in both and closely matched residual-induced C4/C6 signatures."
+      },
+      {
+        "platform_id": "HOA",
+        "passed": true,
+        "reason": "The intended opposite-sign spherical-aberration mechanism is preserved below the historical power envelope. At EPD3, ATC delta C4=-0.071860 um and delta C6=+0.178767 um; LB delta C4=-0.071889 um and delta C6=+0.178813 um. Delta DOF50 is +0.716315 D in ATC and +0.735615 D in LB, with the same -0.25 D distance-peak shift."
+      }
+    ],
+    "all_mechanisms_passed": true
+  },
+  "scientific_caveats": [
+    "Both HOA EDOF EPD5 configurations place the distance peak at the -0.50 D boundary of the frozen distance-peak search window, so the exact peak location is censored and may lie at a more negative defocus.",
+    "In untreated N0 at EPD5, delta DOF50 is negative for WFS, RAD, and HOA in both base eyes. This is retained as pupil-dependent mechanism behavior, not treated as residual failure or optimized away.",
+    "TASK-007 calibration and TASK-013 production use different study contexts/analysis routes; mechanism direction and wavefront signature may be compared, but absolute DOF50 or peak-shift values are not asserted to be numerically identical."
+  ],
+  "verdict": {
+    "acquisition_acceptance": "PASS",
+    "exact_carrier_validation": "PASS",
+    "out_of_coverage_mechanism_review": "PASS",
+    "scientific_acceptance": "PASS_WITH_SCIENTIFIC_CAVEATS"
+  },
+  "scientific_settings_changed": false,
+  "residual_payload_changed": false,
+  "requires_opticstudio_rerun": false,
+  "task014_can_proceed_independently": true
+}

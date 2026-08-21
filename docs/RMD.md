@@ -1,205 +1,228 @@
 # RMD — 角膜屈光术后 × 非衍射 EDOF IOL Zemax 自动化研究软件
 
-> **Build Path / Route-Runbook-Execution Map。** 本文件只规定安全实现顺序、测试闸门、回滚和 Git checkpoint；不重新定义科学模型。来源：`URD-0001 v1.4`、`ADD-0001 v1.4`、`MDD-0001 v1.3`、`TDD-0001 v1.4`。
+> **角色：** 当前项目唯一执行路线图。坚持 MVP / 奥卡姆剃刀：科学 acquisition、analysis 和完整原始 figures 已结束；现在只做投稿呈现、语义化命名和最终格式 QC。
 
 ## Metadata
 
-- document_id: RMD-0001
-- version: 1.4
-- status: active
-- last_updated: 2026-08-19
-- document_strength: standard
-- implementation_language: Python
-- package_manager: uv
-- default_branch: main
-- merge_style: squash
-- remote_status: connected
-- implementation_status: TASK-001–004 complete; TASK-005A/005B/005C complete; TASK-005D Phase A/A.1/B.1 PASS, `CORNEA_LOCK_B0_555_v2` production settings frozen, full five-candidate B0 scan pending
+- document_id: `RMD-0001`
+- version: `2.9`
+- status: `active`
+- last_updated: `2026-08-20`
+- active_branch: `feat/task-011-run72`
+- PR: `#26 Draft / open / unmerged`
+- production acquisition: `TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2`
+- production sampling: `128`
+- frequency scale: `paired_residual_free_MONO_EFFL`
 
-## Development Conventions
+---
 
-- **Python 包与虚拟环境统一由 `uv` 管理。**
-  - 初始化：`uv init --app .`
-  - 添加运行依赖：`uv add <package>`
-  - 添加开发依赖：`uv add --dev <package>`
-  - 同步环境：`uv sync`
-  - 运行 Python/工具命令：优先使用 `uv run ...`
-  - 不直接使用 `pip install` 作为项目依赖管理方式；确有临时诊断需要时，不得把结果当作正式项目状态。
-- **单元测试统一使用 `pytest`。**
-  - 所有自动化测试放入 `tests/`。
-  - 运行离线测试：`uv run pytest tests/unit`
-  - 在配置好的工作站运行真实 ZOS-API 测试：`uv run pytest tests/zemax`
-  - 单元测试使用 `pytest` marker/命名组织；Zemax integration 与 GUI smoke 仍由 pytest 统一调度。
-  - 不引入第二套单元测试框架。
+# 1. Frozen engineering history
 
-## Default Dual-Environment Workflow
+```text
+baseline = MVP_2026_v2
+TASK-008 manifest_hash = 29205cf1bd27848bb378fad956709b7cde4686ffd917b10351a992fc0d59ad49
+TASK-008 lock_set_hash = b1dff4c05d2c817099c913c32d9eb8c0b1c9cfa3c9ca8a2022b20c6521e08923
+TASK-009 acquisition = TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2
+legacy TASK-011/012 = frozen engineering history
+```
 
-本项目默认采用已经实测可行的 **ChatGPT Web ↔ Codex 本地 Windows/OpticStudio** 双环境闭环，不为两端另设重复实现流程。
+Legacy direct-cornea `A0/B0/C0` 不再作为投稿主分析。
 
-### ChatGPT Web：主研究与主开发环境
+---
 
-ChatGPT Web 默认负责：
+# 2. Accepted final acquisition layer
 
-- 权威文献、标准、专利、厂商资料和既有项目文档的研究、比较与溯源；
-- URD/ADD/MDD/TDD/RMD、模型设计文档、审计记录和科学决策的整理与修订；
-- Python 主代码、测试、schema、provenance、fail-closed gate 和 Git 变更的设计、实现与独立审核；
-- 不依赖本地 OpticStudio 的单元测试逻辑、算法验证和代码审查；
-- 根据 Codex 本地返回的真实运行证据继续修订代码、文档或测试契约。
+## TASK-013 — 未治疗参照角膜
 
-### Codex 本地：OpticStudio 实机执行与适配环境
+```text
+internal ID = N0
+run = task013-183dcffcd1da4f1cb1a219d9eedb39db
+raw evidence commit = 38ad14a12a18b1a7a30d259cde644d360442f57b
+24 configs / 360 TF rows / 12 pairs
+6/6 exact-carrier validations PASS
+scientific acceptance = PASS_WITH_SCIENTIFIC_CAVEATS
+```
 
-Codex 在配置好的 Windows + OpticStudio 工作站默认负责：
+## TASK-014 — 三个顶点距规范化术后角膜
 
-- 从远端取得指定分支/提交并保持工作区可追溯；
-- 执行真实 ZOS-API、Zemax integration、GUI/full-flow smoke 和需要 OpticStudio license 的测试；
-- 生成并检查真实 `.zmx` 科学资产、Prescription Data、footprint、PSF/MTF/Zernike 等实机结果；历史 `.zos` 仅保留 provenance；
-- 观察 Python.NET、CLR、OpticStudio native runtime、stderr、线程/进程生命周期等 Web 端无法验证的问题；
-- 对明确由实机 API 差异或本地运行问题造成的错误做**最小必要修订**，并运行相应回归测试；
-- 将真实测试结果、失败日志、必要代码修订和新生成的科学证据同步回远端，供 ChatGPT Web 继续研究、审核和主线整合。
+读者可见名称：近视术后准单焦角膜、连续非球面角膜延焦原型、中央近用径向多焦角膜。内部 ID 仅为 `A0V12 / B0V12 / C0V12`。
 
-### Handoff / Evidence Rule
+```text
+contract = TASK014_SPECTACLE_M3_VERTEX12_v1
+spectacle = -3.00 D
+vertex = 12 mm
+corneal-plane treatment = -2.895752895753 D
+run = task014-e270a185207543149c21da83202c4b73
+raw evidence commit = 6ffb2eaf88e386729aa3965c0f12c9b7ca134081
+72 configs / 1080 TF rows / 36 pairs
+18/18 exact-carrier validations PASS
+scientific acceptance = PASS_WITH_SCIENTIFIC_CAVEATS
+```
 
-1. **Web 端先定义问题和验收条件。** 科学模型、参数来源、测试 oracle、锁边界和计划先在 Web 端明确；不得把未定义的科学问题直接交给本地“试出来”。
-2. **本地只验证需要真实 OpticStudio 的部分。** 能由 unit test、纯 Python 或静态审查完成的工作不要求 Codex 重复执行。
-3. **本地允许最小适配，不允许静默改变科学定义。** 若实机运行要求改变冻结参数、科学阈值、模型含义或 lock boundary，立即按 STOP 条件返回 Web 端处理。
-4. **真实结果优先于假设。** 本地 OpticStudio 返回的 API 行为、数据结构和数值结果是实机接口与科学资产验证的证据；Web 端据此更新实现，但不得把一次 smoke 结果扩张为未经验证的科学结论。
-5. **所有正式科学资产必须可追溯。** `.zmx`、历史 `.zos` provenance、lock、manifest、residual、代表配置和 Run72 结果必须能追溯到代码 commit、settings/hash、OpticStudio 环境与本地验证记录。
-6. **回传后再进入下一科学阶段。** 本地结果通过后，由 Web 端完成独立审核、文档/状态同步和必要 Git 整合，再进入下一个 RMD task。
+TASK-013/014 均冻结：**不重跑，不扩展 focus window，不修改 residual/B0/vertex contract。**
 
-该双环境工作流是执行方式，不改变 `RMD-TASK-001`–`011` 的科学依赖顺序和 STOP 条件。
+---
 
-## Build Path Checkpoint Summary
+# 3. TASK-015 — accepted final 96-config analysis
 
-进入实现后的**前三步**固定为：
+正式科学结构：
 
-| Order | Task | Purpose | Test command | Rollback | Git branch |
-| --- | --- | --- | --- | --- | --- |
-| 1 | RMD-TASK-001 Project Setup + test skeleton | 建干净 uv/src/tests/git 基础，不写科学 feature | `uv run pytest --collect-only && uv run ruff check .` | RMD-RB-001 | `chore/rmd-task-001-setup` |
-| 2 | RMD-TASK-002 ZOS session + environment risk gate | 尽早验证真实 ZOS-API lifecycle 与 worker-thread assumption | `uv run pytest tests/zemax -m zemax -k "session or worker_thread"` | RMD-RB-002 | `feat/rmd-task-002-zos-session` |
-| 3 | RMD-TASK-003 Domain + ProjectStore | 冻结 ID/schema/hash/run-state 基础，避免后续科学代码各自写文件 | `uv run pytest -m unit -k "store or schema or settings or environment or path"` | RMD-RB-003 | `feat/rmd-task-003-project-store` |
+```text
+2 基础眼
+× 4 角膜光学条件（未治疗参照 + 3 个术后表型）
+× 3 人工晶状体延焦机制
+× 匹配单焦 / EDoF
+× 3 mm / 5 mm 瞳孔
+= 96 configs
+= 1440 TF rows
+= 48 matched pairs
+```
 
-**Checkpoint rule：** Build Path 已被用户接受并进入执行；后续仍按 task、STOP 条件与 Git checkpoint 推进。
+读者可见人工晶状体机制统一写为：波前塑形型延焦、径向屈光力调制型延焦、高阶像差调制型延焦。内部 ID `WFS / RAD / HOA` 只用于 provenance。
 
-## Project Setup
+唯一正式 coupling：
 
-| ID | Item | Decision / Command | Done When |
-| --- | --- | --- | --- |
-| RMD-SETUP-001 | project root | 在 TASK-001 选择/创建一个本地项目根目录；如果目录已有代码，先 `git status`/inspect，不覆盖 | root 明确且无未解释的既有文件冲突 |
-| RMD-SETUP-002 | Python package management | **只用 `uv` 管理正式 Python 依赖/环境**：`uv init --app .`、`uv add ...`、`uv sync` | `pyproject.toml` + `uv.lock` 存在且 `uv sync` 成功 |
-| RMD-SETUP-003 | runtime deps | `uv add pythonnet customtkinter numpy matplotlib` | dependencies 只来自 MDD 需要 |
-| RMD-SETUP-004 | tests/dev deps | **单元测试统一使用 `pytest`**：`uv add --dev pytest ruff` | `uv run pytest --collect-only` 可运行；测试入口统一为 pytest |
-| RMD-SETUP-005 | folders | `src/whole_eye_mvp/`, `tests/`, `tests/fixtures/` | package/test import 正常 |
-| RMD-SETUP-006 | fixture | 复制 `COMPLEX_OTF_GOLDEN_3x3_v1.json` 到测试 fixture | fixture hash 固定 |
-| RMD-SETUP-007 | ignore | `.gitignore`: `.venv/`, caches, `.env`, generated project results/`.zmx` unless explicit test fixture；历史 `.zos` provenance 例外 | 首次 commit 前完成 |
-| RMD-SETUP-008 | git | verify/init repo；检查 remote；不自动 push | clean starting state；remote 状态记录 |
+```text
+术后角膜中的 (EDoF - 匹配单焦)
+-
+同条件未治疗参照角膜中的 (EDoF - 匹配单焦)
+```
 
-## Execution Strategy
+正式结果：
 
-- **strategy:** test-first, risk-first, dependency-ordered。
-- **execution ownership:** ChatGPT Web 负责研究、规范、主要代码实现与审核；Codex 本地负责真实 OpticStudio/ZOS-API 执行、证据采集和最小必要适配。
-- **scope:** 只实现当前 MVP；不实现患者 Grid Sag、多色、倾斜/偏心、并行运行、数据库、Web、Cancel/Pause。
-- **test-first rule:** 每个 task 先加入/启用其 TDD tests，使其失败；再写最小实现直到通过。
-- **Zemax rule:** unit tests 不依赖 OpticStudio；`zemax` marker 只在配置好的 Windows workstation 上运行。
-- **science lock rule:** 下游只读上游 locks；任何需要“修正上游 lock 才让测试通过”的情况立即 STOP。
-- **standard-eye rule:** TASK-005C/007 必须执行 URD-0001 v1.4 / TDD-0001 v1.4 的 6.0 mm standard-eye SA calibration；主实验 EPD3/EPD5 不得被当作 `SA_base`/`Q(P)` 设计条件。
-- **B0 acquisition rule:** TASK-005D/006 使用 `CORNEA_LOCK_B0_555_v2`；Phase B.1 已冻结 MFE `MTFA` `Grid=0`、`Data Type=0`、`Samp=3`、0–50 cycles/mm、5 cycles/mm step。完整五候选 scan 前必须验证 Phase B.1 evidence；full scan 之后必须完成显式 morphology review/re-rank，才允许写不可变 B0 lock。
-- **main-analysis rule:** TASK-005D 的 MTFA 路径只服务 B0 lock，不提前修改 TASK-009/Run72 的 Huygens PSF → deterministic FFT → complex OTF 主实验 pipeline。
-- **architecture carry-forward:** standard-eye 3→6 mm 与 B0 acquisition v1→v2 都不改变既有 FR/DP/module/API 主拆分；`ADD-0001 v1.4` 与 `MDD-0001 v1.3` 继续作为有效架构基线。
-- **carrier rule:** RMD-TASK-007 可以生成**provisional** carrier power/Q records，但 `TDD-TEST-999` 未解除前不得写正式 EDOF carrier/pair locks。
-- **result rule:** 先通过 3 个代表配置 integration，再运行 72；禁止一上来跑完整矩阵来调试。
+```text
+DOF50 增加 = 35/48
+DOF50 减少 = 13/48
+DOF50 = 43 exact + 5 lower_bound
+距离峰值搜索窗删失 = 10
+0 D MTFa 下降 = 47/48
+全贯焦平均 MTFa 下降 = 48/48
+scientific acceptance = PASS_WITH_SCIENTIFIC_CAVEATS
+```
 
-## Ordered Tasks
+主要 interaction：连续非球面角膜延焦原型 × 波前塑形型延焦在 3 mm 瞳孔强增强；连续非球面角膜延焦原型 × 径向屈光力调制型延焦在 5 mm 瞳孔增强；中央近用径向多焦角膜 × 径向屈光力调制型延焦在 5 mm 瞳孔强增强且两基础眼均为 lower bound；中央近用径向多焦角膜 × 高阶像差调制型延焦在 3 mm 相对参照减弱、5 mm 强增强。小幅基础眼间符号不一致的 effect 仅解释为 near-zero/base-dependent。
 
-| ID | Task | Depends On | Primary IDs | Outputs | Test / Check | Branch | Done When |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| RMD-TASK-001 | Project Setup + test skeleton | — | TDD structure | `pyproject.toml`, `.gitignore`, src/tests skeleton, copied fixture | `uv run pytest --collect-only`; `uv run ruff check .` | `chore/rmd-task-001-setup` | clean setup commit；无 feature code |
-| RMD-TASK-002 | `ZosSessionAdapter` + worker risk gate | 001 | MDD-MOD-001/API-001; TEST-001/101/401 | session adapter + typed errors + integration smoke | `uv run pytest tests/zemax -m zemax -k "session or worker_thread"` | `feat/rmd-task-002-zos-session` | lifecycle tests pass；401 决定 orchestration placement |
-| RMD-TASK-003 | Domain + `ProjectStore` | 001 | MOD-002; DATA-001/003/004/008/011/012/013; TEST-102/103/201/313-315 | frozen dataclasses/enums/settings serialization; filesystem store/run history | `uv run pytest -m unit -k "store or schema or settings or environment or path"` | `feat/rmd-task-003-project-store` | lock/hash/schema/run provenance tests pass |
-| RMD-TASK-004 | Pure metric engine | 003 | MOD-007 math boundary; TEST-202-208/211/212 | PSF→complex OTF, radial MTF, MTFa, VSOTF, peak/DOF, dual-axis utilities | `uv run pytest -m unit -k "otf or mtf or vsotf or dof or defocus"` | `feat/rmd-task-004-metrics` | golden fixture、phase、FFT shift、DOF tests pass |
-| RMD-TASK-005 | Core scientific assets + validation | 002,003 | MOD-003/API-004/005; TEST-002/003/005/104/105 | two bases, STD eye + ZERO_HOA reference, REF_MONO, A0, B candidates, C0 `.zmx` + validation | `uv run pytest tests/zemax -m zemax -k "asset or base or standard_eye or cornea"` | `feat/rmd-task-005-assets` | two bases locked；STD eye passes **6 mm TDD-TEST-003**；core locks valid；A0/C0 convergence PASS；residual 可仍 not-ready |
-| RMD-TASK-006 | B0 scan + morphology review + human lock | 004,005 | MOD-004/API-006/007; TEST-004/106/107/304 | Phase B.1 evidence gate；A0 thresholds；5-candidate Q_lock curves/gates/initial rank；reviewed rank；B0 lock | `uv run pytest tests/unit -k "b0 or probe or review"`<br>`uv run pytest tests/zemax -m zemax -k "b0 or cornea_lock"` | `feat/rmd-task-006-b0` | full scan complete；五候选 morphology decisions 完整；reviewed recommendation 可重算；用户确认/override reason 后 B0 immutable |
-| RMD-TASK-007 | Provisional carrier solve + residual science gate | 005,006 | MOD-005 internals; TEST-006/303/305/999 | provisional 18 `P,Q` records; residual payload validation; per-platform low/median/high calibration record | `uv run pytest tests/zemax -m zemax -k "carrier or residual or standard_eye"` | `feat/rmd-task-007-carrier-gate` | 6 mm ZERO_HOA achieved-SA checks pass；**TEST-999 cleared**；仍不写正式 pair lock |
-| RMD-TASK-008 | Formal carrier/pair locks + 18/72 manifests | 007 | API-008/009; TEST-007-009/108/109/301/306/307/502 | 18 carrier/pair locks + `physical_carriers.csv` + `nominal_72.csv` | `uv run pytest tests/unit -k "carrier_lock or pair or manifest"`<br>`uv run pytest tests/zemax -k "carrier_lock or pair or manifest"` | `feat/rmd-task-008-carriers-manifest` | 18/72 exact；matched invariants pass；manifest hash stable |
-| RMD-TASK-009 | Analysis workflow on representative set | 004,008 | MOD-007/API-010; TEST-010/011/110/209/210/308-310/402/403/501 | 3 representative config results, PSF/MTF/VSOTF/Zernike/dual frames/artifacts | `uv run pytest tests/zemax -m zemax -k "analysis or sampling or zernike or huygens"` | `feat/rmd-task-009-analysis` | sampling/MTF cross-check pass；artifact completion rules pass |
-| RMD-TASK-010 | Thin CustomTkinter shell | 002,003,005,006,008,009 | MOD-008/API-011/012; TEST-014/015/111/112/311/312 | minimal GUI actions/status/log/rerun/output-folder | `uv run pytest tests/unit -m gui`<br>`uv run pytest tests/unit -m unit -k "action or naming"` | `feat/rmd-task-010-gui` | GUI 不 import raw ZOSAPI；single-action/busy/naming smoke pass |
-| RMD-TASK-011 | Nominal 72 acceptance run | 009,010 | TEST-012/013/016/404/504/505 | final nominal result set + paired deltas + acceptance log | `uv run pytest tests/unit`<br>`uv run pytest tests/zemax`<br>then controlled `Run 72` acceptance command/UI | `test/rmd-task-011-nominal-72` | 72 completed、36 pairs、1080 TF rows；repeatability/trace acceptance pass |
+所有结果继续按焦深扩展—光学质量再分配解释，不建立“最佳人工晶状体排名”。
 
-## Task Discipline
+---
 
-每个 RMD-TASK 按同一闭环执行：
+# 4. Complete figure supplement — accepted science, presentation relabeling allowed
 
-1. **ChatGPT Web：** 从 clean `main` 明确 task scope、权威来源、验收条件和 STOP 条件，并创建/准备 task branch。
-2. **ChatGPT Web：** 只启用/编写该 task 对应的 failing tests，完成不依赖 OpticStudio 的最小实现、文档和代码审查。
-3. **Codex 本地：** 拉取指定 branch/commit；运行该 task 所需真实 OpticStudio/ZOS-API 测试和必要 smoke。
-4. **Codex 本地：** 若仅有实机 API/运行时适配问题，可做最小修订并回归；若涉及科学定义、冻结参数、阈值或 lock boundary，停止并回传 Web 端。
-5. **Codex 本地 → Web：** 回传测试命令、通过/失败数、关键 stderr/日志、真实结果摘要、修改 commit 和 generated artifact 状态。
-6. **ChatGPT Web：** 独立审核回传证据；修订代码/文档/测试，并确认未把 smoke 结果误作正式科学结论。
-7. 测试统一通过 `pytest` 执行；相关 task 通过后再跑 `uv run ruff check .`、`uv run python -m compileall -q src tests scripts` 和 `uv lock --check`（适用时）。
-8. 更新受到影响的 `docs/TRACE.md`、`.vibe/trace.json`、`docs/RMD_EXECUTION_STATUS.md`、CHANGELOG；必要时更新短 OKF 页面。
-9. `git diff` / `git status` 检查无 secrets、未计划 `.zmx` 运行产物和无关改动；正式科学资产仅按对应 task 的 artifact/lock contract 提交。
-10. commit → PR → squash merge；不得跳过相应 STOP 条件。
+```text
+portability-only CRLF/LF fix = cfb659063c8177223d29711f6b778ec566be3bc5
+formal figure commit = bc4e451c22b0cbe1a3f08798b0119942bb9bc5c5
+raw figures = 48
+summary figures = 24
+total PNG = 72
+manifest entries = 72
+source TF rows = 1440
+figure review acceptance = PASS
+```
 
-## Git Checkpoints
+48 张 raw figures 必须全部保留。正式 figure commit 锁定科学曲线、采样点和 censoring。后续可读标签版只允许修改读者可见文字与排版，不允许重算曲线、改变数值、重采样、peak-align 或删除边界标记。
 
-| ID | Task | Branch | Planned Commit | PR | Merge |
-| --- | --- | --- | --- | --- | --- |
-| RMD-GIT-001 | TASK-001 | `chore/rmd-task-001-setup` | `chore: complete RMD-TASK-001 project setup` | completed | completed |
-| RMD-GIT-002 | TASK-002 | `feat/rmd-task-002-zos-session` | `feat: implement RMD-TASK-002 ZOS session boundary` | completed | completed |
-| RMD-GIT-003 | TASK-003 | `feat/rmd-task-003-project-store` | `feat: implement RMD-TASK-003 project store` | completed | completed |
-| RMD-GIT-004 | TASK-004 | `feat/rmd-task-004-metrics` | `feat: implement RMD-TASK-004 optical metrics` | completed | completed |
-| RMD-GIT-005 | TASK-005 | `feat/rmd-task-005-assets` | `feat: implement RMD-TASK-005 scientific assets` | TASK-005A/B/C implemented and locally validated; 005D active | pending 005D/B0 completion |
-| RMD-GIT-006 | TASK-006 | `feat/rmd-task-006-b0` | `feat: implement RMD-TASK-006 B0 workflow` | algorithm/review/lock path implemented; full real scan pending | pending science lock |
-| RMD-GIT-007 | TASK-007 | `feat/rmd-task-007-carrier-gate` | `feat: implement RMD-TASK-007 carrier science gate` | gate implemented; science execution pending | pending TDD-999 |
-| RMD-GIT-008 | TASK-008 | `feat/rmd-task-008-carriers-manifest` | `feat: implement RMD-TASK-008 carrier locks and manifest` | generator implemented | pending upstream gate |
-| RMD-GIT-009 | TASK-009 | `feat/rmd-task-009-analysis` | `feat: implement RMD-TASK-009 analysis workflow` | API implemented/hardened | pending representative run |
-| RMD-GIT-010 | TASK-010 | `feat/rmd-task-010-gui` | `feat: implement RMD-TASK-010 desktop shell` | scaffold implemented | pending local GUI smoke |
-| RMD-GIT-011 | TASK-011 | `test/rmd-task-011-nominal-72` | `test: complete RMD-TASK-011 nominal acceptance` | acceptance logic implemented | pending Run72 |
+---
 
-## 🛑 Stop Conditions
+# 5. Manuscript layer — semantic rewrite complete
 
-| ID | Condition | Required Action |
-| --- | --- | --- |
-| RMD-STOP-001 | TDD test 缺 oracle、或实现需要改变已冻结 analysis setting/科学阈值 | 停止实现，回到 TDD |
-| RMD-STOP-002 | 实现需要修改 ADD lock boundary / 出现未记录 coupling | 停止，回到 ADD/MDD |
-| RMD-STOP-003 | `TDD-TEST-401` worker-thread ZOS-API gate 失败/卡死 | 不继续 thread-owned session；只调整 MOD-008 orchestration placement，更新 MDD/TDD/RMD 后再实现 GUI |
-| RMD-STOP-004 | `TDD-TEST-999` 未解除或任一 residual low/median/high calibration 失败 | 停在 TASK-007；禁止 TASK-008 正式 EDOF pair lock 和 Run72 |
-| RMD-STOP-005 | 任何 downstream workflow 改变已冻结 A0/B0/C0/STD/residual/carrier hash | 停止；修复违反 lock contract 的代码 |
-| RMD-STOP-006 | test/ruff 失败 | 不 commit/merge；修复或回到 MDD/TDD |
-| RMD-STOP-007 | 未经授权删除、覆盖真实项目文件，或进行其他破坏性仓库操作 | 必须取得用户明确批准 |
-| RMD-STOP-008 | git working tree 有无关改动、secret、`.env`、local DB/cache 或未计划 generated artifacts | 不提交；先隔离/ignore/询问 |
-| RMD-STOP-009 | 3-config representative analysis 未通过 sampling/MTF cross-check | 禁止 Run72；先修 TASK-009 |
-| RMD-STOP-010 | 用户要求新增患者级、多色、偏心/倾斜、并行等 MVP 外功能 | 放入 PARKING_LOT/新 URD 版本，不插入当前 task |
-| RMD-STOP-011 | Codex 本地为通过实机测试需要改变科学模型、冻结参数、阈值、oracle 或 lock boundary | 停止本地修订；保留日志/证据并返回 ChatGPT Web 重新研究与修订规范 |
-| RMD-STOP-012 | full B0 scan 缺 Phase B.1 evidence、probe settings 与 v2 不一致、或 morphology review 未完成即尝试写 B0 lock | 停止 TASK-006；不运行/不锁定，先恢复正确 evidence/review 链 |
+最终自包含稿：
 
-## Rollback Points
+```text
+docs/MANUSCRIPT_DRAFT_96_CONFIG_2026-08-20.md
+```
 
-| ID | After | Rollback |
-| --- | --- | --- |
-| RMD-RB-001 | TASK-001 setup | 删除新建项目目录或 revert setup commit；不触碰既有目录 |
-| RMD-RB-002 | TASK-002 environment/session | revert session branch；若 401 fail，保留测试证据并回 MDD 调整 orchestration |
-| RMD-RB-003 | TASK-003 persistence boundary | revert store commit；任何已写 test project 用临时目录销毁 |
-| RMD-RB-004 | TASK-004 metrics | revert metric commit；golden fixture 保持 docs source-of-truth |
-| RMD-RB-005 | TASK-005/006 science locks | 在测试项目中删除本 task 生成物后重建；正式锁不得原地改写 |
-| RMD-RB-006 | TASK-007 science gate | 删除 provisional carrier records；不产生正式 pair locks |
-| RMD-RB-007 | TASK-008 carrier/manifest | 若未 merge：丢弃 branch；若已 merge：revert PR，并使所有下游 result invalidated |
-| RMD-RB-008 | TASK-009/010 app workflows | revert task branch；保留上游 locks/manifests |
-| RMD-RB-009 | TASK-011 nominal run | 不修改模型 locks；标记该 run invalid/failed，保留 logs 后重新运行新 run_id |
+辅助模块：
 
-## RMD Planning Gate
+```text
+docs/MANUSCRIPT_INTRODUCTION_DRAFT_2026-08-20.md
+docs/MANUSCRIPT_ABSTRACT_METHODS_DRAFT_2026-08-20.md
+docs/MANUSCRIPT_RESULTS_DISCUSSION_DRAFT_2026-08-20.md
+docs/MANUSCRIPT_FIGURE_TABLE_PLAN_2026-08-20.md
+```
 
-- [x] 任务按依赖和高风险点排序；ZOS environment gate 在早期。
-- [x] 前三项任务、test commands、rollback 和 Git branches 已明确。
-- [x] project setup 在任何 feature implementation 之前。
-- [x] Python 包/环境统一由 uv 管理；单元测试统一由 pytest 执行。
-- [x] interface/tests-first 规则明确。
-- [x] 每个 task 有测试/检查命令和 Git checkpoint。
-- [x] `TDD-TEST-999` 是正式 carrier/Run72 前明确 STOP。
-- [x] representative 3-config gate 位于 Run72 前。
-- [x] standard-eye 6 mm calibration 与主实验 EPD3/EPD5 性能条件已在执行规则中分离。
-- [x] B0 v2 MTFA acquisition、Phase B.1 evidence gate 与 morphology review/lock 边界已明确，不改变主实验 pipeline。
-- [x] ChatGPT Web ↔ Codex 本地 OpticStudio 双环境职责和回传证据规则已明确。
-- [x] 未把 MVP 外科学鲁棒性工作混入实现路径。
-- [x] 用户已接受并实际采用本 Build Path。
+正文已完成语义化重写。工程 ID 只允许在 Methods 的命名映射处首次出现；Results、Discussion、Conclusion、Table 1 和正文图注不再以 `N0/A0V12/B0V12/C0V12`、`LB/ATC`、`WFS/RAD/HOA`、`EPD3/EPD5`、`MONO` 等变量名作为主要称谓。
 
-**Result:** `RMD-0001 v1.4` 为当前 active runbook。TASK-001–004、005A、005B、005C 已完成；TASK-005D Phase A/A.1/B.1 已通过，`CORNEA_LOCK_B0_555_v2` 生产参数已冻结。当前下一科学动作是完整五候选 B0 scan，随后进行纯 Python morphology review/re-rank 和不可变 B0 lock；在 B0 lock 前不进入 carrier 科学阶段。
+展示标签规范：
+
+```text
+docs/MANUSCRIPT_DISPLAY_LABELS_2026-08-20.md
+```
+
+科学 QC：
+
+```text
+docs/MANUSCRIPT_SCIENTIFIC_QC_2026-08-20.md
+scientific / numeric / censoring / provenance / reference / raw-figure QC = PASS
+```
+
+正文实际引用的 6 篇外部文献已核对 PubMed/DOI；未引用条目不为了“保留参考文献”而扩写正文。
+
+---
+
+# 6. Tables
+
+冻结 source tables 保持机器可追溯：
+
+```text
+source S1 = docs/evidence/task015/TASK_015_PAIR_ANALYSIS.csv            # 48 rows
+source S2 = docs/evidence/task015/TASK_015_SUPPLEMENTARY_TABLE_S2.csv   # 36 rows
+```
+
+投稿展示版必须另行生成，使用完整中文光学名称作为前置列，并把内部 ID 移到表尾追溯列。不得为了易读性改写 source evidence。
+
+---
+
+# 7. Main manuscript figures — presentation only
+
+主文计划保留 5 张组合图：
+
+1. DOF50 改变量 4-panel heatmaps；
+2. 0 D MTFa 改变量 4-panel heatmaps；
+3. 焦深扩展—光学质量交换；
+4. 未治疗参照 vs 术后表型的代表性原始贯焦曲线；
+5. 完整眼 C4⁰/C6⁰ 高阶像差机制图。
+
+所有读者可见标签使用完整名称：Liou–Brennan 模型眼、Atchison −3 D 近视模型眼、未治疗参照角膜、三个术后角膜表型、三类延焦机制、3 mm/5 mm 瞳孔、匹配单焦对照。文件名可保留内部 ID。
+
+---
+
+# 8. Residual validation rule remains frozen
+
+历史 carrier-power envelope = validation coverage classifier only。
+
+Schema-v2 hard gate：
+
+```text
+STD_IOL_EYE_2024 / EPD6 / imported residual readback
+|piston| <= 0.010 µm
+|global defocus| <= 0.125 D
+actual-eye MONO/EDOF EPD5 ray health PASS
+```
+
+Actual-eye SSAG Mode-0 piston/defocus 仅为 diagnostic；不得为 RAD 建例外。
+
+---
+
+# 9. Current STOP rules
+
+立即停止，如果任何工作试图：重跑 TASK-011/013/014；扩展 through-focus 或 peak-search window；修改 residual、B0.20、vertex contract、sampling、frequency scale；把 lower bound 或 peak-window-conditioned 值改写成精确值；把 legacy direct-cornea A0/B0/C0 数字重新混入投稿主结果；删除 48 张 raw figures；或将机制 surrogate 转成商业人工晶状体排名或患者级推荐。
+
+---
+
+# 10. MVP 明确不做
+
+不做 patient-specific optimization、多色或偏心/倾斜扩展、新 composite score、新 acquisition、retune B0/residual、新数据库/GUI/调度框架，也不为排版方便重新分析科学数据。
+
+---
+
+# 11. Current shortest path
+
+```text
+A. archive/read-QC the reader-facing main figures
+B. add publication-facing S1/S2 with semantic labels
+C. language/journal formatting
+D. final evidence/figure/table/manuscript repo QC
+E. only then decide PR ready/merge under separate explicit authorization
+```
+
+**当前不需要 ZCode 或 OpticStudio。** PR #26 继续保持 Draft / open / unmerged。

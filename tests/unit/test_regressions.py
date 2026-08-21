@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 
 from whole_eye_mvp.domain import (
-    CORNEA_LOCK_B0_555_V1,
-    NOMINAL_MAIN_555_V1,
+    CORNEA_LOCK_B0_555_V2,
+    NOMINAL_MAIN_FFT_MTF_555_V2,
     ArtifactRecord,
     ScientificBaseline,
 )
@@ -37,24 +37,25 @@ def test_locked_artifact_tamper_is_detected(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
-def test_settings_hashes_include_frozen_huygens_metric_and_zernike_settings() -> None:
-    assert settings_hash(CORNEA_LOCK_B0_555_V1) == (
-        "2cb6545cccfb72771d3eb68329665c0ea867a465c270f852771c1a2116ccd2f7"
-    )
-    assert settings_hash(NOMINAL_MAIN_555_V1) == (
-        "7b6e05137eb6b0fd2b36a84b4baa3a390813b1028b9d2768aaca388610b6b400"
-    )
+def test_settings_hashes_are_stable_and_main_fft_mtf_hash_is_frozen() -> None:
+    b0_hash = settings_hash(CORNEA_LOCK_B0_555_V2)
+    main_hash = settings_hash(NOMINAL_MAIN_FFT_MTF_555_V2)
+    assert b0_hash == "aee210e884aa59f74e2963efddca9fc789f2b4e85de521606348d1e586790b8e"
+    assert main_hash == "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc"
+    assert main_hash == settings_hash(NOMINAL_MAIN_FFT_MTF_555_V2)
+    changed = replace(NOMINAL_MAIN_FFT_MTF_555_V2, fft_mtf_sampling=256)
+    assert settings_hash(changed) != main_hash
 
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
     "settings",
     (
-        replace(NOMINAL_MAIN_555_V1, wavelength_nm=math.nan),
-        replace(NOMINAL_MAIN_555_V1, defocus_step_d=math.inf),
-        replace(NOMINAL_MAIN_555_V1, pupils_mm=(3.0, math.nan)),
-        replace(NOMINAL_MAIN_555_V1, zernike_normalized_radius=math.nan),
-        replace(NOMINAL_MAIN_555_V1, mtf_sample_frequencies_cpd=(10.0, math.inf)),
+        replace(NOMINAL_MAIN_FFT_MTF_555_V2, wavelength_nm=math.nan),
+        replace(NOMINAL_MAIN_FFT_MTF_555_V2, defocus_step_d=math.inf),
+        replace(NOMINAL_MAIN_FFT_MTF_555_V2, pupils_mm=(3.0, math.nan)),
+        replace(NOMINAL_MAIN_FFT_MTF_555_V2, mtfa_max_cpd=math.nan),
+        replace(NOMINAL_MAIN_FFT_MTF_555_V2, mtf_sample_frequencies_cpd=(10.0, math.inf)),
     ),
 )
 def test_analysis_settings_reject_nonfinite_values(settings) -> None:

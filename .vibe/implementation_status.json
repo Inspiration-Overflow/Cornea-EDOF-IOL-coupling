@@ -1,57 +1,145 @@
 {
-  "version": 2,
-  "as_of": "2026-08-19",
-  "phase": "task005d-task006-complete_b0-20-locked_task007-next",
+  "version": 12,
+  "as_of": "2026-08-20",
+  "phase": "task012-complete-web-reviewed_ready-for-paper-results-discussion",
   "project_schema_version": 2,
+  "active_branch": "feat/task-011-run72",
   "offline_unit_tests": {
-    "status": "PASS",
-    "passed": 157,
-    "failed": 0,
-    "ruff": "PASS",
-    "compileall": "PASS",
-    "uv_lock_check": "PASS",
-    "validated_commit": "c9720ae6975cb2b0176045a2eb1975569c70d704"
+    "web_ci_status": "PASS",
+    "web_ci_source_head": "330b59171e1dab2ea76d1425d56d8e5175d233ef",
+    "web_ci_run_id": 32345872258,
+    "web_ci_pytest_passed": 212,
+    "web_ci_ruff": "PASS",
+    "web_ci_compileall": "PASS",
+    "web_ci_uv_lock": "PASS",
+    "task012_reconstruction_gate": "PASS",
+    "task012_result_review": "PASS_WITH_SCIENTIFIC_CAVEATS",
+    "local_task009_status": "PASS",
+    "local_task009_pytest_passed": 198,
+    "local_task009_run_code_commit": "d80b3a1c33fce02deda50f5ce8ebc73326e5b946"
   },
-  "environment_pending": [],
   "tasks": {
     "RMD-TASK-001": "complete",
-    "RMD-TASK-002": "zos-session-and-worker-gate-locally-validated",
-    "RMD-TASK-003": "complete_fail-closed-provenance-hardened",
-    "RMD-TASK-004": "offline-complete_representative-zemax-crosscheck-later",
+    "RMD-TASK-002": "complete-zos-lifecycle-locally-validated",
+    "RMD-TASK-003": "complete",
+    "RMD-TASK-004": "metric-layer-migrated",
     "RMD-TASK-005": "complete_A0-B0.20-C0-frozen",
     "RMD-TASK-006": "complete_B0.20-immutable-lock",
-    "RMD-TASK-007": "evidence-backed-gate-and-lock-orchestration-complete_real-residual-science-and-calibration-pending",
-    "RMD-TASK-008": "manifest-builder-provenance-hardened_formal-output-blocked-by-task007",
-    "RMD-TASK-009": "analysis-contract-provenance-hardened_representative-huygens-psf-zernike-pending",
-    "RMD-TASK-010": "thread-safe-thin-gui-composition-complete_local-full-flow-smoke-pending",
-    "RMD-TASK-011": "manifest-bound-acceptance-oracle-complete_real-run72-pending"
+    "RMD-TASK-007": "complete_tdd999-cleared",
+    "RMD-TASK-008": "complete_formal-18-carriers_3-residuals_72-configs",
+    "RMD-TASK-009": "complete_pair-MONO-MTFA_sampling-128_web-provenance-hardened",
+    "RMD-TASK-010": "optional-gui-integration_not-analysis-prerequisite",
+    "RMD-TASK-011": "complete_formal-run72_web-evidence-review-pass",
+    "RMD-TASK-012": "complete_offline-reconstruction_censor-aware-analysis_figures_result-review-pass"
   },
-  "merged_prs": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 23],
-  "science_gates_still_active": [
-    "TDD-TEST-999 residual scientific payload and low/median/high actual-power calibration",
-    "representative-3-config-sampling-and-mtf-crosscheck"
-  ],
-  "task005d": {
+  "task008": {
     "status": "complete",
-    "analysis_settings": "CORNEA_LOCK_B0_555_v2",
-    "phase_b1": "PASS",
-    "phase_b2": "PASS",
-    "phase_b3": "PASS",
-    "phase_b4": "PASS",
-    "production_mtfa_sampling": 3,
-    "production_frequency_step_cycles_per_mm": 5.0,
-    "q_lock_max_cycles_per_mm": 50.0,
-    "source_scan_hash": "11d8eac7a79696d4f5219b60bd79cadad7bdc114994b77e8afe1b6325ae7af84",
-    "selected_candidate": "B0.20",
-    "override": false,
-    "b0_lock_sha256": "24c25fea95db394998c0a4dd2ef7b0499e1e792c1275c117c23faeba0d2ea06c",
+    "formal_evidence_commit": "d4a8f96bce50e01078623fbcbda015374967344a",
+    "carrier_count": 18,
+    "residual_count": 3,
+    "nominal_config_count": 72,
+    "pair_key_count": 36,
+    "manifest_hash": "29205cf1bd27848bb378fad956709b7cde4686ffd917b10351a992fc0d59ad49",
+    "lock_set_hash": "b1dff4c05d2c817099c913c32d9eb8c0b1c9cfa3c9ca8a2022b20c6521e08923",
     "formal_artifact": true,
     "selection_locked": true,
-    "next_action": "TASK-007 Web-side residual scientific payload review"
+    "tdd_999_cleared": true
   },
-  "review_hardening": {
-    "status": "2026-08-19-B0-lock-complete",
-    "normative_science_changed": false,
-    "main_run72_pipeline_changed": false
+  "task009": {
+    "status": "complete",
+    "corrected_evidence_commit": "47f901dad36fb9d407826a6da8baceeef4c2edfd",
+    "analysis_settings_id": "NOMINAL_MAIN_FFT_MTF_555_v2",
+    "analysis_settings_sha256": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+    "active_mtf_acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+    "active_mtf_acquisition_contract_sha256": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+    "active_frequency_scale": "paired_residual_free_MONO_EFFL",
+    "production_sampling": 128,
+    "production_sampling_locked": true,
+    "requires_more_opticstudio_sampling_validation": false,
+    "no_additional_representative_opticstudio_rerun_required": true
+  },
+  "task011": {
+    "status": "complete-web-reviewed-pass",
+    "code_commit": "01f13b768cf1eca361703469b2fdce3d21f3376d",
+    "formal_evidence_commit": "f28b3032136aa28f54abb5fe5129765a125d3926",
+    "run_ids": [
+      "analysis-1cc1441dec4744a18d7ac73763507a6c"
+    ],
+    "resume_mode": false,
+    "completed_configs": 72,
+    "failed_configs": 0,
+    "through_focus_rows": 1080,
+    "matched_pairs": 36,
+    "pair_reference_records": 36,
+    "pair_reference_set_sha256": "a1cb8a899718d0327d8b1ecde21a4324e54090fd3db12cab36e649bb3cfc5b5d",
+    "acceptance_passed": true,
+    "run72_complete": true,
+    "web_independent_evidence_review": "PASS",
+    "repository_sha256": {
+      "TASK_011_RUN72_EVIDENCE.json": "d1b347cc221293fccd5a08679e8b6368788b22eecaa904f6b8f617a6296c50ee",
+      "TASK_011_RUN72_CONFIG_RESULTS.csv": "f51975b588bae3764806a7930fe6b49b0fc09f357d3ca9c11074fa20749cf615",
+      "TASK_011_RUN72_THROUGH_FOCUS.csv": "f2723a30e0629b6f0b27f8f4f73bc469f1ee7fee7fe3c62d2413c0d4a8eba2b6",
+      "TASK_011_RUN72_PAIRED_DELTAS.csv": "a6f0708e3339a6cec7b029f7d6675de291db4cea3162528d489189720c4598c5"
+    },
+    "recorded_producer_export_sha256": {
+      "TASK_011_RUN72_CONFIG_RESULTS.csv": "337628d95529a3711f36e7ea250ef435413d8f6aff11c25739e3c9b9ccc69dfa",
+      "TASK_011_RUN72_THROUGH_FOCUS.csv": "cb4ece26a0a5d3a931db52a5f3b7e3325a99cbe26c9e175abd12bec5b7ec79da",
+      "TASK_011_RUN72_PAIRED_DELTAS.csv": "03dfe506566f83f6868c72890c042389ed8d0cd370255967fd1ff3b1ca25fa62"
+    },
+    "opticstudio_rerun_required": false
+  },
+  "task012": {
+    "status": "complete-review-pass",
+    "analysis_plan": "docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md",
+    "results_review": "docs/TASK_012_RESULTS_REVIEW_2026-08-20.md",
+    "source_of_truth_commit": "f28b3032136aa28f54abb5fe5129765a125d3926",
+    "analysis_code_commit": "330b59171e1dab2ea76d1425d56d8e5175d233ef",
+    "analysis_evidence_commit": "e92960b1f687ff844da07141f6e0aef50f32cea6",
+    "pair_count": 36,
+    "contrast_count": 1152,
+    "coupling_cell_count": 9,
+    "figure_count": 24,
+    "dof50_effect_status_counts": {
+      "exact": 31,
+      "lower_bound": 5,
+      "upper_bound": 0,
+      "indeterminate": 0
+    },
+    "peak_censored_pair_count": 8,
+    "reconstruction_gate_passed": true,
+    "censor_propagation_passed": true,
+    "factorial_contrasts_complete": true,
+    "coupling_matrix_complete": true,
+    "figures_complete": true,
+    "result_review": "PASS_WITH_SCIENTIFIC_CAVEATS",
+    "inferential_p_values_default": false,
+    "opticstudio_used": false,
+    "opticstudio_rerun_required": false,
+    "formal_artifacts": [
+      "docs/evidence/task012/TASK_012_ANALYSIS_EVIDENCE.json",
+      "docs/evidence/task012/TASK_012_PAIR_ANALYSIS.csv",
+      "docs/evidence/task012/TASK_012_INTERACTION_CONTRASTS.csv",
+      "docs/evidence/task012/TASK_012_COUPLING_MATRIX.csv",
+      "docs/evidence/task012/figures/"
+    ]
+  },
+  "science_gates_still_active": [],
+  "web_only_gates_still_active": [],
+  "next_execution": {
+    "preferred": "paper-level-results-and-discussion-from-frozen-task012-evidence",
+    "gui_task010_required_before_next_science_step": false,
+    "repeat_task009_representatives": false,
+    "repeat_task011_run72": false,
+    "repeat_task012_analysis": false,
+    "on_new_inconsistency": "stop-interpretation-review-evidence-and-code-do-not-default-to-opticstudio-rerun"
+  },
+  "immutability": {
+    "task005_to_task009_science_or_method_changed_by_task011_or_task012": false,
+    "task008_manifest_hash_changed": false,
+    "task008_lock_set_hash_changed": false,
+    "task009_sampling_lock_changed": false,
+    "task011_evidence_recomputed": false,
+    "task012_changed_optical_acquisition": false,
+    "run72_complete": true
   }
 }

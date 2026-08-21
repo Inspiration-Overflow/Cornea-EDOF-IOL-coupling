@@ -1,10 +1,6 @@
 """Public ZOS-API session boundary."""
 
 from .analyses import (
-    HuygensPsfError,
-    HuygensPsfGrid,
-    HuygensPsfRunner,
-    HuygensPsfSettings,
     ZernikeCoefficient,
     ZernikeStandardError,
     ZernikeStandardResult,
@@ -21,7 +17,23 @@ from .errors import (
     ZosModeError,
     ZosSessionError,
 )
+from .mfe_effl import MfeEfflError, MfeEfflResult, MfeEfflRunner
+from .mfe_hoa_full import (
+    TASK009_MFE_FULL_HOA_555_V1,
+    MfeFullHoaError,
+    MfeFullHoaResult,
+    MfeFullHoaRunner,
+    MfeFullHoaSettings,
+)
+from .mfe_mtf_grid import (
+    MfeMtfGridError,
+    MfeMtfGridResult,
+    MfeMtfGridRunner,
+    MfeMtfGridSettings,
+    sampling_index_for_grid_size,
+)
 from .mfe_mtfa import MfeMtfaError, MfeMtfaResult, MfeMtfaRunner, MfeMtfaSettings
+from .mfe_powp import MfePowpError, MfePowpResult, MfePowpRunner, MfePowpSettings
 from .mfe_zernike import (
     MfeZernikeError,
     MfeZernikeResult,
@@ -32,15 +44,27 @@ from .primitives import Binary4Zone, SequentialEditor
 from .session import ZosSession, ZosSessionAdapter, open_zos_session
 
 __all__ = [
+    "TASK009_MFE_FULL_HOA_555_V1",
     "Binary4Zone",
-    "HuygensPsfError",
-    "HuygensPsfGrid",
-    "HuygensPsfRunner",
-    "HuygensPsfSettings",
+    "MfeEfflError",
+    "MfeEfflResult",
+    "MfeEfflRunner",
+    "MfeFullHoaError",
+    "MfeFullHoaResult",
+    "MfeFullHoaRunner",
+    "MfeFullHoaSettings",
+    "MfeMtfGridError",
+    "MfeMtfGridResult",
+    "MfeMtfGridRunner",
+    "MfeMtfGridSettings",
     "MfeMtfaError",
     "MfeMtfaResult",
     "MfeMtfaRunner",
     "MfeMtfaSettings",
+    "MfePowpError",
+    "MfePowpResult",
+    "MfePowpRunner",
+    "MfePowpSettings",
     "MfeZernikeError",
     "MfeZernikeResult",
     "MfeZernikeStandardRunner",
@@ -62,4 +86,5 @@ __all__ = [
     "ZosSessionError",
     "open_zos_session",
     "parse_zernike_standard_text",
+    "sampling_index_for_grid_size",
 ]

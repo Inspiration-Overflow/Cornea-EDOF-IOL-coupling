@@ -21,8 +21,8 @@ class ResultEnvelope:
 
 @dataclass(frozen=True, slots=True)
 class RepeatabilityPoint:
-    mtfa: float
-    vsotf: float
+    distance_peak_mtfa: float
+    tf_mtfa_mean: float
     c40_um: float
     c60_um: float
     distance_peak_grid_d: float
@@ -84,20 +84,20 @@ def validate_repeatability(
     for key in first:
         a, b = first[key], second[key]
         values = (
-            a.mtfa,
-            a.vsotf,
+            a.distance_peak_mtfa,
+            a.tf_mtfa_mean,
             a.c40_um,
             a.c60_um,
             a.distance_peak_grid_d,
-            b.mtfa,
-            b.vsotf,
+            b.distance_peak_mtfa,
+            b.tf_mtfa_mean,
             b.c40_um,
             b.c60_um,
             b.distance_peak_grid_d,
         )
         if not all(math.isfinite(value) for value in values):
             raise AcceptanceError(f"{key} repeatability values must be finite")
-        for name in ("mtfa", "vsotf"):
+        for name in ("distance_peak_mtfa", "tf_mtfa_mean"):
             av, bv = getattr(a, name), getattr(b, name)
             scale = max(abs(av), abs(bv), 1e-15)
             if abs(av - bv) / scale > relative_metric_tolerance:

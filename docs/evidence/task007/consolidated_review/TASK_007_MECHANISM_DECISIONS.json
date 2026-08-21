@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "source_evidence_commit": "a67288a4af1bdd4a9ec692c3b797f0e3e3469d9d",
+  "source_evidence_sha256": "88f89484d1684ce43005d5ce7a30feb88b485065962ee4df5ae517426a231c51",
+  "decisions": [
+    {
+      "platform_id": "WFS",
+      "passed": true,
+      "reason": "Across low/median/high actual powers, the EPD3 diagnostic keeps the distance peak at 0 D while broadening DOF50 from about 1.19-1.21 D to 1.29-1.33 D; standard-eye residual low-order readback and all ray-health checks pass, with no discrete diffraction-order behavior introduced."
+    },
+    {
+      "platform_id": "RAD",
+      "passed": true,
+      "reason": "Across low/median/high actual powers, the EPD3 diagnostic keeps the distance peak at 0 D and broadens DOF50 to about 2.44-2.46 D; standard-eye residual low-order readback and all ray-health checks pass. The source actual-eye piston failure is an aperture-limited SSAG Mode-0 readback artifact, not a residual or mechanism failure."
+    },
+    {
+      "platform_id": "HOA",
+      "passed": true,
+      "reason": "Across low/median/high actual powers, the EDOF whole-eye wavefront preserves the intended opposite-sign spherical-aberration pattern (C4<0, C6>0), broadens DOF50 to about 2.03-2.07 D, and shows a consistent -0.5 D peak shift; standard-eye residual low-order readback and all ray-health checks pass."
+    }
+  ],
+  "notes": [
+    "These are mechanism-surrogate decisions, not claims of commercial-IOL replication.",
+    "No residual seed, amplitude, SA target, piston/defocus tolerance, or new numerical threshold was changed during review."
+  ]
+}

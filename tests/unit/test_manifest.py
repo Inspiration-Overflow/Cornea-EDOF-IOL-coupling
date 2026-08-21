@@ -33,14 +33,12 @@ def lock(index, key) -> CarrierLock:
     residual_id = f"RES_{key.platform_id}"
     residual_sha = f"sha-{key.platform_id}"
     policy = ResidualValidationPolicy("POLICY_v1", 0.01, 0.05)
-    delta_f = 0.1
     lock_hash = compute_carrier_lock_hash(
         carrier,
         residual_id,
         residual_sha,
         policy.policy_id,
         policy.policy_hash,
-        delta_f,
     )
     return CarrierLock(
         carrier,
@@ -48,7 +46,6 @@ def lock(index, key) -> CarrierLock:
         residual_sha,
         policy.policy_id,
         policy.policy_hash,
-        delta_f,
         lock_hash,
     )
 
@@ -102,7 +99,6 @@ def test_missing_duplicate_or_tampered_lock_is_rejected() -> None:
         item.residual_sha256,
         item.residual_validation_policy_id,
         item.residual_validation_policy_hash,
-        item.delta_f_residual_d,
         "fake-hash",
     )
     with pytest.raises(ScientificInvariantError, match="hash"):

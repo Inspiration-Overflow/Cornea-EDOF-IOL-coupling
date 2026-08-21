@@ -1,0 +1,20 @@
+{
+  "figure_count": 5,
+  "figures": {
+    "MANUSCRIPT_FIGURE_1_DOF50_MATRIX.png": "947591a432c5be2cc3ee3b0bf6dbbe14d1729d5df2c93d2aeff43a884f5a68e9",
+    "MANUSCRIPT_FIGURE_2_MTFA0_MATRIX.png": "b0a36a99d180fe715fad272435e40ee3a053de59f3cf7c901230aa70583abf11",
+    "MANUSCRIPT_FIGURE_3_EXTENSION_QUALITY_TRADEOFF.png": "736fc3c3b7bc5578cb8e24bdd7d78e8482735906287c92b4d75b384592146660",
+    "MANUSCRIPT_FIGURE_4_SELECTED_THROUGH_FOCUS.png": "befb21464031e52c6eaedf31460971e788d2a14943d2dfe5e7466f15f65c29e3",
+    "MANUSCRIPT_FIGURE_5_HOA_MECHANISM.png": "7cde7268c70c1f54784e13ae88d9ef881a8bf01d25923e09fcaf98b3056f0b38"
+  },
+  "opticstudio_used": false,
+  "phase": "MANUSCRIPT-PRESENTATION",
+  "presentation_only": true,
+  "renderer_commit": "82bd4602d43d144566a7521ce39267aead368fdb",
+  "schema_version": 1,
+  "scientific_values_changed": false,
+  "source_files": {
+    "docs/evidence/task011/TASK_011_RUN72_THROUGH_FOCUS.csv": "f2723a30e0629b6f0b27f8f4f73bc469f1ee7fee7fe3c62d2413c0d4a8eba2b6",
+    "docs/evidence/task012/TASK_012_PAIR_ANALYSIS.csv": "73f1b7b61e47b4245fafbe90a05502cebb648003fed4464c5ba6c2e369016b90"
+  }
+}

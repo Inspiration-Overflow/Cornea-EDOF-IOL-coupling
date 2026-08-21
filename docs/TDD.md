@@ -1,258 +1,369 @@
 # TDD — 角膜屈光术后 × 非衍射 EDOF IOL Zemax 自动化研究软件
 
-> **Check Plan / Test-Driven Document。** 目标不是增加测试数量，而是让少量关键 oracle 能发现“模型做错、指标算错、72 个结果漏跑”。来源：`URD-0001 v1.4`、`ADD-0001 v1.4`、`MDD-0001 v1.3`。URD v1.4 仅改变 standard-eye calibration 科学条件，不改变既有 ADD/MDD 架构拆分。
+> **角色：** Test-Driven / Check Plan。目标是用少量高价值 oracle 发现模型、锁、指标或 72-config 执行错误。  
+> **来源：** `URD-0001 v1.6`、`ADD-0001 v1.6`、`MDD-0001 v1.5`。
 
 ## Metadata
 
-- document_id: TDD-0001
-- version: 1.4
-- status: active
-- source_docs: URD-0001 v1.4, ADD-0001 v1.4, MDD-0001 v1.3
-- last_updated: 2026-08-19
+- document_id: `TDD-0001`
+- version: `1.6`
+- status: `active`
+- last_updated: `2026-08-19`
 - target_test_runner: pytest
 - optical_integration_environment: Windows + OpticStudio 2026 R1 + valid ZOS-API license
+- active_main_settings: `NOMINAL_MAIN_FFT_MTF_555_v2`
+- active_main_settings_sha256: `0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc`
+- active_mtf_acquisition: `TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2`
+- active_mtf_acquisition_sha256: `f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d`
+- active_frequency_scale_mode: `paired_residual_free_MONO_EFFL`
+- production_sampling: `128`
+- production_sampling_lock: `TASK009_PRODUCTION_SAMPLING_LOCK_v1`
+- active_hoa_settings: `TASK009_MFE_ZERN_HOA_555_v1`
+- active_hoa_settings_sha256: `7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2`
 
-## Test Decisions
+---
+
+# 1. Test decisions
 
 | ID | Decision |
 | --- | --- |
-| DEC-001 | `DOF_abs` 在 MVP 主实验中统一使用 `VSOTF ≥ 0.10` 作为**工程比较阈值**，不解释为临床视力阈值；改变该阈值必须产生新 settings ID 并重跑受影响批次。B0 lock 使用独立的 A0-derived `Q_lock` absolute threshold，不使用 0.10。 |
-| DEC-002 | `STD_IOL_EYE_2024` 的角膜 `C4^0`、IOL footprint、carrier `SA_base` 与 `Q(P)`/`ZERO_HOA` 标定统一使用 `EPD=6.0 mm`、约 546 nm；主实验 `EPD3/EPD5` 仅用于性能评估，不作为 carrier 基础球差设计条件。 |
-| DEC-003 | `CORNEA_LOCK_B0_555_v2` 只替换 B0 的 MTF acquisition primitive：生产固定使用 MFE `MTFA` diffraction-MTF operand、`Grid=0`、`Data Type=0`、`Samp=3`、0–50 cycles/mm、5 cycles/mm step；A/B/C、REF_MONO、17-plane grid、`Q_lock` 和排序规则不变。Phase B.1 实机 probe 是该冻结决定的证据，不另设自动 convergence threshold。 |
+| TDD-DEC-001 | 主生产 MTF 使用 MFE `MTFA Grid=1`；每 matched pair 使用 residual-free MONO EFFL 固定角尺度；Python 只做确定性频率映射、MTFa、贯焦摘要和 paired delta。 |
+| TDD-DEC-002 | 标准眼 carrier SA calibration 固定 EPD6、约546 nm；主实验 EPD3/5 不改变 Q(P) calibration。 |
+| TDD-DEC-003 | B0 lock 使用独立 `CORNEA_LOCK_B0_555_v2`，不进入 main-analysis settings identity。 |
+| TDD-DEC-004 | DOF50 是固定 50% distance-peak MTFa 的命名指标，不是可调 settings 字段。 |
+| TDD-DEC-005 | `DeltaF_residual` 是 matched analysis result，不进入 physical carrier lock identity。 |
+| TDD-DEC-006 | TASK-009 代表配置必须来自 frozen TASK-008 manifest；6-config integration 必须走真实 `AnalysisBackend → run_analysis_batch`。 |
+| TDD-DEC-007 | numerical settings、MTF acquisition/scale contract、HOA readback settings 分开版本化并分别记录 identity。 |
+| TDD-DEC-008 | 本地 TASK-009 只生成 evidence；正式 sampling lock 所有权在 Web。Corrected evidence 已通过，Web 已正式锁定 sampling=128。 |
+| TDD-DEC-009 | `MTFT/MTFS` limited extraction check 不定义新 acceptance threshold；只检查 operand/frequency/direction mapping。 |
 
-## Frozen Analysis Settings
+`AS_FftMtf` production path 已退休。代码中的 `NOMINAL_MAIN_FFT_MTF_555_v2` 和 `fft_mtf_*` 字段名仅为保持冻结 settings hash，不构成 FFT-MTF Analysis 的 active test authority。
 
-| Item | `CORNEA_LOCK_B0_555_v2` | `NOMINAL_MAIN_555_v1` |
-| --- | --- | --- |
-| wavelength | 555 nm | 555 nm |
-| pupil | EPD3、EPD5 都进入正式 B0 gate、DOF 和排序 | EPD3、EPD5 都进入正式矩阵 |
-| through-focus | `+0.50 → −3.50 D` | `+0.50 → −3.00 D` |
-| step | 0.25 D；17 planes | 0.25 D；15 planes |
-| production acquisition | MFE `MTFA`；Wave=1；Field=1；Grid=0；Data Type=0；Samp=3；0–50 cycles/mm，step=5 | Huygens PSF → deterministic FFT → complex OTF；nominal pupil `128×128`、image `256×256`、image delta `0.5 µm` |
-| scalar quality metric | `Q_lock=(1/50)∫_0^50 MTF(f)df`，5 cycles/mm 网格梯形积分 | MTFa / VSOTF 等主实验指标 |
-| distance peak | `Q_lock` 在 `[-0.50,+0.50] D` 内最大；并列时先选最小 `|D|`，再选较大 signed D | VSOTF 在 `[-0.50,+0.50] D` 内最大；同一 tie-break |
-| B0 absolute threshold / main DOF_abs | `T_abs,p=0.5×Q_A0,p,peak`；分别用于 EPD3/EPD5 `DOF_lock_abs` | 含 distance peak 的连续区间，`VSOTF ≥ 0.10` |
-| distance retention | EPD3 ≥80% A0 peak；EPD5 ≥70% A0 peak | 不适用 |
-| threshold crossing | 相邻采样点线性插值；不外推；记录 `far_censored/near_censored` | 同左 |
+---
 
-正式 B0 lock 和 Run72 开始后不得根据结果改变对应 settings；改变即新 ID、新批次。`STD_IOL_EYE_2024` 的 6 mm calibration condition 是独立科学资产条件，不改变以上 B0/main analysis settings ID。
+# 2. Frozen settings / contracts
 
-### B0 Phase B.1 Evidence Gate
-
-完整五候选 B0 scan 前必须存在 Phase B.1 实机 evidence，并确认：
-
-- runtime acquisition 已成功；历史 JSON 的 `passed=true` 只作为 `runtime_passed=true` 的兼容别名；
-- probe settings 与 `CORNEA_LOCK_B0_555_v2` 完全一致；
-- 存在 `Samp=2/3/4` 以及 `5 vs 2.5 cycles/mm` 的代表状态证据；
-- 汇总差异均为有限非负值。
-
-Phase B.1 实测最大绝对 `Q_lock` 差异为：
+## 2.1 B0 lock settings
 
 ```text
-Samp 2→3      0.00221683
-Samp 3→4      0.00067564
-5→2.5 cyc/mm  0.00492149
+settings_id = CORNEA_LOCK_B0_555_v2
+wavelength = 555 nm
+EPD = 3 / 5 mm
+defocus = +0.50 → -3.50 D
+step = -0.25 D
+MFE MTFA Grid = 0
+Data Type = 0
+Samp = 3
+frequency = 0..50 cycles/mm
+frequency step = 5 cycles/mm
 ```
 
-据此冻结 `Samp=3`、production frequency step=`5 cycles/mm`。该决定是项目工程复核，不把这些实测差异转写成新的自动科学 threshold，也不要求重跑已通过的 Phase B.1。
+只用于 B0 selection provenance。
 
-### B0 Lock Metric / Recommendation
+## 2.2 Main numerical settings
 
-B0 不使用主实验的 `VSOTF≥0.10` 作为选择阈值。对 EPD3/EPD5：
+```text
+settings_id = NOMINAL_MAIN_FFT_MTF_555_v2
+settings_sha256 = 0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc
+wavelength = 555 nm
+EPD = 3 / 5 mm
+field = 0 deg
+defocus = +0.50 → -3.00 D
+step = -0.25 D
+planes = 15
+production sampling = 128
+convergence samplings = 64 / 128 / 256
+polarization = false
+MTF common grid = 0..60 cpd
+frequency step = 1 cpd
+reported fixed frequencies = 10/20/30/40/50/60 cpd
+```
+
+## 2.3 Production MTF acquisition / scale
+
+```text
+contract_id = TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2
+contract_sha256 = f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d
+operand = MTFA
+Grid = 1
+Data Type = 0
+Wave = 1
+Field = 1
+frequency_scale_mode = paired_residual_free_MONO_EFFL
+sampling mapping = 64→Samp2, 128→Samp3, 256→Samp4
+```
+
+Formal sampling lock：
+
+```text
+TASK009_PRODUCTION_SAMPLING_LOCK_v1
+production_sampling_locked = true
+production_sampling = 128
+sampling_escalation_256_active = false
+```
+
+## 2.4 HOA readback settings
+
+```text
+settings_id = TASK009_MFE_ZERN_HOA_555_v1
+settings_sha256 = 7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2
+MFE operand = ZERN
+Wave = 1
+Field = 1
+Samp = 1
+Type = 1
+Epsilon = 0
+Vertex = 0
+terms = Z7..Z28
+```
+
+---
+
+# 3. Metric oracle
+
+## 3.1 Paired-MONO angular-frequency scale
+
+每个 frozen pair 只从 residual-free MONO nominal-distance model 得到一个 reference：
 
 \[
-Q_{\rm lock,p}(F)=\frac1{50}\int_0^{50}MTF(f,F)\,df,\qquad f:\mathrm{cycles/mm}
+mm/deg=EFL_{MONO}\tan(1^\circ)
 \]
 
 \[
-T_{\rm abs,p}=0.5Q_{A0,p,peak}.
+f_{cyc/mm}=\frac{f_{cpd}}{mm/deg}
 \]
 
-候选必须先满足 EPD3 distance retention ≥80%、EPD5 ≥70%。完整实机 scan 首先只产生未经过人工形态审核的曲线和初步 deterministic recommendation，并保持：
+要求 MONO reference EFL finite positive，并绑定 pair key、MONO config ID、model SHA 与 entity fingerprint。同一 reference 必须用于该 pair 的 MONO、EDOF、所有 defocus、所有 sampling。EDOF/state EFFL 仅为诊断，不得改变生产 cpd 轴。
 
-```text
-morphology_review_pending = true
-selection_locked = false
-```
+## 3.2 MTFa
 
-之后用户对五候选逐一提供 morphology decision。明显稳定的“双峰 + 深谷”候选标记 `morphology_reject=true` 并写理由；软件用原始实机曲线重新调用同一 `rank_b0_candidates()`，剩余候选按 `DOF_lock_abs(EPD3) → DOF_lock_abs(EPD5) → EPD3 distance retention → smaller |ΔC4|` 排序。review 后 scan hash 必须包含 morphology flags/reasons。用户确认推荐结果；override 必须写 reason；最终 B0 lock 与 reviewed report、全部 morphology decisions 一起保存为不可变 artifact。
-
-## Canonical Main Optical Metric Pipeline
-
-主实验唯一生产路径：
-
-```text
-Zemax Huygens PSF
-→ centered-array deterministic FFT
-→ complex OTF
-→ radial MTF / through-focus MTF / MTFa / VSOTF
-```
-
-`CORNEA_LOCK_B0_555_v2` 的 MFE `MTFA` 是独立的 B0 角膜冻结指标采集路径，不替代、也不提前修改 TASK-009/Run72 的上述主实验 pipeline。
-
-规则：
-
-- Huygens PSF nominal：pupil `128×128`；image `256×256`；image delta `0.5 µm`。
-- `defocus_retina_d` 只通过 Zemax analysis-layer 的物方/入射 vergence 改变实现；retina position、IOL power/conic、ELP、角膜/IOL实体面型在整条贯焦中保持不变。
-- `defocus_shape_d = defocus_retina_d − distance_peak_retina_d`；只用于 DOF/AUC/flatness/曲线形态比较，不修改 `.zmx`，`ΔF_residual` 始终使用 retina-anchored frame。
-- 若 distance peak 搜索结果落在 `[-0.50,+0.50] D` 的任一边界，记录 `peak_search_censored=True`，不得声称已找到完整内部峰。
-- FFT 前保持 Zemax 图像几何中心为零点，**不得把 PSF peak 重新居中**。对称 zero-pad 到每维 4× 后，固定使用 `OTF = fftshift(fft2(ifftshift(PSF_padded)))`，并除以中心复数 DC bin 归一化。
-- `MTF=|OTF|`；径向平均使用 1 cpd annular bins，0–60 cpd；贯焦 CSV 固定保存 10/20/30/40/50/60 cpd。
-- `MTFa = (1/60)∫_0^60 rMTF(f)df`，采用 1-cpd grid 的 trapezoidal integration；这是项目工程指标。
-- `CSF_N(f)=2.6(0.0192+0.114f)exp(-(0.114f)^1.1)`，`f` 为 cycles/degree。
-- `VSOTF = Re[∬ CSF_N·OTF dfxdfy] / ∬ CSF_N·OTF_DL dfxdfy`，二维积分仅取 `sqrt(fx²+fy²)≤60 cpd`。
-- 同瞳孔 diffraction-limited reference 使用圆孔理论 OTF：`OTF_DL=(2/π)[acos(ν)-νsqrt(1-ν²)]`，`ν=f/fc`，`0≤ν≤1`；`fc=(EPD/λ)tan(1°)` cpd。
-- Zemax Huygens MTF 不是第二条主生产路径，只在少量 reference config 上交叉验证 PSF→FFT 实现。
-- VSOTF 采用 **complex OTF 的实部**；不得用 `|OTF|` 代替，否则会退化为 VSMTF 类指标。
-
-Metric provenance：VSOTF 的 complex-OTF/real-part 定义遵循 Cheng–Bradley–Thibos 的 visual Strehl 系列工作及 Iskander 对 VSOTF 计算性质的分析；OTF 由归一化 PSF Fourier transform 得到。60 cpd、MTFa 和 `DOF_abs=0.10` 是本项目预先固定的 MVP 主实验比较规则。
-
-## Tolerance Policy
-
-| Type | MVP rule |
-| --- | --- |
-| scientific anchor | STD corneal `C4^0(6 mm) ±0.005 µm`；carrier `SA_base(6 mm)` target `±0.01 µm`；A0 `ΔC4^0 ±0.02 µm`、EOZ `±0.20 mm` |
-| construction | 明确几何输入通常 `±0.001 mm`；介质 index `±1e-6`；standard-eye EPD `6.000±0.001 mm` |
-| convergence | 主实验 MTFa/VSOTF 相对变化 `≤2%`；distance peak shift `≤0.25 D`；strict PSF outer-10% energy `≤0.5%` |
-| repeatability | MTFa/VSOTF 相对变化 `≤0.1%`；C4/C6 `≤0.001 µm`；distance-peak grid sample 相同 |
-| arithmetic | synthetic pure-math oracle 默认 `atol≤1e-10` |
-
-scientific-anchor tolerance 是 MVP 工程验收带，不代表临床容差；后续若改变，必须版本化 baseline/settings。
-
-## Acceptance Tests
-
-| ID | Source AC | Scenario | Oracle |
-| --- | --- | --- | --- |
-| TDD-TEST-001 | URD-AC-001 | ZOS-API connection | valid path/license → non-null `PrimarySystem`、Sequential Mode、显式 close；bad path/license → typed failure 且无 completed run |
-| TDD-TEST-002 | URD-AC-002 | 双基座 | AL=`23.950/24.477±0.001 mm`；post-cornea→STOP=`3.150±0.001 mm`；→IOL ant=`4.500±0.001 mm`；aqueous/vitreous=`1.336±1e-6` |
-| TDD-TEST-003 | URD-AC-003 | `STD_IOL_EYE_2024` | calibration EPD=`6.000±0.001 mm`；corneal `C4^0(6 mm)=+0.258±0.005 µm`；IOL footprint `(6 mm)=5.15±0.10 mm`；n=`1.336±1e-6`；λ=`546±1 nm`；`ZERO_HOA_PARAXIAL_REFERENCE` 与待测 carrier 保持同 paraxial power/geometry/material/position，并在同一 6 mm calibration state 下作为 IOL-induced SA zero reference |
-| TDD-TEST-004 | URD-AC-004 | A0/B candidate/B0/REF lock | A0：`T=-3D`、EOZ=`5.0±0.2 mm`、`ΔC4^0=+0.13±0.02 µm`、central flattening、`numerical_convergence_status=PASS`；B：achieved `ΔC4^0={0.10,0.15,0.20,0.25,0.30}±0.01 µm`，全部来自 `LB_AL2395+REF_MONO+CORNEA_LOCK_B0_555_v2`；B.1 evidence 与 v2 settings 匹配且生产 `Samp=3`/5 cyc/mm 已冻结；软件输出 EPD3/EPD5 A0-derived thresholds、80/70% distance gates、DOF_lock_abs 与 deterministic rank；REF residual=null/platform-independent/不进72；B0 lock 保存 morphology decisions、reviewed rank、reviewed scan hash、selection reason；若 override recommendation，reason 必须非空 |
-| TDD-TEST-005 | URD-AC-005 | C0 construction | `D_near=3.000±0.001 mm`、`ADD=+1.750±0.001D`、`OZ=6.500±0.001 mm`、`wT=0.750±0.001 mm`；r≤1.5 mm near、r≥2.25 mm far；quintic transition 端点 value/1st/2nd derivative 连续；采样 sag finite；`numerical_convergence_status=PASS` |
-| TDD-TEST-006 | URD-AC-006 | power-specific `Q(P)` | 每个 18 carrier 回放至 STD eye，在 `EPD=6.0 mm, λ≈546 nm` 下以自身 `P_ijk,Q_ijk`，并相对同 power/geometry 的 `ZERO_HOA_PARAXIAL_REFERENCE` 重算 IOL-induced SA：WFS=`−0.20±0.01 µm`、RAD=`−0.27±0.01 µm`、HOA=`0.00±0.01 µm`；`q_source_power_d == P_ijk`；**不要求不同 power 的 Q 数值必须不同** |
-| TDD-TEST-007 | URD-AC-007 | matched MONO/EDOF | pair 的 power/R_ant/R_post/Q/CT/material/IOL position/carrier_id exact equal；MONO residual=null；EDOF residual platform-match；residual calibration record 包含 low/median/high actual-power gate；`ΔF_residual` 非空且来自 retina-anchored frame |
-| TDD-TEST-008 | URD-AC-008 | 18 carriers | count=18；unique(`base,cornea,platform`)=18；2×3×3 全覆盖 |
-| TDD-TEST-009 | URD-AC-009 | 72 manifest | count=72；unique config IDs=72；λ=555；EPD∈{3,5}；field=0；cornea/IOL decentration=0；IOL tilt=0；micro-monovision defocus=0；EPD3/EPD5 不得覆盖 carrier 的 6 mm calibration identity |
-| TDD-TEST-010 | URD-AC-010 | single pair analysis | 每 config 有 15-plane TF、10/20/30/40/50/60-cpd MTF、MTFa、VSOTF、3 PSF、C4/C6/HOA；每 TF row 同时有 `defocus_retina_d` 与 `defocus_shape_d`；贯焦前后实体模型 hash/retina/IOL/ELP 不变；paired scalar=`EDOF−MONO` 与直接减法 `atol≤1e-10` |
-| TDD-TEST-011 | URD-AC-011 | result traceability | config ID 可追到 carrier ID、P、Q、base/cornea/platform/state/pupil；存在 `.zmx`、through-focus plot、MTF plot、3 PSF images；cornea/STOP/IOL footprint 均存在，IOL footprint≤其 optical diameter，且无 unintended-vignetting flag |
-| TDD-TEST-012 | URD-AC-012 | failure/rerun | parameterized 注入 1 个 carrier-stage failure 与 1 个 config export failure：failed target 不计 completed；其他完成结果不回滚；Rerun 只重跑 selected target，生成新 run_id |
-| TDD-TEST-013 | URD-AC-013 | repeatability | 同 program/OpticStudio/baseline/settings/manifest/lock set：locks+manifest hashes exact；MTFa/VSOTF ≤0.1% relative；C4/C6 ≤0.001 µm；distance-peak grid sample 相同 |
-| TDD-TEST-014 | URD-AC-014 | surrogate naming | user-visible model IDs/labels 只能是 WFS-like/RAD-like/HOA-like surrogate 或批准中文等价；商业名不得作为模型 ID |
-| TDD-TEST-015 | URD-AC-015 | GUI smoke | GUI 可完成 Build→Validate→B0 Scan/Lock→Carriers→Run72→Rerun；install path/project path/progress/log/output-folder 可见；不要求 Pause/Cancel |
-| TDD-TEST-016 | URD-AC-010,011 | final nominal completeness | 正式 main batch：`completed configs=72`、`matched pairs=36`、`through_focus rows=72×15=1080`、无 duplicate ID、无 silent missing config |
-
-## Contract Tests
-
-| ID | Interface | Oracle |
-| --- | --- | --- |
-| TDD-TEST-101 | MDD-API-001 | valid returns Sequential `PrimarySystem` and always closes；bad path/license raises typed error；license failure closes before raise |
-| TDD-TEST-102 | MDD-API-002 | writable matching project opens；unwritable/baseline mismatch fails without changing metadata |
-| TDD-TEST-103 | MDD-API-003 | new artifact indexes after successful write；same-hash lock retry=no-op；different-hash same ID=`LockedArtifactConflict` |
-| TDD-TEST-104 | MDD-API-004 | residual absent 仍可完成 core Build 但 `carrier_ready=False`；core validation fail → no corresponding lock |
-| TDD-TEST-105 | MDD-API-005 | read-only validate 前后 locked `.zmx` hash exact；missing/tampered lock → failed finding |
-| TDD-TEST-106 | MDD-API-006 | complete B0 scan 必有 A0+5 candidates、每候选 EPD3+EPD5 各 17 planes；full scan 前 Phase B.1 evidence gate 必须通过；`T_abs,p=0.5×A0 peak`、80/70% gates、DOF_lock_abs 和初步 rank 可从 JSON 独立重算；任一 candidate 失败 → action failed、已成功 artifact 保留、不可 lock |
-| TDD-TEST-107 | MDD-API-007 | complete scan + 五候选完整 morphology decisions → 用原始曲线重新 deterministic rank；reviewed scan hash 必须反映 morphology flags/reasons；valid candidate 可写唯一不可变 B0 lock；确认推荐项允许标准 reason；override 必须显式 reason；unknown/incomplete/missing-decision/missing-reason/conflict → no write |
-| TDD-TEST-108 | MDD-API-008 | valid input → each platform residual 先通过 low/median/high actual-power calibration record，再得到 exactly 18 locks；missing residual/gate fail/pair mismatch/SA revalidation failure → affected formal lock 不产生 |
-| TDD-TEST-109 | MDD-API-009 | valid 18 locks → stable 18/72 manifests；17 locks/duplicate key → no formal manifest |
-| TDD-TEST-110 | MDD-API-010 | defocus sweep 只改变 analysis vergence；实体 `.zmx`/retina/IOL/ELP hashes 稳定；shape axis 可由 retina axis 和 distance peak 精确重算；mandatory artifacts before completed；invalid selection/export fail/rerun behavior 同 contract |
-| TDD-TEST-111 | MDD-API-011 | required controls exist；GUI module does not import raw ZOSAPI；GUI init failure creates no success record |
-| TDD-TEST-112 | MDD-API-012 | idle submit starts exactly one action；busy second request rejected；workflow exception→failed event+log；no completed event |
-
-## Metric / Numerical Oracle Tests
-
-| ID | Protects | Oracle |
-| --- | --- | --- |
-| TDD-TEST-201 | two settings grids | `CORNEA_LOCK_B0_555_v2` vector exactly 17 points `+0.50…−3.50`、step `−0.25D`、EPD=`(3,5)`、Samp=3、Grid=0、Data Type=0、0–50 cycles/mm/5-step；main exactly 15 points `+0.50…−3.00`；serialization IDs distinct/stable |
-| TDD-TEST-202 | PSF→complex OTF | 使用固定 `fftshift(fft2(ifftshift(...)))`：centered delta PSF → OTF≡1；one-pixel shifted delta keeps `|OTF|=1` 且出现解析可预测的线性 phase ramp，证明没有 peak-recenter/shift-convention 错误 |
-| TDD-TEST-203 | VSOTF endpoints | `OTF=OTF_DL` → `VSOTF=1±1e-10`；zero OTF → `0±1e-10` |
-| TDD-TEST-204 | phase-sensitive VSOTF golden | `docs/fixtures/COMPLEX_OTF_GOLDEN_3x3_v1.json` 的完整 3×3 complex matrix：VSOTF=`0.4411441499±1e-10`；VSMTF=`0.5325191642±1e-10`；若实现使用 `|OTF|` 代替 complex OTF 必失败 |
-| TDD-TEST-205 | MTFa | synthetic radial MTF≡0.5 on 0–60 cpd → MTFa=`0.5±1e-10` |
-| TDD-TEST-206 | distance-peak tie/censor | equal maxima at −0.25/+0.25 D → +0.25 D；若 0 D 同高 → 0 D；若唯一最大值位于 −0.50 或 +0.50 D 搜索边界，`peak_search_censored=True` |
-| TDD-TEST-207 | DOF interpolation | synthetic linear threshold crossing → analytic crossing `±1e-10D`；分别验证 relative 50% 与 DEC-001 absolute 0.10 |
-| TDD-TEST-208 | DOF edge/empty | threshold 到 scan edge 仍满足 → 不外推且相应 censored flag=true；若 distance peak<0.10，则 `DOF_abs` 为空/0 且 `below_absolute_threshold=True`，不是分析失败 |
-| TDD-TEST-209 | Huygens sampling convergence | 3 个代表困难配置用 nominal `128/256/0.5µm` 与 strict `256/512/0.25µm`（同 128µm image window）比较：MTFa/VSOTF ≤2%、peak shift≤0.25D；strict PSF outer-10% energy≤0.5% |
-| TDD-TEST-210 | whole-eye Zernike convention | synthetic wavefront=`defocus+C4+C6+known n3..6 HOA`，在 EPD3/EPD5 分别验证：piston/tip/tilt/defocus removed；C4/C6 `±0.005µm`；HOA RMS 等于 injected n3..6 RMS；reference center 不变 |
-| TDD-TEST-211 | retinal frequency scale | known EFL fixture：`mm_per_degree=EFL·tan(1°)`，FFT cycles/mm→cpd arithmetic `atol≤1e-10` |
-| TDD-TEST-212 | matched delta | synthetic rows 每个 numeric delta=`edof−mono` `atol≤1e-10` |
-
-`COMPLEX_OTF_GOLDEN_3x3_v1` 的 source-of-truth 同时保存在 `docs/fixtures/COMPLEX_OTF_GOLDEN_3x3_v1.json`。行是 `fy=[-30,0,+30]`、列是 `fx=[-30,0,+30]` cpd，矩阵为：
+生产输入直接为 MFE `MTFA Grid=1`：
 
 \[
-\begin{bmatrix}
-0.162090692-0.252441295i & 0.460530497-0.194709171i & 0.243847348+0.251074632i\\
-0.458905312-0.386530612i & 1+0i & 0.458905312+0.386530612i\\
-0.243847348-0.251074632i & 0.460530497+0.194709171i & 0.162090692+0.252441295i
-\end{bmatrix}
+MTFa=\frac1{60}\int_0^{60}MTFA(f)df
 \]
 
-fixture 明确规定 `OTF_DL=1` 于这 9 个离散点，并按同一离散 measure 计算 numerator/denominator；golden 数值来自固定 fixture 文件，待测实现不得在运行时重新生成“期望答案”。
+1-cpd grid + trapezoidal integration。Pure-math oracle：constant MTFA=0.5 → MTFa=0.5，算术容差≤1e-10。
 
-## Negative / Boundary Tests
+`MTFT/MTFS` 只用于 limited diagnostic；20/40/60 cpd 的方向平均检查为：
 
-| ID | Case | Expected oracle |
+\[
+MTFA=\frac{MTFT+MTFS}{2}
+\]
+
+该检查不成为第二条 production path。
+
+## 3.3 Distance peak / DOF50 / TF mean
+
+Distance peak：±0.50D 内最大 MTFa；tie 先 minimum |D|，再 larger signed D；边界峰标 censored。
+
+\[
+T_{50}=0.5\times MTFa_{distance\ peak}
+\]
+
+DOF50 从 distance peak 向两侧取连续 ≥T50 区间，crossing 线性插值，不外推。
+
+\[
+TF\_MTFa\_mean=\frac1{3.5D}\int_{-3.0}^{+0.5}MTFa(F)dF
+\]
+
+必须对 defocus 数组方向不敏感。
+
+---
+
+# 4. Scientific asset acceptance
+
+| ID | Scenario | Oracle |
 | --- | --- | --- |
-| TDD-TEST-301 | locked `.zmx` 被篡改 | 下游前 hash check 失败 |
-| TDD-TEST-302 | residual payload 缺失 | core Build 可完成；Validate `carrier_ready=False`；Build Carriers refuses |
-| TDD-TEST-303 | residual platform/hash 错、payload piston/global-defocus 实测超 tolerance，或 low/median/high power gate 未完成 | no formal residual lock；metadata `defocus_removed=true` 单独不能通过 |
-| TDD-TEST-304 | B0 full scan 缺 Phase B.1 evidence、5-point 未完成、或 morphology decisions 未完整提供就 Lock B0 | rejected；no B0 lock |
-| TDD-TEST-305 | 某 carrier 被替换为错误 power 的 Q，或在非 6 mm standard-eye calibration pupil 下重放 SA | 6 mm STD-eye achieved SA 超 tolerance/校准身份不匹配 → key validation fail；不以“Q 是否和别人相同”作为 oracle |
-| TDD-TEST-306 | EDOF branch 改 carrier power/Q | pair invariant fails before lock |
-| TDD-TEST-307 | duplicate config ID | manifest rejected |
-| TDD-TEST-308 | distance peak 本身低于 absolute threshold | 合法结果：`DOF_abs=0/empty + below_absolute_threshold=True` |
-| TDD-TEST-309 | mandatory image/CSV write denied | config failed；no completed row |
-| TDD-TEST-310 | selection 含 manifest 外 ID | reject before Zemax |
-| TDD-TEST-311 | GUI/report 把商业产品名当模型 ID | naming test fails |
-| TDD-TEST-312 | busy 时再次 Run | second long action not started；busy feedback |
-| TDD-TEST-313 | RunEnvironment 缺 program_version / opticstudio_version / baseline_id / settings_id / manifest_hash / lock_set_hash 任一项 | formal action cannot be completed |
-| TDD-TEST-314 | CSV required column 缺失/额外未知 schema version | explicit schema error；no silent coercion |
-| TDD-TEST-315 | project path 含 spaces/Unicode | store/build round-trip succeeds；metadata keeps relative paths |
+| TDD-TEST-001 | ZOS session | valid runtime→non-null system + explicit close；bad path/license→typed failure，无假 completed |
+| TDD-TEST-002 | bases | AL=23.950/24.477±0.001 mm；STOP/IOL landmarks 与 URD 一致 |
+| TDD-TEST-003 | standard eye | EPD=6.000±0.001 mm；corneal C40=+0.258±0.005 µm；footprint=5.15±0.10 mm；λ≈546 nm |
+| TDD-TEST-004 | A/B/B0 | A0 与五 B candidate 达 target；B0 review/rank/hash 可复算；B0.20 immutable |
+| TDD-TEST-005 | C0 | near3.0、ADD+1.75D、OZ6.5、transition0.75、N8、convergence PASS |
+| TDD-TEST-006 | Q(P) | 18 carriers replay standard eye EPD6；WFS−0.20±0.01、RAD−0.27±0.01、HOA0±0.01 µm；q_source_power==P |
+| TDD-TEST-007 | matched carrier | 同平台 MONO/EDOF P/R/Q/CT/material/position 完全相同；EDOF 只增加 residual |
+| TDD-TEST-008 | exact physical locks | exactly 18 unique Base×Cornea×Platform locks |
+| TDD-TEST-009 | exact nominal manifest | exactly 72 configs、36 pair keys、EPD3/5、555nm、field0、centered |
 
-## Environment / Integration Gates
+---
 
-| ID | Gate | Oracle |
-| --- | --- | --- |
-| TDD-TEST-401 | GUI-like worker thread ZOS-API | connect→PrimarySystem→New(False)→read→close 无 exception/hang；若失败，RMD 禁止 thread-owned session，改 orchestration placement |
-| TDD-TEST-402 | Huygens PSF API | reference `.zmx` 返回 expected image shape、finite values、positive total energy |
-| TDD-TEST-403 | independent MTF cross-check | 3 representative configs 的 PSF-FFT radial MTF 与独立 Zemax MTF reference 在 10/30/50 cpd 的 relative difference ≤2%；生产数据仍只走 PSF→FFT |
-| TDD-TEST-404 | offline + state durability | outbound network disabled 时运行 3 representative configs；重启 app 后 completed/failed state、RunEnvironment、artifact refs 可恢复 |
+# 5. Residual science gate
 
-## Regression Tests
+## TDD-TEST-108 — residual actual-power calibration
 
-| ID | Protects | Oracle |
-| --- | --- | --- |
-| TDD-TEST-501 | scientific lock boundary | Assets/B0/Carrier 下游 workflow 不改变任何上游 lock hash |
-| TDD-TEST-502 | experiment identity | golden carrier/config key sets 始终 exactly 18/72，除非 URD 版本改变 |
-| TDD-TEST-503 | settings freeze | `CORNEA_LOCK_B0_555_v2` 与 `NOMINAL_MAIN_555_v1` serialization hash 稳定；B0 v1 只保留历史 Phase B.0 STOP provenance，不得重新成为 production setting |
-| TDD-TEST-504 | surrogate naming | UI/report/export refactor 后禁止的 exact-product-as-model strings 仍为 0 |
-| TDD-TEST-505 | trace coverage | 每个 `URD-AC-*`、`MDD-API-*` 至少链接 1 个 `TDD-TEST-*` |
+每平台 formal carrier power 的 low/median/high 三点必须具备 payload/version/hash、EPD6 standard-eye imported residual low-order readback、ray health 与 mechanism review；共9 records。
 
-## Deferred Test
+冻结 gate：
 
-| ID | Reason | STOP trigger |
-| --- | --- | --- |
-| TDD-TEST-999 | 三个平台 residual 的完整科学 payload 尚未提供；当前不能用 metadata flag 代替实际光学校准 | 实现 `MDD-API-008 Build Carriers` 前必须提供 versioned WFS/RAD/HOA payload，冻结 piston/global-defocus 数值 tolerance，并对**每个平台实际 carrier powers 的 low/median/high 代表点**完成 residual 校准 oracle；三项均通过后才能解除，不得先进入真实 carrier/Run72 |
+```text
+|piston| <= 0.010 µm
+|global defocus| <= 0.125 D
+```
 
-## Execution Groups
+actual-eye sag readback只作诊断。
 
-- `unit`：store/manifest/metric math/GUI mock/path/schema 等不需 Zemax 的测试。
-- `zemax`：真实 Session、Assets/B0/Carrier/Analysis、sampling、MTF cross-check、lock/hash integration。
-- `gui`：GUI control/busy/naming/full-flow smoke。
-- 每个测试函数只使用明确 marker；不再用“001–013 excluding...”这类范围表达。
-- pre-merge command：`uv run pytest tests/unit`；Zemax workstation 必须同时满足 `uv run pytest tests/zemax`。Zemax 测试直接按目录收集，避免未选中的 GUI/数值库测试模块进入 ZOS-API 原生进程。
+## TDD-TEST-999 — carrier/residual science STOP
 
-## TDD Completion Gate
+versioned residual payload + frozen low-order policy + low/median/high calibration + mechanism review 全部具备后才可正式锁 carrier/residual。当前 evidence 已通过且 `tdd_999_cleared=true`；TASK-009 不重新解释该科学 evidence。
 
-- [x] URD-AC-001~015 均有明确 acceptance oracle；另有 72/36 final completeness。
-- [x] MDD-API-001~012 均有 contract test。
-- [x] A/B/C 不只检查“文件存在”，而有最小科学/构造放行 oracle。
-- [x] B0 与 nominal main settings 分离；B0 v2 使用 MFE MTFA `Samp=3`/5-cyc/mm acquisition、A0-derived Q_lock 阈值、EPD3/EPD5 距离 gate、deterministic recommendation + 人工 morphology review/确认。
-- [x] 主实验 MTF/MTFa/VSOTF 只有一条 canonical production pipeline；FFT shift convention 与完整 complex golden fixture 均已冻结，并有独立 Zemax MTF 交叉检查。B0 的 MTFA lock metric 是独立冻结阶段，不改写主实验 pipeline。
-- [x] `Q(P)` 通过 **EPD=6 mm** STD-eye achieved-SA 回放验证，而不是仅检查 CSV 字段。
-- [x] `ZERO_HOA_PARAXIAL_REFERENCE` 与 carrier 的 6 mm standard-eye calibration identity 已冻结。
-- [x] EPD3/EPD5 保留为 B0/main 性能条件，不作为 `SA_base` 设计瞳孔。
-- [x] tolerance 被分成 scientific/construction/convergence/repeatability/arithmetic 五类。
-- [x] 72 configs / 36 matched pairs / 1080 TF rows 有 end-to-end completeness oracle。
-- [x] 未加入患者级、多色、偏心/倾斜、全矩阵 convergence、阈值敏感性或复杂 GUI。
-- [x] retina-anchored / shape-recentered 双坐标和 analysis-vergence 贯焦因果边界已冻结。
-- [x] residual scientific payload + low/median/high actual-power calibration 仍是唯一阻断正式 carrier/Run72 的显式科学 STOP gate。
+---
 
-**Result:** `TDD-0001 v1.4` 已同步 `CORNEA_LOCK_B0_555_v2` 的实机 MTFA production acquisition、Phase B.1 参数冻结和 morphology review/lock 边界；主实验 Huygens-PSF→complex-OTF pipeline、6 mm standard-eye carrier SA calibration、18/72 设计与 TDD-999 均保持不变。
+# 6. TASK-008 manifest tests
+
+## TDD-TEST-109 — lock/hash integrity
+
+18 carrier 与3 residual asset/validation SHA 必须与 artifact index 一致，locked=true，baseline=`MVP_2026_v2`，lock-set hash 稳定；tampered/missing/duplicate lock 拒绝 manifest。
+
+## TDD-TEST-110 — frozen manifest reload semantics
+
+必须 strict-load `physical_carriers.csv`、`nominal_72.csv`、`manifest.sha256`，并满足 exact18/72 rows、schema/version exact、18 locks 可重建、`build_manifests()` 重新生成的72 configs 与 loaded CSV 全等、manifest/lock-set 与 TASK-008 evidence 一致。MONO residual provenance empty；EDOF complete；555nm、EPD3/5、field0、alignment/monovision=0。
+
+任一 tamper 必须在 OpticStudio acquisition 前 fail。
+
+---
+
+# 7. TASK-009 real API / production gate
+
+## TDD-TEST-201 — MFE MTFA Grid=1 capability
+
+真实 OpticStudio 2026 R1 必须验证：
+
+- `MTFA`、`MTFT`、`MTFS` operands 可写入/读取；
+- Grid=1、Data Type=0、Wave1、Field1；
+- sampling mapping 64→2、128→3、256→4；
+- frequency parameter headers/API mapping 明确；
+- cycles/mm 输入与返回 finite；
+- MFE 临时 rows 可恢复，不污染模型。
+
+`AS_FftMtf` / `New_FftMtf()` 不再是 active capability prerequisite。
+
+## TDD-TEST-202 — paired MONO EFFL capability
+
+每 representative pair 的 residual-free MONO nominal-distance EFFL 必须 finite positive，并记录 pair key、MONO config ID、model SHA、entity fingerprint。EDOF/state EFFL 可记录为 diagnostic，但不得用于 production frequency scale。
+
+## TDD-TEST-203 — cpd target coverage / mapping
+
+对 0..60 cpd common grid，必须使用 pair MONO reference 计算直接 cycles/mm targets；60 cpd target finite positive。MONO/EDOF、所有 defocus/sampling 必须复用同一个 pair scale，不允许 per-state remapping。
+
+---
+
+# 8. TASK-009 representative gate
+
+代表 pair 必须从 frozen manifest 选择：
+
+```text
+REP-1 LB_AL2395 + A0 + WFS + EPD3
+REP-2 ATC_M3_AL24477 + B0 + RAD + EPD5
+REP-3 ATC_M3_AL24477 + C0 + HOA + EPD5
+```
+
+## TDD-TEST-204 — sampling convergence
+
+每 EDOF representative 跑64/128/256。128→256：distance-peak MTFa relative≤2%；TF_MTFa_mean relative≤2%；distance peak shift≤0.25D；DOF50 width change≤0.25D。
+
+Corrected pair-MONO-scale evidence 三组全部 PASS；formal production sampling 已锁128。不执行256→512 escalation。
+
+## TDD-TEST-205 — repeatability
+
+每 EDOF representative 独立重复128：peak sample identical；peak MTFa relative≤0.1%；TF mean relative≤0.1%；C4/C6≤0.001µm。Corrected evidence 三组全部 PASS。
+
+## TDD-TEST-206 — real six-config production integration
+
+三个 frozen pair 的 MONO+EDOF，共6 configs，必须：
+
+- 使用 `ZosMtfaPairScaleAnalysisBackend`；
+- 通过 `run_analysis_batch()`；
+- selection config IDs 完全来自 frozen manifest；
+- RunEnvironment 引用 baseline/main-settings/manifest/lock-set/acquisition ID+hash/frequency-scale mode；
+- backend 自报 acquisition ID/hash/scale 与 RunEnvironment 完全一致，否则 acquisition 前 fail；
+- 每 config 15 rows、MTFa/fixed MTF/C4/C6/HOA RMS finite；
+- `ConfigResult` validator PASS；
+- run history 有 running→completed/failed；
+- completed artifacts 注册；
+- matched deltas 与 `DeltaF_residual` 正确；
+- formal carrier/residual 文件不修改。
+
+Corrected evidence completed/failed=6/0，PASS。
+
+## TDD-TEST-207 — limited independent extraction check
+
+3 representative EDOF 在0D、20/40/60 cpd，用同一 paired-MONO scale 比较 production `MTFA` 与独立重复 `MTFA`，并比较 `MTFA` 与 `(MTFT+MTFS)/2`。记录 absolute differences，不新增 threshold。
+
+Corrected evidence 两组差值逐点均为0；Web review=PASS。
+
+---
+
+# 9. Main analysis result / provenance contract
+
+## TDD-TEST-301 — one config
+
+成功 `ConfigResult` 必须保存15 rows、MTFa/MTF10..60、distance peak/zero/DOF50/TF mean、C4/C6/HOA RMS、main settings hash、HOA settings ID/hash、footprints/vignetting、working model hash、entity fingerprint、retina/IOL/ELP、artifacts。summary 必须由15-row curve复算；shape axis 严格由 retina axis 与 distance peak 推导。
+
+Run-level `RunEnvironment` 必须保存 acquisition contract ID/hash 与 frequency-scale mode；backend 必须在 batch acquisition 前与环境一致。
+
+## TDD-TEST-302 — entity invariants
+
+through-focus before/after：working model file hash unchanged；in-memory entity fingerprint unchanged；fingerprint 覆盖 carrier R/Q/CT/material/IOL position/ELP/retina/surface role/type/count/STOP；OBJECT thickness 排除但结束恢复；retina/IOL/ELP unchanged；no unintended vignetting。
+
+## TDD-TEST-303 — matched pair
+
+same carrier ID/lock hash、same Base/Cornea/Platform/Pupil/alignment；MONO residual empty；EDOF residual ID/SHA/policy ID/hash complete；同一 pair angular scale；paired deltas=EDOF−MONO。
+
+---
+
+# 10. Full Run72 acceptance
+
+Run72 前置条件：TDD-TEST-201~207 全部通过；`TASK009_PRODUCTION_SAMPLING_LOCK_v1` 存在且 sampling=128；active RunEnvironment/backend acquisition provenance gate 生效；Web active specs 已同步。
+
+## TDD-TEST-401 — exact completion
+
+```text
+completed configs = 72
+through-focus rows/config = 15
+total through-focus rows = 1080
+matched pair deltas = 36
+```
+
+config IDs 必须与 frozen manifest 完全相等。
+
+## TDD-TEST-402 — repeatability sample
+
+从正式 Run72 的预注册代表 configs 重跑，使用 TASK-009 repeatability tolerance。该测试属于 Run72 后验 acceptance，不是再次阻塞 Run72 启动的代表性预跑。
+
+## TDD-TEST-403 — failed config isolation
+
+人为失败一个 config：该 config=failed、其他 completed 不回滚、整体 acceptance 不通过；rerun 只选 failed config、使用新 run_id；补齐后才 PASS。
+
+---
+
+# 11. Active prohibition / trace tests
+
+单元测试必须扫描 `src/whole_eye_mvp/**/*.py`、TASK-009/Run72 scripts 和 active URD/ADD/MDD/TDD/RMD/RMD_EXECUTION_STATUS，阻止已移除的旧主分析入口重新成为 production authority。
+
+Active specs 不得把以下内容表述为 production：
+
+```text
+OpticStudio FFT MTF Analysis
+ZosFftMtfAnalysisBackend
+New_FftMtf
+per-state EFFL frequency scale
+```
+
+`docs/TRACE.md` 必须覆盖当前 ID universe：URD-REQ-001..018、URD-AC-001..010、FR/DP-001..010、MDD-MOD-001..010、MDD-API-001..013。
+
+---
+
+# 12. Current gate status
+
+截至 2026-08-19：
+
+- TASK-005–008 frozen assets PASS；
+- TDD-999 cleared；
+- TASK-009 MFE MTFA Grid1 API PASS；
+- corrected paired-MONO angular-scale convergence PASS；
+- repeatability PASS；
+- six-config real integration PASS；
+- limited extraction Web review PASS；
+- production sampling=128 formally locked；
+- no 256→512 escalation required；
+- Run72 尚未启动。

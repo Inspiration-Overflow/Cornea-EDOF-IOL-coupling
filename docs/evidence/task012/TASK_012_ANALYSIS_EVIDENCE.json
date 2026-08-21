@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "phase": "TASK-012-OFFLINE-ANALYSIS",
+  "formal_scientific_lock": false,
+  "source_task011_commit": "f28b3032136aa28f54abb5fe5129765a125d3926",
+  "source_task011_repository_sha256": {
+    "TASK_011_RUN72_EVIDENCE.json": "d1b347cc221293fccd5a08679e8b6368788b22eecaa904f6b8f617a6296c50ee",
+    "TASK_011_RUN72_CONFIG_RESULTS.csv": "f51975b588bae3764806a7930fe6b49b0fc09f357d3ca9c11074fa20749cf615",
+    "TASK_011_RUN72_THROUGH_FOCUS.csv": "f2723a30e0629b6f0b27f8f4f73bc469f1ee7fee7fe3c62d2413c0d4a8eba2b6",
+    "TASK_011_RUN72_PAIRED_DELTAS.csv": "a6f0708e3339a6cec7b029f7d6675de291db4cea3162528d489189720c4598c5"
+  },
+  "source_task011_recorded_producer_export_sha256": {
+    "TASK_011_RUN72_CONFIG_RESULTS.csv": "337628d95529a3711f36e7ea250ef435413d8f6aff11c25739e3c9b9ccc69dfa",
+    "TASK_011_RUN72_THROUGH_FOCUS.csv": "cb4ece26a0a5d3a931db52a5f3b7e3325a99cbe26c9e175abd12bec5b7ec79da",
+    "TASK_011_RUN72_PAIRED_DELTAS.csv": "03dfe506566f83f6868c72890c042389ed8d0cd370255967fd1ff3b1ca25fa62"
+  },
+  "analysis_code_commit": "eef14382b7b6f9b0000e7918ebb216594d38bcaf",
+  "analysis_plan_id": "TASK012_RUN72_ANALYSIS_PLAN_2026-08-19",
+  "analysis_plan_path": "docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md",
+  "analysis_plan_sha256": "c538348c84390e412bb51699fc36573e63544ce1c0a9aa1747541470a7c8281a",
+  "pair_count": 36,
+  "contrast_count": 1152,
+  "coupling_cell_count": 9,
+  "figure_count": 24,
+  "dof50_effect_status_counts": {
+    "exact": 31,
+    "lower_bound": 5
+  },
+  "peak_censored_pair_count": 8,
+  "reconstruction_gate_passed": true,
+  "censor_propagation_passed": true,
+  "figures_generated": true,
+  "opticstudio_used": false,
+  "output_files": {
+    "TASK_012_PAIR_ANALYSIS.csv": "73f1b7b61e47b4245fafbe90a05502cebb648003fed4464c5ba6c2e369016b90",
+    "TASK_012_INTERACTION_CONTRASTS.csv": "d30b938ee29b34810e3aba9940e64fd12a4eb4ac2807e439f279140f8e984981",
+    "TASK_012_COUPLING_MATRIX.csv": "4de3b18ef6357a723a8ba6f91625af7d4ef24e25a467ab3498b2724b34606ded",
+    "figures/base_sensitivity_dof50.png": "2eff2dafd56e7b91174bd338caf00ff9cbc75ed34d1a742b338f59d0eac02e8f",
+    "figures/base_sensitivity_mtfa_zero.png": "60fdf772e34213eacf8c6291149c122ffdc5977d9f64eb87d537771f54e2192f",
+    "figures/heatmap_delta_dof50_width_d_atc-m3-al24477_epd3.png": "4b7f8053825535543700b7d20159b0eb763369201fa202f1cbbde93e29531118",
+    "figures/heatmap_delta_dof50_width_d_atc-m3-al24477_epd5.png": "4c0de2d7849eb63c01fc913c546f5952f3c6e2a2a3d46738efb0a0bf8aa7031e",
+    "figures/heatmap_delta_dof50_width_d_lb-al2395_epd3.png": "ac2e69c43a516bd414cc422a07451282b329dafa1abd9e58b188f6d8e60959af",
+    "figures/heatmap_delta_dof50_width_d_lb-al2395_epd5.png": "c66f0d95b074953ceb47ce56ece8d19389c1c2a794fc435fb45d3271bb737f48",
+    "figures/heatmap_delta_mtfa_at_zero_d_atc-m3-al24477_epd3.png": "3e4e52948cc4a3fed4fff964f86f264468e199d95f967603e7ad455022c10fb1",
+    "figures/heatmap_delta_mtfa_at_zero_d_atc-m3-al24477_epd5.png": "e656c4b10b6f4856861e1bc378edcc702d742bf70672441bf1ade07fe624c3e7",
+    "figures/heatmap_delta_mtfa_at_zero_d_lb-al2395_epd3.png": "ccb9e3addf3f71919687ffa79ee861973216e39b6985a2acd59a1ba6843a3ca6",
+    "figures/heatmap_delta_mtfa_at_zero_d_lb-al2395_epd5.png": "01b14f195570291897d4837ccf813105d2eeeb32e642ed79a17dfd1bbafa2754",
+    "figures/heatmap_delta_tf_mtfa_mean_atc-m3-al24477_epd3.png": "e0ce0744e36e246210cf751d109f0573ee07eb66e1eb6b86633d7168265be7a5",
+    "figures/heatmap_delta_tf_mtfa_mean_atc-m3-al24477_epd5.png": "ec40e1d96555805193e4c35281fa0fdf14c72da9e4ee2b88ce5a0e35fe507cae",
+    "figures/heatmap_delta_tf_mtfa_mean_lb-al2395_epd3.png": "840ef8e8612f739d3ad7634b3e15990633f4419cbd060c56896ef3e769ec5187",
+    "figures/heatmap_delta_tf_mtfa_mean_lb-al2395_epd5.png": "3c630a65e89e08b989890e8b698366c9245e26dd9f4db3dbd387335ae0ddb4bc",
+    "figures/mechanism_delta_c40_c60.png": "7812c9ca139d511aead21cf0a79ff37f1dc243692616df2352636c3372761b2d",
+    "figures/pupil_sensitivity_dof50.png": "95538ce35e8a91f4179db8ff9717d87eb349e31b74b2582e5bb07e46adc3c0f5",
+    "figures/pupil_sensitivity_mtfa_zero.png": "fb24c2cd612dfd36a255e481c64d335a51f45f0368c698a26956b991b2cd6350",
+    "figures/through_focus_atc-m3-al24477_epd3.png": "b47c422db6cc66f510252a1bced34fdc305780a980b94c9a49b61eda99eba107",
+    "figures/through_focus_atc-m3-al24477_epd5.png": "434497bd7327229093f52b0a1bfc9b25d338908a1e9eedeff716d65f0a26656e",
+    "figures/through_focus_lb-al2395_epd3.png": "f6c52291fe909638383ab573dfb672c48a6014ab364f6eaec8f4d68086c6b6e9",
+    "figures/through_focus_lb-al2395_epd5.png": "de7452921d60521ba8e398807e133c2e88b858cb7c61222891fd5583d72e653f",
+    "figures/tradeoff_dof50_vs_mtfa_zero.png": "740e5cc324e3d2fc74baddf0b3ac3d1f4b12bdfd39292a7de583c839d8617dd9",
+    "figures/tradeoff_dof50_vs_tf_mean.png": "66c106875e1268539dae1e65bc420f9abb982fba997a39e9b8b200d805e6900a",
+    "figures/tradeoff_dof50_vs_window_peak_mtfa.png": "f49296580a11684454ae1a46fe4d0f73393cb3fb5644eaf32bb0b7f84332ce16"
+  }
+}

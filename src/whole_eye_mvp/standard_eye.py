@@ -200,7 +200,7 @@ class ZeroHoaReferenceRecord:
     iol_position_mm: float
     calibration_aperture_mm: float = CORNEAL_SA_PUPIL_MM
     calibration_wavelength_nm: float = STANDARD_EYE_CALIBRATION_WAVELENGTH_NM
-    optical_model: str = "ideal_paraxial_zero_hoa"
+    optical_model: str = "same_physical_carrier_q0_no_residual"
 
     @classmethod
     def from_carrier(
@@ -247,8 +247,8 @@ class ZeroHoaReferenceRecord:
         *,
         standard_eye_spec: BaselineStandardEyeSpec | None = None,
     ) -> None:
-        if self.optical_model != "ideal_paraxial_zero_hoa":
-            raise ValueError("ZERO_HOA must use an ideal paraxial optical element")
+        if self.optical_model != "same_physical_carrier_q0_no_residual":
+            raise ValueError("ZERO_HOA must use the same physical carrier with Q=0 and no residual")
         if (
             self.carrier_id,
             self.power_d,

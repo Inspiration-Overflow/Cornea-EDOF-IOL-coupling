@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "phase": "TASK-008-FORMAL-LOCK-MANIFEST",
+  "formal_artifact": true,
+  "baseline_id": "MVP_2026_v2",
+  "code_commit": "935415efe5152f9318654a60161aaa632c49540d",
+  "task007_review_artifact_sha256": "c11b70f9ed5c2cb874484900445e62be8fc71ad05540a7cac7f12fa6b67ee93a",
+  "task007_review_hash": "f325533cb86910399a2290426cdfe52215968450edb3a82c62553c38a8aaecc6",
+  "source_evidence_sha256": "88f89484d1684ce43005d5ce7a30feb88b485065962ee4df5ae517426a231c51",
+  "carrier_count": 18,
+  "nominal_config_count": 72,
+  "residual_count": 3,
+  "carrier_asset_sha256": {
+    "CAR_ATC_M3_AL24477_A0_HOA": "0568db7dc45dbcdb182e9f36d95d10d614b0a982bafdd452939be04bf811d055",
+    "CAR_ATC_M3_AL24477_A0_RAD": "6e43555380d0ed0cb75c3aea170ddb80f311ca880641cc8437ebb864c26d0941",
+    "CAR_ATC_M3_AL24477_A0_WFS": "6625a33a13513c7958b7088f8b05fb81a28ea7850ebaa0a4da436bfb7bf4e909",
+    "CAR_ATC_M3_AL24477_B0_HOA": "a45cf4542fcb8de08abfb87496f78682341418e1707e966dcdceecf6050cb7f8",
+    "CAR_ATC_M3_AL24477_B0_RAD": "fcd1d17677ba7b93f0ff3c36e9fa840103dc497f42e47b19012c28b8dff3d42f",
+    "CAR_ATC_M3_AL24477_B0_WFS": "5edfebe847c7cf35167bcb1249829e8b1f67368586cae6b047f9a7f100fea304",
+    "CAR_ATC_M3_AL24477_C0_HOA": "8b4e19760587dbbfd266e7f25340a80e30c90023d1a7842a63a23fe93b7ea24a",
+    "CAR_ATC_M3_AL24477_C0_RAD": "27ce932568890795cd8eb26ace5ae49223982ee71aa30fc8f2069e5ff41a874b",
+    "CAR_ATC_M3_AL24477_C0_WFS": "6fc2f77a614e267cb2c04cd45b5a262132183f88ee4e3306a6ef901ab22e1767",
+    "CAR_LB_AL2395_A0_HOA": "44437124c337fccc476650cdb4d3166f6db7c72f86b0370c3845946926a32244",
+    "CAR_LB_AL2395_A0_RAD": "39f7b6d1a5a616edc0681c52daaf4d27b68b33e072a7ea2cf453a5b733d20d33",
+    "CAR_LB_AL2395_A0_WFS": "d8e96aa9b4000e40e3a3c1665f859fe296699be6af5535b9f063620929199bd1",
+    "CAR_LB_AL2395_B0_HOA": "28edaddb7af14796cc15df179b4cd3e4bb75dbe64526fd916118a9896eb46cf9",
+    "CAR_LB_AL2395_B0_RAD": "3849f21bd6a42074c0bbbeb263b8aa19bc4464fee1e635a31b7b507b1b5b08b9",
+    "CAR_LB_AL2395_B0_WFS": "8bf5ba434ce0f51655cfa18dc7462a39e8e0edacafaac155048493bd8e3cea36",
+    "CAR_LB_AL2395_C0_HOA": "15e172193d25b62692247b1f0bebf513ee2c5252e035ee37d9eaa72182aadbea",
+    "CAR_LB_AL2395_C0_RAD": "029e1f7172d702f1e9646de3e07b961af5e144bfda61a81741da8ad7a03f4fca",
+    "CAR_LB_AL2395_C0_WFS": "b71c52c780fc8602470a067c245fff02057f41d2d04ce307469d0d373295a591"
+  },
+  "residual_asset_sha256": {
+    "WFS": "92c7041c79e172a6c8c9cfe83e0fd70598532149092e71e2f16bfca0ae8c04dc",
+    "RAD": "1f08f19345d2e8cb4ffca1ae7bcb55ed97e2565d4c0d7c12b97a88cb6c5dc504",
+    "HOA": "7c46950a9ec2eb541fe0f0eb0330735bfcb496bf2963a7605a9c3de9dbb885d0"
+  },
+  "residual_validation_sha256": {
+    "WFS": "e5b1c9e7899323c9582bbf5deb199ee400d988f4deecc5c98579b2f74d787ce7",
+    "RAD": "7bc70de868a655e496b9e52bcf680570bb131396bd6b1dd42e47777f2a014dd6",
+    "HOA": "88d254f530d4ea2ff5f5c97d2435ace3c2d5c2cc9e52d13d2f20594efd837f24"
+  },
+  "manifest_hash": "29205cf1bd27848bb378fad956709b7cde4686ffd917b10351a992fc0d59ad49",
+  "lock_set_hash": "b1dff4c05d2c817099c913c32d9eb8c0b1c9cfa3c9ca8a2022b20c6521e08923",
+  "manifest_artifact_sha256": {
+    "TASK008_PHYSICAL_CARRIER_LOCKS": "2a12c6d5092d334315fa46dce892a8ac081fe2663a8d34ee1b092167eb41577a",
+    "TASK008_NOMINAL_72": "8a878d13819a24e74677557bfbdd08a09731d4aa812e47dcd6f27a0d422a9da9",
+    "TASK008_MANIFEST_HASH": "a6823e6bbe5ba9434ce8665ff98e95162ba6067f61a6546640f4f439b34fd842"
+  },
+  "tdd_999_cleared": true,
+  "selection_locked": true,
+  "opticstudio_started": false,
+  "next_gate": "TASK-009 representative three-configuration Huygens PSF validation",
+  "formal_summary_sha256": "8b36fdb8f69611f9159f6e5fd9a8d42a15087dfc85711a2aa5eaa16c70a3c7ca"
+}

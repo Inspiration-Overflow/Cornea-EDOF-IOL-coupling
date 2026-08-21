@@ -12,12 +12,15 @@ from whole_eye_mvp.analysis import (
     ConfigResult,
     ExportError,
     matched_pair_delta,
+    summarize_mtfa_curve,
     validate_completed_result,
     validate_selection,
     with_shape_axis,
 )
-from whole_eye_mvp.domain import NOMINAL_MAIN_555_V1, OpticState
+from whole_eye_mvp.domain import NOMINAL_MAIN_FFT_MTF_555_V2, OpticState
 from whole_eye_mvp.manifest import NominalConfig
+from whole_eye_mvp.quality import settings_hash
+from whole_eye_mvp.zos import TASK009_MFE_FULL_HOA_555_V1
 
 
 def config(state: str) -> NominalConfig:
@@ -34,40 +37,56 @@ def config(state: str) -> NominalConfig:
         residual_id="RES_WFS" if is_edof else None,
         residual_sha256="res-sha" if is_edof else None,
         residual_validation_policy_id="POLICY_v1" if is_edof else None,
+        residual_validation_policy_hash="policy-hash" if is_edof else None,
     )
 
 
 def rows(peak_d: float = 0.0):
-    defocus = NOMINAL_MAIN_555_V1.defocus_grid()
+    defocus = NOMINAL_MAIN_FFT_MTF_555_V2.defocus_grid()
     peak_i = defocus.index(peak_d)
-    vsotf = tuple(max(0.05, 1 - abs(index - peak_i) * 0.15) for index in range(len(defocus)))
-    mtfa = tuple(value * 0.7 for value in vsotf)
-    columns = [tuple(value * (1 - index * 0.05) for value in vsotf) for index in range(6)]
-    return with_shape_axis(defocus, mtfa, vsotf, columns)
+    mtfa = tuple(max(0.05, 0.8 - abs(index - peak_i) * 0.10) for index in range(len(defocus)))
+    columns = [tuple(value * (1 - index * 0.05) for value in mtfa) for index in range(6)]
+    return with_shape_axis(defocus, mtfa, columns)
 
 
 def result(state: str, *, peak_d: float = 0.0, run_id: str = "run") -> ConfigResult:
+    tf_rows = rows(peak_d)
+    summary = summarize_mtfa_curve(tf_rows)
     return ConfigResult(
-        config(state),
-        run_id,
-        rows(peak_d),
-        peak_d,
-        AberrationSummary(0.1, 0.02, 0.15),
-        5.5,
-        3.0,
-        5.0,
-        6.0,
-        "hash",
-        "hash",
-        23.95,
-        23.95,
-        4.5,
-        4.5,
-        4.5,
-        4.5,
-        False,
-        ConfigArtifacts("a.zmx", "tf.csv", "tf.png", "mtf.png", ("p1.png", "p2.png", "p3.png")),
-        True,
+        config=config(state),
+        run_id=run_id,
+        rows=tf_rows,
+        distance_peak_retina_d=float(summary["distance_peak_retina_d"]),
+        distance_peak_mtfa=float(summary["distance_peak_mtfa"]),
+        mtfa_at_zero_d=float(summary["mtfa_at_zero_d"]),
+        dof50_far_d=summary["dof50_far_d"],
+        dof50_near_d=summary["dof50_near_d"],
+        dof50_width_d=float(summary["dof50_width_d"]),
+        dof50_far_censored=bool(summary["dof50_far_censored"]),
+        dof50_near_censored=bool(summary["dof50_near_censored"]),
+        tf_mtfa_mean=float(summary["tf_mtfa_mean"]),
+        peak_search_censored=bool(summary["peak_search_censored"]),
+        aberrations=AberrationSummary(0.1, 0.02, 0.15),
+        analysis_settings_hash=settings_hash(NOMINAL_MAIN_FFT_MTF_555_V2),
+        hoa_settings_id=TASK009_MFE_FULL_HOA_555_V1.settings_id,
+        hoa_settings_hash=TASK009_MFE_FULL_HOA_555_V1.settings_hash,
+        cornea_footprint_mm=5.5,
+        stop_footprint_mm=3.0,
+        iol_footprint_mm=5.0,
+        iol_optical_diameter_mm=6.0,
+        model_hash_before="hash",
+        model_hash_after="hash",
+        entity_fingerprint_before="entity",
+        entity_fingerprint_after="entity",
+        retina_position_before_mm=23.95,
+        retina_position_after_mm=23.95,
+        iol_position_before_mm=4.5,
+        iol_position_after_mm=4.5,
+        elp_before_mm=4.5,
+        elp_after_mm=4.5,
+        unintended_vignetting=False,
+        artifacts=ConfigArtifacts("a.zmx", "tf.csv", "tf.png", "mtf.png"),
+        completed=True,
     )
 
 
@@ -98,6 +117,8 @@ def test_completed_result_contract_and_artifact_rule() -> None:
 
     with pytest.raises(AnalysisError, match="model"):
         validate_completed_result(replace(good, model_hash_after="changed"))
+    with pytest.raises(AnalysisError, match="fingerprint"):
+        validate_completed_result(replace(good, entity_fingerprint_after="changed"))
     with pytest.raises(AnalysisError, match="IOL position"):
         validate_completed_result(replace(good, iol_position_after_mm=4.6))
     with pytest.raises(AnalysisError, match="ELP"):
@@ -106,12 +127,12 @@ def test_completed_result_contract_and_artifact_rule() -> None:
         validate_completed_result(replace(good, unintended_vignetting=True))
     with pytest.raises(ExportError):
         validate_completed_result(
-            replace(good, artifacts=ConfigArtifacts("", "tf.csv", "tf", "m", ("1", "2", "3")))
+            replace(good, artifacts=ConfigArtifacts("", "tf.csv", "tf", "m"))
         )
 
 
 @pytest.mark.unit
-def test_completed_result_rejects_wrong_config_run_nan_peak_and_shape_axis() -> None:
+def test_completed_result_rejects_wrong_config_run_nan_summary_and_shape_axis() -> None:
     good = result("MONO")
     with pytest.raises(AnalysisError, match="different manifest config"):
         validate_completed_result(good, expected_config=config("EDOF"))
@@ -121,8 +142,10 @@ def test_completed_result_rejects_wrong_config_run_nan_peak_and_shape_axis() -> 
         validate_completed_result(
             replace(good, aberrations=AberrationSummary(math.nan, 0.02, 0.15))
         )
-    with pytest.raises(AnalysisError, match="distance peak"):
+    with pytest.raises(AnalysisError, match="distance_peak_retina_d"):
         validate_completed_result(replace(good, distance_peak_retina_d=0.25))
+    with pytest.raises(AnalysisError, match="analysis-settings"):
+        validate_completed_result(replace(good, analysis_settings_hash="wrong"))
 
     bad_rows = list(good.rows)
     bad_rows[0] = replace(bad_rows[0], defocus_shape_d=999.0)
@@ -140,6 +163,8 @@ def test_matched_pair_delta_is_edof_minus_mono_with_full_pair_invariants() -> No
     delta = matched_pair_delta(mono, edof)
     assert delta.deltas["distance_peak_retina_d"] == pytest.approx(0.25)
     assert delta.deltas["c40_um"] == pytest.approx(0.1)
+    assert "dof50_width_d" in delta.deltas
+    assert "tf_mtfa_mean" in delta.deltas
 
     with pytest.raises(AnalysisError, match="carrier_lock_hash"):
         matched_pair_delta(mono, replace(edof, config=replace(edof.config, carrier_lock_hash="other")))

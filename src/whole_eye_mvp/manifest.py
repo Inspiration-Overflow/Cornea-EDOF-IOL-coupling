@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 
@@ -18,12 +17,18 @@ from .domain import OpticState
 
 @dataclass(frozen=True, slots=True)
 class CarrierLock:
+    """Immutable physical-carrier + residual provenance.
+
+    Delta-F is deliberately not part of carrier identity: the residual-induced best-focus
+    shift is an analysis result that can depend on pupil and analysis metric. It is saved
+    by the analysis/result layer rather than hashed into the physical carrier lock.
+    """
+
     carrier: ProvisionalCarrier
     residual_id: str
     residual_sha256: str
     residual_validation_policy_id: str
     residual_validation_policy_hash: str
-    delta_f_residual_d: float
     lock_hash: str
 
     @property
@@ -70,7 +75,6 @@ def compute_carrier_lock_hash(
     residual_sha256: str,
     residual_validation_policy_id: str,
     residual_validation_policy_hash: str,
-    delta_f_residual_d: float,
 ) -> str:
     payload = {
         "carrier": asdict(carrier),
@@ -78,7 +82,6 @@ def compute_carrier_lock_hash(
         "residual_sha256": residual_sha256,
         "residual_validation_policy_id": residual_validation_policy_id,
         "residual_validation_policy_hash": residual_validation_policy_hash,
-        "delta_f_residual_d": float(delta_f_residual_d),
     }
     text = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
@@ -97,15 +100,12 @@ def _validate_locks(locks: Sequence[CarrierLock]) -> None:
             raise ScientificInvariantError(
                 "formal carrier lock must include residual validation policy ID/hash"
             )
-        if not math.isfinite(lock.delta_f_residual_d):
-            raise ScientificInvariantError("formal carrier lock delta-F must be finite")
         expected_hash = compute_carrier_lock_hash(
             lock.carrier,
             lock.residual_id,
             lock.residual_sha256,
             lock.residual_validation_policy_id,
             lock.residual_validation_policy_hash,
-            lock.delta_f_residual_d,
         )
         if lock.lock_hash != expected_hash:
             raise ScientificInvariantError("formal carrier lock hash does not match lock contents")
@@ -116,7 +116,6 @@ def compute_lock_set_hash(locks: Sequence[CarrierLock]) -> str:
     ordered_hashes = sorted(lock.lock_hash for lock in locks)
     text = json.dumps(ordered_hashes, separators=(",", ":"))
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
-
 
 
 def build_manifests(locks: Sequence[CarrierLock]) -> ManifestBundle:

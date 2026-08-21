@@ -75,7 +75,6 @@ def _curve_dof(curve: LockCurve, threshold: float) -> DofInterval:
         curve.q_lock,
         peak=peak,
         threshold=threshold,
-        absolute=True,
     )
 
 

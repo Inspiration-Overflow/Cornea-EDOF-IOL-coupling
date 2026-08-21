@@ -1,0 +1,76 @@
+name: TASK-012 manuscript figures
+
+on:
+  push:
+    branches:
+      - feat/task-011-run72
+    paths:
+      - '.github/workflows/manuscript-figures.yml'
+      - 'src/whole_eye_mvp/manuscript_figures.py'
+      - 'scripts/render_task012_manuscript_figures.py'
+      - 'tests/unit/test_task012_manuscript_figures.py'
+      - 'docs/MANUSCRIPT_FIGURE_TABLE_PLAN_2026-08-20.md'
+
+permissions:
+  contents: write
+
+jobs:
+  manuscript-figures:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout branch head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Sync locked environment
+        run: uv sync --frozen
+
+      - name: Manuscript presentation unit gate
+        run: uv run pytest tests/unit/test_task012_manuscript_figures.py
+
+      - name: Static gate
+        run: |
+          uv run ruff check src/whole_eye_mvp/manuscript_figures.py scripts/render_task012_manuscript_figures.py tests/unit/test_task012_manuscript_figures.py
+          uv run python -m compileall -q src/whole_eye_mvp/manuscript_figures.py scripts/render_task012_manuscript_figures.py
+
+      - name: Render manuscript figures
+        run: uv run python scripts/render_task012_manuscript_figures.py
+
+      - name: Verify presentation artifact set
+        run: |
+          test -f docs/evidence/task012/manuscript_figures/MANUSCRIPT_FIGURE_EVIDENCE.json
+          test "$(find docs/evidence/task012/manuscript_figures -maxdepth 1 -type f -name 'MANUSCRIPT_FIGURE_*.png' | wc -l)" -eq 5
+
+      - name: Upload manuscript figure artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: task012-manuscript-figures-${{ github.sha }}
+          path: docs/evidence/task012/manuscript_figures
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Commit manuscript presentation outputs
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/evidence/task012/manuscript_figures
+          if git diff --cached --quiet; then
+            echo 'Manuscript presentation outputs already match branch state.'
+            exit 0
+          fi
+          git commit -m 'data: add TASK-012 manuscript presentation figures'
+          git push origin HEAD:${GITHUB_REF_NAME}

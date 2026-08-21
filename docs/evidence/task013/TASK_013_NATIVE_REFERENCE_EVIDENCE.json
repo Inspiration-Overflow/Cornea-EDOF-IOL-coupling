@@ -1,0 +1,483 @@
+{
+  "schema_version": 1,
+  "phase": "TASK-013-NATIVE-CORNEA-REFERENCE",
+  "task_id": "TASK-013-NATIVE-CORNEA-REFERENCE",
+  "run_id": "task013-183dcffcd1da4f1cb1a219d9eedb39db",
+  "code_commit": "a3877f5682a9067c1cd420dc31d4f14a6a4e13ab",
+  "package_version": "0.1.0",
+  "opticstudio_version": "260127",
+  "baseline_id": "MVP_2026_v2",
+  "source_task008_manifest_hash": "29205cf1bd27848bb378fad956709b7cde4686ffd917b10351a992fc0d59ad49",
+  "source_task008_lock_set_hash": "b1dff4c05d2c817099c913c32d9eb8c0b1c9cfa3c9ca8a2022b20c6521e08923",
+  "source_task011_expected_configs": 72,
+  "source_task011_rerun": false,
+  "native_cornea_id": "N0",
+  "native_cornea_sha256": "1345089f8c714a1f887b0076cee5a108b0bb7f5d90d84c44f7cb572b61ac9cf2",
+  "native_manifest_hash": "47bfac9c1627773a423c610a36723a990da3ab150188cf4ea77bfa20cfded287",
+  "native_lock_set_hash": "a36d5e1114a8d8b67dfe02dbafe8267c6a8969d119186561a82c6b24f930545b",
+  "native_physical_carriers": 6,
+  "native_nominal_configs": 24,
+  "analysis_settings_id": "NOMINAL_MAIN_FFT_MTF_555_v2",
+  "analysis_settings_sha256": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+  "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+  "acquisition_contract_sha256": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+  "frequency_scale_mode": "paired_residual_free_MONO_EFFL",
+  "production_sampling": 128,
+  "residual_power_envelope_checks": [
+    {
+      "platform_id": "WFS",
+      "carrier_id": "CAR_ATC_M3_AL24477_N0_WFS",
+      "n0_power_d": 19.24460861753059,
+      "existing_min_power_d": 21.05255871628924,
+      "existing_max_power_d": 25.47664933274738,
+      "within_existing_coverage": false
+    },
+    {
+      "platform_id": "WFS",
+      "carrier_id": "CAR_LB_AL2395_N0_WFS",
+      "n0_power_d": 21.217888536226038,
+      "existing_min_power_d": 21.05255871628924,
+      "existing_max_power_d": 25.47664933274738,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "RAD",
+      "carrier_id": "CAR_ATC_M3_AL24477_N0_RAD",
+      "n0_power_d": 19.382211495387125,
+      "existing_min_power_d": 21.177612325137524,
+      "existing_max_power_d": 25.587058690007545,
+      "within_existing_coverage": false
+    },
+    {
+      "platform_id": "RAD",
+      "carrier_id": "CAR_LB_AL2395_N0_RAD",
+      "n0_power_d": 21.33542516731417,
+      "existing_min_power_d": 21.177612325137524,
+      "existing_max_power_d": 25.587058690007545,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "HOA",
+      "carrier_id": "CAR_ATC_M3_AL24477_N0_HOA",
+      "n0_power_d": 18.997345893247758,
+      "existing_min_power_d": 20.814928860453236,
+      "existing_max_power_d": 25.25866463479957,
+      "within_existing_coverage": false
+    },
+    {
+      "platform_id": "HOA",
+      "carrier_id": "CAR_LB_AL2395_N0_HOA",
+      "n0_power_d": 20.986657932763357,
+      "existing_min_power_d": 20.814928860453236,
+      "existing_max_power_d": 25.25866463479957,
+      "within_existing_coverage": true
+    }
+  ],
+  "residual_power_coverage_complete": false,
+  "residual_power_extension_validation_required": true,
+  "carrier_evidence": {
+    "CAR_LB_AL2395_N0_WFS": {
+      "carrier": {
+        "key": {
+          "base_id": "LB_AL2395",
+          "cornea_id": "N0",
+          "platform_id": "WFS"
+        },
+        "power_d": 21.217888536226038,
+        "q": -7.5,
+        "q_source_power_d": 21.217888536226038,
+        "r_ant_mm": 11.645629503335492,
+        "r_post_mm": -11.645629503335492,
+        "center_thickness_mm": 1.0,
+        "material": "MODEL_N1460",
+        "iol_position_mm": 4.5,
+        "achieved_sa_um": -0.201530316475344
+      },
+      "p0_power_d": 20.986657932763357,
+      "p0_radius_ant_mm": 11.7744121360738,
+      "p0_sha256": "85a51b8e456155497abbcf74fd4f36c52cc1c62eb20ef8ba606bfee808138475",
+      "recheck_cycles": [
+        {
+          "cycle": 1,
+          "radius_solve": {
+            "q": -7.5,
+            "initial_radius_mm": 11.7744121360738,
+            "solved_radius_mm": 11.645629503335492,
+            "power_d": 21.217888536226038,
+            "focus_shift_mm": -0.00013307243514759648,
+            "iterations": 9
+          },
+          "q": -7.5,
+          "achieved_sa_um": -0.201530316475344,
+          "actual_eye_focus": {
+            "q": -7.5,
+            "fixed_iol_post_to_image_mm": 17.95,
+            "best_iol_post_to_image_mm": 17.94986692756485,
+            "focus_shift_mm": -0.00013307243514759648,
+            "equivalent_vergence_shift_d": 0.0005517837117128277,
+            "recheck_required": false
+          }
+        }
+      ],
+      "final_focus": {
+        "q": -7.5,
+        "fixed_iol_post_to_image_mm": 17.95,
+        "best_iol_post_to_image_mm": 17.94986692756485,
+        "focus_shift_mm": -0.00013307243514759648,
+        "equivalent_vergence_shift_d": 0.0005517837117128277,
+        "recheck_required": false
+      },
+      "standard_eye_sa_target_um": -0.2,
+      "standard_eye_sa_replay_um": -0.201530316475344,
+      "carrier_sha256": "b897e7181958846df2d7e99e5adf61ec845005064c819971494660b17f4d45c2"
+    },
+    "CAR_LB_AL2395_N0_RAD": {
+      "carrier": {
+        "key": {
+          "base_id": "LB_AL2395",
+          "cornea_id": "N0",
+          "platform_id": "RAD"
+        },
+        "power_d": 21.33542516731417,
+        "q": -11.0,
+        "q_source_power_d": 21.33542516731417,
+        "r_ant_mm": 11.581238186966338,
+        "r_post_mm": -11.581238186966338,
+        "center_thickness_mm": 1.0,
+        "material": "MODEL_N1460",
+        "iol_position_mm": 4.5,
+        "achieved_sa_um": -0.2706604162470696
+      },
+      "p0_power_d": 20.986657932763357,
+      "p0_radius_ant_mm": 11.7744121360738,
+      "p0_sha256": "85a51b8e456155497abbcf74fd4f36c52cc1c62eb20ef8ba606bfee808138475",
+      "recheck_cycles": [
+        {
+          "cycle": 1,
+          "radius_solve": {
+            "q": -11.5,
+            "initial_radius_mm": 11.7744121360738,
+            "solved_radius_mm": 11.581238186966338,
+            "power_d": 21.33542516731417,
+            "focus_shift_mm": 0.0009789664631441042,
+            "iterations": 10
+          },
+          "q": -11.0,
+          "achieved_sa_um": -0.2706604162470696,
+          "actual_eye_focus": {
+            "q": -11.0,
+            "fixed_iol_post_to_image_mm": 17.95,
+            "best_iol_post_to_image_mm": 17.947243618193557,
+            "focus_shift_mm": -0.0027563818064422207,
+            "equivalent_vergence_shift_d": 0.011430984132082433,
+            "recheck_required": false
+          }
+        }
+      ],
+      "final_focus": {
+        "q": -11.0,
+        "fixed_iol_post_to_image_mm": 17.95,
+        "best_iol_post_to_image_mm": 17.947243618193557,
+        "focus_shift_mm": -0.0027563818064422207,
+        "equivalent_vergence_shift_d": 0.011430984132082433,
+        "recheck_required": false
+      },
+      "standard_eye_sa_target_um": -0.27,
+      "standard_eye_sa_replay_um": -0.2706604162470696,
+      "carrier_sha256": "3d74c42d0df86a072b8de2ae14fcf76bd7067f252c04a7e967e999a33b371f72"
+    },
+    "CAR_LB_AL2395_N0_HOA": {
+      "carrier": {
+        "key": {
+          "base_id": "LB_AL2395",
+          "cornea_id": "N0",
+          "platform_id": "HOA"
+        },
+        "power_d": 20.986657932763357,
+        "q": 0.0,
+        "q_source_power_d": 20.986657932763357,
+        "r_ant_mm": 11.7744121360738,
+        "r_post_mm": -11.7744121360738,
+        "center_thickness_mm": 1.0,
+        "material": "MODEL_N1460",
+        "iol_position_mm": 4.5,
+        "achieved_sa_um": 0.0
+      },
+      "p0_power_d": 20.986657932763357,
+      "p0_radius_ant_mm": 11.7744121360738,
+      "p0_sha256": "85a51b8e456155497abbcf74fd4f36c52cc1c62eb20ef8ba606bfee808138475",
+      "recheck_cycles": [],
+      "final_focus": {
+        "q": 0.0,
+        "fixed_iol_post_to_image_mm": 17.95,
+        "best_iol_post_to_image_mm": 17.949914247269778,
+        "focus_shift_mm": -8.57527302215999e-05,
+        "equivalent_vergence_shift_d": 0.0003555720234769133,
+        "recheck_required": false
+      },
+      "standard_eye_sa_target_um": 0.0,
+      "standard_eye_sa_replay_um": 0.0,
+      "carrier_sha256": "df16846f01caf1976c9c763c865262be4219073f70a47fc800f624b79d61db10"
+    },
+    "CAR_ATC_M3_AL24477_N0_WFS": {
+      "carrier": {
+        "key": {
+          "base_id": "ATC_M3_AL24477",
+          "cornea_id": "N0",
+          "platform_id": "WFS"
+        },
+        "power_d": 19.24460861753059,
+        "q": -10.5,
+        "q_source_power_d": 19.24460861753059,
+        "r_ant_mm": 12.844119470724138,
+        "r_post_mm": -12.844119470724138,
+        "center_thickness_mm": 1.0,
+        "material": "MODEL_N1460",
+        "iol_position_mm": 4.5,
+        "achieved_sa_um": -0.2021479446993953
+      },
+      "p0_power_d": 18.997345893247758,
+      "p0_radius_ant_mm": 13.011850354196199,
+      "p0_sha256": "30ef59961385306e74e61e342007d1cfaccf06c92ba338ad84b203da78727da0",
+      "recheck_cycles": [
+        {
+          "cycle": 1,
+          "radius_solve": {
+            "q": -11.0,
+            "initial_radius_mm": 13.011850354196199,
+            "solved_radius_mm": 12.844119470724138,
+            "power_d": 19.24460861753059,
+            "focus_shift_mm": 0.00022617722184037348,
+            "iterations": 11
+          },
+          "q": -10.5,
+          "achieved_sa_um": -0.2021479446993953,
+          "actual_eye_focus": {
+            "q": -10.5,
+            "fixed_iol_post_to_image_mm": 18.477,
+            "best_iol_post_to_image_mm": 18.474258435430247,
+            "focus_shift_mm": -0.002741564569753052,
+            "equivalent_vergence_shift_d": 0.010730166564792032,
+            "recheck_required": false
+          }
+        }
+      ],
+      "final_focus": {
+        "q": -10.5,
+        "fixed_iol_post_to_image_mm": 18.477,
+        "best_iol_post_to_image_mm": 18.474258435430247,
+        "focus_shift_mm": -0.002741564569753052,
+        "equivalent_vergence_shift_d": 0.010730166564792032,
+        "recheck_required": false
+      },
+      "standard_eye_sa_target_um": -0.2,
+      "standard_eye_sa_replay_um": -0.2021479446993953,
+      "carrier_sha256": "f8b776ede89601837d45704004e50d78d90d4f7824e2c3c83850f0eaa6aec773"
+    },
+    "CAR_ATC_M3_AL24477_N0_RAD": {
+      "carrier": {
+        "key": {
+          "base_id": "ATC_M3_AL24477",
+          "cornea_id": "N0",
+          "platform_id": "RAD"
+        },
+        "power_d": 19.382211495387125,
+        "q": -15.5,
+        "q_source_power_d": 19.382211495387125,
+        "r_ant_mm": 12.752629897921196,
+        "r_post_mm": -12.752629897921196,
+        "center_thickness_mm": 1.0,
+        "material": "MODEL_N1460",
+        "iol_position_mm": 4.5,
+        "achieved_sa_um": -0.2705530066248557
+      },
+      "p0_power_d": 18.997345893247758,
+      "p0_radius_ant_mm": 13.011850354196199,
+      "p0_sha256": "30ef59961385306e74e61e342007d1cfaccf06c92ba338ad84b203da78727da0",
+      "recheck_cycles": [
+        {
+          "cycle": 1,
+          "radius_solve": {
+            "q": -17.0,
+            "initial_radius_mm": 13.011850354196199,
+            "solved_radius_mm": 12.752629897921196,
+            "power_d": 19.382211495387125,
+            "focus_shift_mm": -0.0003557519156629496,
+            "iterations": 11
+          },
+          "q": -15.5,
+          "achieved_sa_um": -0.2705530066248557,
+          "actual_eye_focus": {
+            "q": -15.5,
+            "fixed_iol_post_to_image_mm": 18.477,
+            "best_iol_post_to_image_mm": 18.46795632275458,
+            "focus_shift_mm": -0.00904367724541899,
+            "equivalent_vergence_shift_d": 0.035407985214521154,
+            "recheck_required": false
+          }
+        }
+      ],
+      "final_focus": {
+        "q": -15.5,
+        "fixed_iol_post_to_image_mm": 18.477,
+        "best_iol_post_to_image_mm": 18.46795632275458,
+        "focus_shift_mm": -0.00904367724541899,
+        "equivalent_vergence_shift_d": 0.035407985214521154,
+        "recheck_required": false
+      },
+      "standard_eye_sa_target_um": -0.27,
+      "standard_eye_sa_replay_um": -0.2705530066248557,
+      "carrier_sha256": "f51598e1fb3cc6445a44e725a5429db9fa845bcc877866ae2cb74f9d8d72d6ed"
+    },
+    "CAR_ATC_M3_AL24477_N0_HOA": {
+      "carrier": {
+        "key": {
+          "base_id": "ATC_M3_AL24477",
+          "cornea_id": "N0",
+          "platform_id": "HOA"
+        },
+        "power_d": 18.997345893247758,
+        "q": 0.0,
+        "q_source_power_d": 18.997345893247758,
+        "r_ant_mm": 13.011850354196199,
+        "r_post_mm": -13.011850354196199,
+        "center_thickness_mm": 1.0,
+        "material": "MODEL_N1460",
+        "iol_position_mm": 4.5,
+        "achieved_sa_um": 0.0
+      },
+      "p0_power_d": 18.997345893247758,
+      "p0_radius_ant_mm": 13.011850354196199,
+      "p0_sha256": "30ef59961385306e74e61e342007d1cfaccf06c92ba338ad84b203da78727da0",
+      "recheck_cycles": [],
+      "final_focus": {
+        "q": 0.0,
+        "fixed_iol_post_to_image_mm": 18.477,
+        "best_iol_post_to_image_mm": 18.476223741923754,
+        "focus_shift_mm": -0.0007762580762467053,
+        "equivalent_vergence_shift_d": 0.0030378611379560105,
+        "recheck_required": false
+      },
+      "standard_eye_sa_target_um": 0.0,
+      "standard_eye_sa_replay_um": 0.0,
+      "carrier_sha256": "5fd0b44d43314b5c189f3d8469dd6cac6c7fcd0edad39bd33674a2a11062b0d2"
+    }
+  },
+  "pair_reference_records": {
+    "CAR_ATC_M3_AL24477_N0_HOA_EPD3": {
+      "pair_key": "CAR_ATC_M3_AL24477_N0_HOA_EPD3",
+      "mono_config_id": "CFG_ATC_M3_AL24477_N0_HOA_MONO_EPD3",
+      "reference_effl_mm": 17.260695879723798,
+      "mm_per_degree": 0.30128656728679665,
+      "model_sha256": "55e62a7904bdd127599c92271b578ec89aef9560959ffde45498da6347fc38da",
+      "entity_fingerprint": "5b6f456a4c9c5ff8c5c19adbba2b31f8576ba39f4a9e0dd3f80a004468de254c"
+    },
+    "CAR_ATC_M3_AL24477_N0_HOA_EPD5": {
+      "pair_key": "CAR_ATC_M3_AL24477_N0_HOA_EPD5",
+      "mono_config_id": "CFG_ATC_M3_AL24477_N0_HOA_MONO_EPD5",
+      "reference_effl_mm": 17.260695879723794,
+      "mm_per_degree": 0.3012865672867966,
+      "model_sha256": "c97a5e2020086de264787a29abbc1eeceff3e111506f6ed8f9cc739513f049c1",
+      "entity_fingerprint": "5b6f456a4c9c5ff8c5c19adbba2b31f8576ba39f4a9e0dd3f80a004468de254c"
+    },
+    "CAR_ATC_M3_AL24477_N0_RAD_EPD3": {
+      "pair_key": "CAR_ATC_M3_AL24477_N0_RAD_EPD3",
+      "mono_config_id": "CFG_ATC_M3_AL24477_N0_RAD_MONO_EPD3",
+      "reference_effl_mm": 17.166553053962023,
+      "mm_per_degree": 0.299643298150599,
+      "model_sha256": "51888e83bc5f10b946008fe1eaf5c46ac7b7322160b1b74d82961435a5386f6e",
+      "entity_fingerprint": "20bf71174126135a8da466d29f1650af77d65c903f9fd79d5497d3b0f9b71ce2"
+    },
+    "CAR_ATC_M3_AL24477_N0_RAD_EPD5": {
+      "pair_key": "CAR_ATC_M3_AL24477_N0_RAD_EPD5",
+      "mono_config_id": "CFG_ATC_M3_AL24477_N0_RAD_MONO_EPD5",
+      "reference_effl_mm": 17.166553053962023,
+      "mm_per_degree": 0.299643298150599,
+      "model_sha256": "4a80705f7cc0dcee63a2e155d96f7c91497df6032cdc644123c1d736f63a62f5",
+      "entity_fingerprint": "20bf71174126135a8da466d29f1650af77d65c903f9fd79d5497d3b0f9b71ce2"
+    },
+    "CAR_ATC_M3_AL24477_N0_WFS_EPD3": {
+      "pair_key": "CAR_ATC_M3_AL24477_N0_WFS_EPD3",
+      "mono_config_id": "CFG_ATC_M3_AL24477_N0_WFS_MONO_EPD3",
+      "reference_effl_mm": 17.20009419597348,
+      "mm_per_degree": 0.30022876096217554,
+      "model_sha256": "219791f24d262c226e8dbaeba95f2bd254b30af8366e7891c904cfaa4b474195",
+      "entity_fingerprint": "3f3f6930a0af5f1a02f50e54651ee858d8b80170cb8fb2175c285a032c453923"
+    },
+    "CAR_ATC_M3_AL24477_N0_WFS_EPD5": {
+      "pair_key": "CAR_ATC_M3_AL24477_N0_WFS_EPD5",
+      "mono_config_id": "CFG_ATC_M3_AL24477_N0_WFS_MONO_EPD5",
+      "reference_effl_mm": 17.200094195973474,
+      "mm_per_degree": 0.30022876096217543,
+      "model_sha256": "000881f9aec5ebb98cff28f88e3d581a667f471ca1441ba96ad53be038746919",
+      "entity_fingerprint": "3f3f6930a0af5f1a02f50e54651ee858d8b80170cb8fb2175c285a032c453923"
+    },
+    "CAR_LB_AL2395_N0_HOA_EPD3": {
+      "pair_key": "CAR_LB_AL2395_N0_HOA_EPD3",
+      "mono_config_id": "CFG_LB_AL2395_N0_HOA_MONO_EPD3",
+      "reference_effl_mm": 16.784906508901233,
+      "mm_per_degree": 0.29298163292693297,
+      "model_sha256": "40711342f1609c90f7413f4996d1600b63ad12426917936d581c66c18b3017a7",
+      "entity_fingerprint": "f384ec2cf904623d2f9e1c4588e927f86266f9dff707e3540320e5d3750315ad"
+    },
+    "CAR_LB_AL2395_N0_HOA_EPD5": {
+      "pair_key": "CAR_LB_AL2395_N0_HOA_EPD5",
+      "mono_config_id": "CFG_LB_AL2395_N0_HOA_MONO_EPD5",
+      "reference_effl_mm": 16.784906508901233,
+      "mm_per_degree": 0.29298163292693297,
+      "model_sha256": "14b4c828237ebf77f4bf66880cd226d786f4b679e424b72fa6c7511144d8dca9",
+      "entity_fingerprint": "f384ec2cf904623d2f9e1c4588e927f86266f9dff707e3540320e5d3750315ad"
+    },
+    "CAR_LB_AL2395_N0_RAD_EPD3": {
+      "pair_key": "CAR_LB_AL2395_N0_RAD_EPD3",
+      "mono_config_id": "CFG_LB_AL2395_N0_RAD_MONO_EPD3",
+      "reference_effl_mm": 16.70418091035421,
+      "mm_per_degree": 0.2915725623629255,
+      "model_sha256": "681f3580009b19ec8c0537d2874e31bafead3de5fd68006f77834fbf4434c90f",
+      "entity_fingerprint": "a2d8f2ac6cd7d23e2797bc0eb6a368dae716414d6096ae48cac109447baabd5f"
+    },
+    "CAR_LB_AL2395_N0_RAD_EPD5": {
+      "pair_key": "CAR_LB_AL2395_N0_RAD_EPD5",
+      "mono_config_id": "CFG_LB_AL2395_N0_RAD_MONO_EPD5",
+      "reference_effl_mm": 16.704180910354214,
+      "mm_per_degree": 0.29157256236292556,
+      "model_sha256": "673a2f06b64b4ac91731c4e7f6340e8129b0da39a4d2773eab656ade93a51634",
+      "entity_fingerprint": "a2d8f2ac6cd7d23e2797bc0eb6a368dae716414d6096ae48cac109447baabd5f"
+    },
+    "CAR_LB_AL2395_N0_WFS_EPD3": {
+      "pair_key": "CAR_LB_AL2395_N0_WFS_EPD3",
+      "mono_config_id": "CFG_LB_AL2395_N0_WFS_MONO_EPD3",
+      "reference_effl_mm": 16.73129901052474,
+      "mm_per_degree": 0.29204591056213197,
+      "model_sha256": "ce4ec088252ddcb3b79400ab0b0aaf0656584a6df698eebf1520f18be369bf54",
+      "entity_fingerprint": "7550fdc9b1514af0ae6b340defa7696879bc579666940b99b3f21c2e9276b9f7"
+    },
+    "CAR_LB_AL2395_N0_WFS_EPD5": {
+      "pair_key": "CAR_LB_AL2395_N0_WFS_EPD5",
+      "mono_config_id": "CFG_LB_AL2395_N0_WFS_MONO_EPD5",
+      "reference_effl_mm": 16.731299010524737,
+      "mm_per_degree": 0.2920459105621319,
+      "model_sha256": "833b0494678600bb12305fe7b92731c47558bd830311aae782627eb2bef7ae8b",
+      "entity_fingerprint": "7550fdc9b1514af0ae6b340defa7696879bc579666940b99b3f21c2e9276b9f7"
+    }
+  },
+  "pair_reference_set_sha256": "a1b6a3ef21492f1148ab8a1c8f84fb9d3466f11453e77d21d7f4ce8e0fde490d",
+  "pair_reference_count": 12,
+  "completed_configs": 24,
+  "failed_configs": 0,
+  "failed_config_ids": [],
+  "through_focus_rows": 360,
+  "matched_pairs": 12,
+  "canonical_model_index_records": 43,
+  "model_archive_complete": true,
+  "acceptance_passed": true,
+  "task013_complete": true,
+  "evidence_only": true,
+  "formal_scientific_lock": false,
+  "extends_frozen_task011": true,
+  "task011_structured_evidence_changed": false,
+  "config_results_csv_sha256": "b0c89644a2e4db88b4330ef08ca451e906b389ef62f6cfc2ad113f9f28eba29a",
+  "through_focus_csv_sha256": "5f2ce8d64a3a98096ecb4c58f7fe461106c65f2704612aad73a5cc393b9e1afb",
+  "paired_deltas_csv_sha256": "ed66646e7801025c023194f1a15feb82e414ebd0acfa350bc18593d77ea82458",
+  "model_index_csv_sha256": "586524e54f9905c0aecda4331f45fb5f4e2ff421f96ea9b9493723ac7039ada5"
+}

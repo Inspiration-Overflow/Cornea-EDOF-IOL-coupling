@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "phase": "TASK-015-FIGURE-SUPPLEMENT-REVIEW",
+  "review_date": "2026-08-20",
+  "figure_commit": "bc4e451c22b0cbe1a3f08798b0119942bb9bc5c5",
+  "render_code_commit": "cfb659063c8177223d29711f6b778ec566be3bc5",
+  "uploaded_bundle": {
+    "filename": "TASK015_FIGURE_SUPPLEMENT_2026-08-20.zip",
+    "size_bytes": 5461189,
+    "sha256": "fa2ed14194ed91ff419bc9e4316c76007a953975e7ec9b53b580e1099c5b6c97"
+  },
+  "manifest": {
+    "path": "docs/evidence/task015/figures/TASK_015_FIGURE_MANIFEST.json",
+    "sha256": "e1892a0ad547e99c5a0c7816b31f06a059ecdaca6f09ff51748aca834e1a967c",
+    "phase": "TASK-015-FIGURE-SUPPLEMENT",
+    "figure_count": 72,
+    "raw_through_focus_figure_count": 48,
+    "summary_figure_count": 24,
+    "source_through_focus_rows": 1440,
+    "opticstudio_used": false
+  },
+  "web_reverification": {
+    "zip_entries": 73,
+    "png_count": 72,
+    "manifest_entries": 72,
+    "raw_count": 48,
+    "summary_count": 24,
+    "manifest_sha_and_size_matches": 72,
+    "manifest_sha_and_size_mismatches": 0,
+    "raw_pair_coverage_complete": true
+  },
+  "portability_fix_review": {
+    "commit": "cfb659063c8177223d29711f6b778ec566be3bc5",
+    "classification": "execution_portability_only",
+    "change": "normalize checked-out CRLF to LF before computing repository-style Git blob SHA-1",
+    "scientific_definition_changed": false,
+    "accepted_source_evidence_changed": false,
+    "figure_values_changed": false
+  },
+  "acceptance": "PASS",
+  "requires_opticstudio_rerun": false,
+  "requires_figure_rerender": false,
+  "notes": [
+    "All 48 matched-pair raw through-focus figures are retained as supplementary evidence.",
+    "All 24 summary figures are retained; manuscript selection does not replace or delete raw figures.",
+    "DOF50 and peak-window censoring remain part of the figure semantics and were not removed by rerendering."
+  ]
+}

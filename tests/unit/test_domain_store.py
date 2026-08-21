@@ -9,7 +9,7 @@ import pytest
 from whole_eye_mvp.domain import (
     CORNEA_LOCK_B0_555_V2,
     CURRENT_SCIENTIFIC_BASELINE_ID,
-    NOMINAL_MAIN_555_V1,
+    NOMINAL_MAIN_FFT_MTF_555_V2,
     ArtifactRecord,
     RunEnvironment,
     RunRecord,
@@ -39,14 +39,18 @@ def test_settings_grids_and_optical_sampling_are_frozen_and_exact() -> None:
     assert b0.wavelength_number == 1
     assert b0.field_number == 1
 
-    assert len(NOMINAL_MAIN_555_V1.defocus_grid()) == 15
-    assert NOMINAL_MAIN_555_V1.defocus_grid()[-1] == -3.0
-    assert NOMINAL_MAIN_555_V1.huygens_pupil_sampling == 128
-    assert NOMINAL_MAIN_555_V1.huygens_image_sampling == 256
-    assert NOMINAL_MAIN_555_V1.huygens_image_delta_um == 0.5
-    assert NOMINAL_MAIN_555_V1.mtf_sample_frequencies_cpd == (10, 20, 30, 40, 50, 60)
+    main = NOMINAL_MAIN_FFT_MTF_555_V2
+    assert len(main.defocus_grid()) == 15
+    assert main.defocus_grid()[-1] == -3.0
+    assert main.fft_mtf_sampling == 128
+    assert main.fft_mtf_convergence_samplings == (64, 128, 256)
+    assert main.fft_mtf_use_polarization is False
+    assert main.mtf_frequency_step_cpd == 1.0
+    assert main.mtfa_max_cpd == 60.0
+    assert main.mtf_frequency_grid_cpd() == tuple(float(value) for value in range(61))
+    assert main.mtf_sample_frequencies_cpd == (10, 20, 30, 40, 50, 60)
     with pytest.raises(dataclasses.FrozenInstanceError):
-        NOMINAL_MAIN_555_V1.wavelength_nm = 546.0  # type: ignore[misc]
+        main.wavelength_nm = 546.0  # type: ignore[misc]
 
 
 @pytest.mark.unit
@@ -111,10 +115,26 @@ def test_locked_artifact_same_hash_is_noop_and_different_hash_conflicts(tmp_path
 
 @pytest.mark.unit
 def test_run_environment_requires_all_provenance_fields_and_is_create_once(tmp_path: Path) -> None:
-    valid = RunEnvironment("0.1.0", "2026 R1", "b", "s", "m", "l")
+    valid = RunEnvironment(
+        "0.1.0",
+        "2026 R1",
+        "b",
+        "s",
+        "m",
+        "l",
+        "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+        "contract-hash",
+        "paired_residual_free_MONO_EFFL",
+    )
     valid.validate()
     with pytest.raises(ValueError, match="manifest_hash"):
-        RunEnvironment("0.1.0", "2026 R1", "b", "s", "", "l").validate()
+        replace(valid, manifest_hash="").validate()
+    with pytest.raises(ValueError, match="acquisition_contract_id"):
+        replace(valid, acquisition_contract_id="").validate()
+    with pytest.raises(ValueError, match="acquisition_contract_hash"):
+        replace(valid, acquisition_contract_hash="").validate()
+    with pytest.raises(ValueError, match="frequency_scale_mode"):
+        replace(valid, frequency_scale_mode="").validate()
 
     store = open_project_store(tmp_path / "project", ScientificBaseline("b"))
     ref = store.record_environment("run-1", valid)

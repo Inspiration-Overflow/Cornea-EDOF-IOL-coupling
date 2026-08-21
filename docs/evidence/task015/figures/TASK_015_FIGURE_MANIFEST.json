@@ -1,0 +1,373 @@
+{
+  "schema_version": 1,
+  "phase": "TASK-015-FIGURE-SUPPLEMENT",
+  "render_code_commit": "cfb659063c8177223d29711f6b778ec566be3bc5",
+  "opticstudio_used": false,
+  "figure_count": 72,
+  "raw_through_focus_figure_count": 48,
+  "summary_figure_count": 24,
+  "raw_pair_coverage_complete": true,
+  "source_through_focus_rows": 1440,
+  "figures": [
+    {
+      "path": "raw/through_focus_lb-al2395_n0_wfs_epd3.png",
+      "sha256": "a84b05e5912e31f054e1c9571490769118768a0d79b46d339eeb732642e54751",
+      "size_bytes": 60195
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_n0_wfs_epd5.png",
+      "sha256": "790fac3cb9ebc7506fd8084b893dea21091c63d32b1d232330809a3ac4735512",
+      "size_bytes": 64933
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_n0_rad_epd3.png",
+      "sha256": "b7d2bd8238c2a98d73d6c86092b0a8088d3a327425d71e226576f11424b9c50d",
+      "size_bytes": 59943
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_n0_rad_epd5.png",
+      "sha256": "10828577753c2c32976a5e2aeb94fd6288d495d0b75e7dcb03e3769283740979",
+      "size_bytes": 63479
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_n0_hoa_epd3.png",
+      "sha256": "2d087cbb9f1f929d03b613bed9428c78c3df292150fdace8d807924024f4d0d7",
+      "size_bytes": 56297
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_n0_hoa_epd5.png",
+      "sha256": "a4b11a0746df7fe065d4fe9f34570f1dac0f24f76e33e5af398bb38f34c4c116",
+      "size_bytes": 76945
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_a0v12_wfs_epd3.png",
+      "sha256": "a5b966d5f3d86c8b76836d9c8d415d4a70312d6d43339e59b4f0c7dccf54f607",
+      "size_bytes": 59900
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_a0v12_wfs_epd5.png",
+      "sha256": "29ca419b4a1ac86724ce54ecd72497c40e1e55492b5ed4f62729689d241614fe",
+      "size_bytes": 65944
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_a0v12_rad_epd3.png",
+      "sha256": "24a7e106be5e9e3d61d2c93120b810a0229808c424ff7c6fd47f77bdb7bfbd18",
+      "size_bytes": 59721
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_a0v12_rad_epd5.png",
+      "sha256": "099ec12a1621180f397f075d0e390b9913df09a01e52d5930eab8412d91cea9f",
+      "size_bytes": 66221
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_a0v12_hoa_epd3.png",
+      "sha256": "9553be9a0ddb4584dbdd2fb0da47cb9b0815d31f26349eb34e87bf9cddaca20a",
+      "size_bytes": 55388
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_a0v12_hoa_epd5.png",
+      "sha256": "6c0f1311923adc5122a25765fd60fec5dda6368c792d7bfc2926b607e5ee4f9c",
+      "size_bytes": 79439
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_b0v12_wfs_epd3.png",
+      "sha256": "93272b77540e6666339b6e5cee9aaba5b89615c0f49de46b008e62f9efe26e89",
+      "size_bytes": 62183
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_b0v12_wfs_epd5.png",
+      "sha256": "c8dcc91ed4a04a3e792e3fd692ff897b5be2fccd9a8cd3a84183684ce4174b88",
+      "size_bytes": 77833
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_b0v12_rad_epd3.png",
+      "sha256": "97b9618d28bf7df1c9c20ae1772d74304b25d7ac1fd67d27859b31bd7652f7d3",
+      "size_bytes": 60249
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_b0v12_rad_epd5.png",
+      "sha256": "960592cc0ee9f39ca596065f71b741bcb5b8e275a2fdb92e94d8b3c048150a76",
+      "size_bytes": 76562
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_b0v12_hoa_epd3.png",
+      "sha256": "63fa61ebae367ae9443b3904bba1621c34e8c2d116287199a33027e70b09ae86",
+      "size_bytes": 56637
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_b0v12_hoa_epd5.png",
+      "sha256": "ba810cdc5ea432bffcc8f939ff8f168428c106df8a7b0f3167f80ea6390756d9",
+      "size_bytes": 78396
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_c0v12_wfs_epd3.png",
+      "sha256": "b36b11f1785044124b812d6874232849410099ba753c942f8fb64114cc6e0297",
+      "size_bytes": 59492
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_c0v12_wfs_epd5.png",
+      "sha256": "803fb4729451850a9934da94da3eb32c4d33d518eeb8ee99e84442133ac3d60c",
+      "size_bytes": 60714
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_c0v12_rad_epd3.png",
+      "sha256": "267b30eda62150833b415c4ece1947d48ece47ac0c8efc26f526cbed60e73f9e",
+      "size_bytes": 60191
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_c0v12_rad_epd5.png",
+      "sha256": "f0d098035b0a9fc4340543bb714c5e816c7980feef8b490d2491cbfa6e01c894",
+      "size_bytes": 65653
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_c0v12_hoa_epd3.png",
+      "sha256": "c048af87d753b3b2be5fdd4dd3024c449f1e92cd2b470e97126998587d87b379",
+      "size_bytes": 58063
+    },
+    {
+      "path": "raw/through_focus_lb-al2395_c0v12_hoa_epd5.png",
+      "sha256": "1e9dde392ae9b65dcb72181577c3b4d980c770b8b0a234ad6c21d9487fad51fc",
+      "size_bytes": 60143
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_n0_wfs_epd3.png",
+      "sha256": "c3e39bcbdff0302f67fa743b836ed23ca633ac7223dfa1132b59c468b04ac775",
+      "size_bytes": 60383
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_n0_wfs_epd5.png",
+      "sha256": "fe530c6525dbd4f8752751ffa34b8cc509fb365306124b291d241f0f1ced7623",
+      "size_bytes": 64882
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_n0_rad_epd3.png",
+      "sha256": "73bbf067ff22f7548b7be1e71402c826cb73b690d20f4a82e1bdd1e9c0b913d0",
+      "size_bytes": 60757
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_n0_rad_epd5.png",
+      "sha256": "137e620cbe64ef36c7b8c70ad200d77b709d1fe29f6ab10b77869d24a2b3b35a",
+      "size_bytes": 65725
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_n0_hoa_epd3.png",
+      "sha256": "4da68758ef353490c5b912df089f57394d3ba8d31b3109ff7ea64481b61f910e",
+      "size_bytes": 57534
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_n0_hoa_epd5.png",
+      "sha256": "9c02648a024210dbaf17b0e575aa79b434e3a207b8c189c3b7c9654158c29ac3",
+      "size_bytes": 76841
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_a0v12_wfs_epd3.png",
+      "sha256": "41a2ad9f5689f55981f32989fc6dedbc2927bc63b5a4410d22740b5f2629e8f6",
+      "size_bytes": 60435
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_a0v12_wfs_epd5.png",
+      "sha256": "018e23b20f829b0aaea988d4d1463c0f47d844d619cec57b6f31a8fe8436a242",
+      "size_bytes": 65758
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_a0v12_rad_epd3.png",
+      "sha256": "c164e50f187de3b2e6607d24b627bc6066b14cdcc8bddf9cb11139ec9f06727b",
+      "size_bytes": 61510
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_a0v12_rad_epd5.png",
+      "sha256": "c0236512535ed2c144f8f8e841ded969f9c816693527181db4d610d59c74995f",
+      "size_bytes": 65950
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_a0v12_hoa_epd3.png",
+      "sha256": "927558b941029393120f67e0ac1657626edaa1bea8291cc5537edea51f6b8902",
+      "size_bytes": 56897
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_a0v12_hoa_epd5.png",
+      "sha256": "3de2565fafaeb715dcb1eed52ba2644ef23644d6b5bbd12eeb5ad1f92ff738e3",
+      "size_bytes": 80432
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_b0v12_wfs_epd3.png",
+      "sha256": "a68de6aab0ef48ee2e92ce0b9feb696660b5fbb58586bf17413766d6aa69c098",
+      "size_bytes": 64862
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_b0v12_wfs_epd5.png",
+      "sha256": "5e406cda3b1ec1c1bc8783067ca47e3d5dd9232db1be08c1c1188a8dee5a0af5",
+      "size_bytes": 78747
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_b0v12_rad_epd3.png",
+      "sha256": "02e0a4e183ade5895be4d7e972b26d4fa089218fd4b8e47d89f87571d2393dfa",
+      "size_bytes": 61445
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_b0v12_rad_epd5.png",
+      "sha256": "c272580f8aa60b4812d8b39625bd7d0159ada689b44f738a87faa0a8b54250e9",
+      "size_bytes": 75340
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_b0v12_hoa_epd3.png",
+      "sha256": "c961b8b89993a37867c7484e1ff708ff052144b14825fd15329bd3d0ea053650",
+      "size_bytes": 58743
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_b0v12_hoa_epd5.png",
+      "sha256": "fd2b09b582634e7c38b2486cbc2aa2f23c00ea0ea217c59006c95a0435aa5c75",
+      "size_bytes": 76670
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_c0v12_wfs_epd3.png",
+      "sha256": "c9361d58909fad4d6ea3181c396c3e0813575ba9ae17b53502d5da87f12180b5",
+      "size_bytes": 60854
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_c0v12_wfs_epd5.png",
+      "sha256": "fd631e8d5ab0adb3a3aea5ffa490a874b5e4ca5b47942df5ed965584be14669f",
+      "size_bytes": 61377
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_c0v12_rad_epd3.png",
+      "sha256": "3ac9d001088485cc0cdc8abe4b3b143a070d553c22f20465e11e1fee42f63df3",
+      "size_bytes": 61142
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_c0v12_rad_epd5.png",
+      "sha256": "9df78ad52add9c9c9d60e6155731bf12b68f7640f0fa9ef5328f49b85e415f73",
+      "size_bytes": 65717
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_c0v12_hoa_epd3.png",
+      "sha256": "89c953962094cdb1bd28df5f2c2b6468a298691e106f2c9d3ac8faed774ceae2",
+      "size_bytes": 58172
+    },
+    {
+      "path": "raw/through_focus_atc-m3-al24477_c0v12_hoa_epd5.png",
+      "sha256": "21f2c387e0dd1ec8dc8f38b46c07850b29b5dafb44fbfcc578879459f32dd9e4",
+      "size_bytes": 65656
+    },
+    {
+      "path": "summary/heatmap_delta_dof50_width_d_lb-al2395_epd3.png",
+      "sha256": "610e9ef8f19f4b0db65b679944fe742de321f5bf75d1243697411ea4446f9533",
+      "size_bytes": 61612
+    },
+    {
+      "path": "summary/heatmap_delta_mtfa_at_zero_d_lb-al2395_epd3.png",
+      "sha256": "3eab21cc710f07ae5f7bfa9ed64d6378dcb6a21cbf92895720637e38250b470c",
+      "size_bytes": 60269
+    },
+    {
+      "path": "summary/heatmap_delta_tf_mtfa_mean_lb-al2395_epd3.png",
+      "sha256": "d7f08b17710cfeef19e9027decd3a2b85734a56f2e37e37b33037afb810b4d80",
+      "size_bytes": 57714
+    },
+    {
+      "path": "summary/heatmap_delta_dof50_width_d_lb-al2395_epd5.png",
+      "sha256": "2bc9dd924db897c92474683a8dc8b5efd6780a176c3c665302d360d17aea163b",
+      "size_bytes": 58080
+    },
+    {
+      "path": "summary/heatmap_delta_mtfa_at_zero_d_lb-al2395_epd5.png",
+      "sha256": "c5b70d65aef07bf7525906ad73bf49fb37628417f17ae3e6e1eb3a11ff9c3b10",
+      "size_bytes": 59644
+    },
+    {
+      "path": "summary/heatmap_delta_tf_mtfa_mean_lb-al2395_epd5.png",
+      "sha256": "20b50ed0d46f42dd4bc9ddf256b4f6e83e727579f51febb466bb82ce3390628e",
+      "size_bytes": 54503
+    },
+    {
+      "path": "summary/heatmap_delta_dof50_width_d_atc-m3-al24477_epd3.png",
+      "sha256": "b828e1f95b8260ed2d9c3bcda1e6dfa33f46da0956f518ea165483f8a17f9d37",
+      "size_bytes": 61552
+    },
+    {
+      "path": "summary/heatmap_delta_mtfa_at_zero_d_atc-m3-al24477_epd3.png",
+      "sha256": "d0d83c133f038560d9e181911d1c5d11f6fccacae903f6ba4ee30eb18344d603",
+      "size_bytes": 61987
+    },
+    {
+      "path": "summary/heatmap_delta_tf_mtfa_mean_atc-m3-al24477_epd3.png",
+      "sha256": "43f0049dad5f0e5163302eae602e7ff1e1f569409e45b7b215ff6eb9f6189628",
+      "size_bytes": 58230
+    },
+    {
+      "path": "summary/heatmap_delta_dof50_width_d_atc-m3-al24477_epd5.png",
+      "sha256": "e4efd47527b8db118ab57ce14ace3a26a829a6164fd1dcb9f77d4d5f5176a944",
+      "size_bytes": 60868
+    },
+    {
+      "path": "summary/heatmap_delta_mtfa_at_zero_d_atc-m3-al24477_epd5.png",
+      "sha256": "d34b659141d48bf17308ae319529d42973001e69ec6976449d618b110db6a79f",
+      "size_bytes": 57180
+    },
+    {
+      "path": "summary/heatmap_delta_tf_mtfa_mean_atc-m3-al24477_epd5.png",
+      "sha256": "03a0a28d37c03946927f638a95f456b4b242daac1cc89c8f0c00ecf2c65e93f5",
+      "size_bytes": 56531
+    },
+    {
+      "path": "summary/through_focus_panel_lb-al2395_epd3.png",
+      "sha256": "c1bfa0520aef8f502f9869c3f6999bb33b651b1a50b4239effdc5488d56bae9a",
+      "size_bytes": 293185
+    },
+    {
+      "path": "summary/through_focus_panel_lb-al2395_epd5.png",
+      "sha256": "72f197a0df88913827ec60d11c1d327322b5e035079aaaaf0c35ec9e58495f8a",
+      "size_bytes": 303938
+    },
+    {
+      "path": "summary/through_focus_panel_atc-m3-al24477_epd3.png",
+      "sha256": "1bf1926fb7b9ecd1901e8d1beb1401a1583a25955da95ab8e0e87290634adaa1",
+      "size_bytes": 293510
+    },
+    {
+      "path": "summary/through_focus_panel_atc-m3-al24477_epd5.png",
+      "sha256": "5839d1a5069767718427bf2b16c0c54bd642f3a7cc3485285179f7ccc2df971c",
+      "size_bytes": 306911
+    },
+    {
+      "path": "summary/tradeoff_dof50_vs_mtfa_zero.png",
+      "sha256": "7eb703db18b8d3d4e28592b4c9a61544e0089361c43da5ca0c81ef58c6d3b5b0",
+      "size_bytes": 46648
+    },
+    {
+      "path": "summary/tradeoff_dof50_vs_tf_mean.png",
+      "sha256": "d6ce8ab64fbd04654f52e0d600ad3e48a22cc7d08b6bfd4274293b29bf69ea0f",
+      "size_bytes": 49353
+    },
+    {
+      "path": "summary/tradeoff_dof50_vs_window_peak_mtfa.png",
+      "sha256": "f9a06e6bf6694e109d9a58c35489913fd336671776a2e0147135071489af139e",
+      "size_bytes": 64308
+    },
+    {
+      "path": "summary/pupil_sensitivity_dof50.png",
+      "sha256": "f26afd7f757c8d2cd35b93984edb7a5a5a577c2c88e2f6d15000cbf80eb9f9ba",
+      "size_bytes": 165004
+    },
+    {
+      "path": "summary/base_sensitivity_dof50.png",
+      "sha256": "58c7d7d36cf8072d10efbe7ee064be2206dec12202f7ad0b470dfaa2cca25cf2",
+      "size_bytes": 121815
+    },
+    {
+      "path": "summary/pupil_sensitivity_mtfa_zero.png",
+      "sha256": "1cd18f6bf653733bf21ab11b5c5f757a0cb963c2ef68964d1c93043df263a7c1",
+      "size_bytes": 155939
+    },
+    {
+      "path": "summary/base_sensitivity_mtfa_zero.png",
+      "sha256": "31fb82e228a9718d72225e8f63dedc786f8cf0bdf8cb6307d1ecb7cc5be388ca",
+      "size_bytes": 111459
+    },
+    {
+      "path": "summary/mechanism_delta_c40_c60.png",
+      "sha256": "4fec231e6c1ea371c235a705021e5804ecda3272092cd7a06c04fde82e49725b",
+      "size_bytes": 41607
+    }
+  ]
+}

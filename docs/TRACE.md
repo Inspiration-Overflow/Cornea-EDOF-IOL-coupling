@@ -1,294 +1,167 @@
 # TRACE — Project Map / Traceability
 
-| Source ID | Relation | Target ID / Path | Notes |
+> Current authority map for `URD-0001 v1.6` / `ADD-0001 v1.6` / `MDD-0001 v1.5` / `TDD-0001 v1.6`.  
+> Historical IDs from older document versions are intentionally not carried forward here; Git history remains their provenance.
+
+## 1. URD requirements → ADD functional requirements
+
+| Source | Relation | Target | Current meaning |
 | --- | --- | --- | --- |
-| URD-REQ-001 | refines_to | ADD-FR-001 |  |
-| URD-REQ-002 | refines_to | ADD-FR-001 |  |
-| URD-REQ-003 | refines_to | ADD-FR-001 |  |
-| URD-REQ-003 | refines_to | ADD-FR-008 |  |
-| URD-REQ-004 | refines_to | ADD-FR-001 |  |
-| URD-REQ-005 | refines_to | ADD-FR-002 |  |
-| URD-REQ-006 | refines_to | ADD-FR-002 |  |
-| URD-REQ-007 | refines_to | ADD-FR-002 |  |
-| URD-REQ-008 | refines_to | ADD-FR-002 |  |
-| URD-REQ-009 | refines_to | ADD-FR-002 |  |
-| URD-REQ-009 | refines_to | ADD-FR-003 |  |
-| URD-REQ-010 | refines_to | ADD-FR-002 |  |
-| URD-REQ-011 | refines_to | ADD-FR-002 |  |
-| URD-REQ-011 | refines_to | ADD-FR-003 |  |
-| URD-REQ-011 | refines_to | ADD-FR-004 |  |
-| URD-REQ-011 | refines_to | ADD-FR-006 |  |
-| URD-REQ-012 | refines_to | ADD-FR-004 |  |
-| URD-REQ-013 | refines_to | ADD-FR-004 |  |
-| URD-REQ-014 | refines_to | ADD-FR-004 |  |
-| URD-REQ-015 | refines_to | ADD-FR-004 |  |
-| URD-REQ-016 | refines_to | ADD-FR-004 |  |
-| URD-REQ-017 | refines_to | ADD-FR-004 |  |
-| URD-REQ-017 | refines_to | ADD-FR-005 |  |
-| URD-REQ-018 | refines_to | ADD-FR-005 |  |
-| URD-REQ-019 | refines_to | ADD-FR-005 |  |
-| URD-REQ-020 | refines_to | ADD-FR-006 |  |
-| URD-REQ-021 | refines_to | ADD-FR-006 |  |
-| URD-REQ-021 | refines_to | ADD-FR-007 |  |
-| URD-REQ-022 | refines_to | ADD-FR-006 |  |
-| URD-REQ-022 | refines_to | ADD-FR-007 |  |
-| URD-REQ-023 | refines_to | ADD-FR-007 |  |
-| URD-REQ-024 | refines_to | ADD-FR-007 |  |
-| URD-REQ-025 | refines_to | ADD-FR-007 |  |
-| URD-REQ-025 | refines_to | ADD-FR-008 |  |
-| URD-REQ-026 | refines_to | ADD-FR-007 |  |
-| URD-REQ-027 | refines_to | ADD-FR-007 |  |
-| URD-REQ-027 | refines_to | ADD-FR-008 |  |
-| URD-REQ-028 | refines_to | ADD-FR-008 |  |
-| ADD-FR-001 | satisfied_by | ADD-DP-001 |  |
-| ADD-FR-002 | satisfied_by | ADD-DP-002 |  |
-| ADD-FR-003 | satisfied_by | ADD-DP-003 |  |
-| ADD-FR-004 | satisfied_by | ADD-DP-004 |  |
-| ADD-FR-005 | satisfied_by | ADD-DP-005 |  |
-| ADD-FR-006 | satisfied_by | ADD-DP-006 |  |
-| ADD-FR-007 | satisfied_by | ADD-DP-007 |  |
-| ADD-FR-008 | satisfied_by | ADD-DP-008 |  |
-| URD-AC-001 | verified_by | ADD-FR-001 |  |
-| URD-AC-001 | verified_by | ADD-FR-008 |  |
-| URD-AC-002 | verified_by | ADD-FR-002 |  |
-| URD-AC-003 | verified_by | ADD-FR-002 |  |
-| URD-AC-004 | verified_by | ADD-FR-002 |  |
-| URD-AC-004 | verified_by | ADD-FR-003 |  |
-| URD-AC-004 | verified_by | ADD-FR-004 |  |
-| URD-AC-004 | verified_by | ADD-FR-006 |  |
-| URD-AC-005 | verified_by | ADD-FR-002 |  |
-| URD-AC-006 | verified_by | ADD-FR-004 |  |
-| URD-AC-007 | verified_by | ADD-FR-004 |  |
-| URD-AC-008 | verified_by | ADD-FR-004 |  |
-| URD-AC-008 | verified_by | ADD-FR-005 |  |
-| URD-AC-009 | verified_by | ADD-FR-005 |  |
-| URD-AC-010 | verified_by | ADD-FR-006 |  |
-| URD-AC-010 | verified_by | ADD-FR-007 |  |
-| URD-AC-011 | verified_by | ADD-FR-006 |  |
-| URD-AC-011 | verified_by | ADD-FR-007 |  |
-| URD-AC-012 | verified_by | ADD-FR-007 |  |
-| URD-AC-012 | verified_by | ADD-FR-008 |  |
-| URD-AC-013 | verified_by | ADD-FR-007 |  |
-| URD-AC-014 | verified_by | ADD-FR-007 |  |
-| URD-AC-014 | verified_by | ADD-FR-008 |  |
-| URD-AC-015 | verified_by | ADD-FR-008 |  |
-| URD-CON-001 | constrains | ADD-DP-001 | Windows + OpticStudio runtime |
-| URD-CON-002 | constrains | ADD-DP-001 | valid ZOS-API license |
-| URD-CON-003 | constrains | ADD-DP-001 | ZOS-API connection lifecycle |
-| URD-CON-004 | constrains | ADD-DP-008 | CustomTkinter minimal GUI |
-| URD-CON-005 | constrains | ADD-DP-006 | Zemax is the optical oracle |
-| URD-CON-006 | constrains | ADD-DP-007 | run/version reproducibility metadata |
-| URD-CON-007 | constrains | ADD-DP-007 | core workflow remains offline |
-| URD-CON-008 | constrains | ADD-DP-008 | MVP simplicity; no speculative framework |
-| URD-ASM-002 | constrains | ADD-DP-001 | default OpticStudio 2026 R1.00; GUI-editable path |
-| URD-ASM-003 | constrains | ADD-DP-003 | five-candidate B0 first scan |
-| URD-ASM-004 | constrains | ADD-DP-002 | C0 wT fixed at 0.75 mm |
-| URD-ASM-005 | constrains | ADD-DP-004 | frozen residual reused across actual carrier powers in MVP |
-| URD-ASM-006 | constrains | ADD-DP-006 | analysis sampling/threshold details fixed before implementation |
-| URD-ASM-007 | constrains | ADD-DP-006 | VSOTF may deterministically post-process Zemax OTF |
-| URD-DEC-001 | constrains | ADD-DP-008 | CustomTkinter GUI confirmed |
-| URD-DEC-002 | constrains | ADD-DP-007 | CSV + .zos + images |
-| URD-DEC-003 | constrains | ADD-DP-006 | Zemax-based optical/visual metrics |
-| URD-DEC-004 | constrains | ADD-DP-003 | B0 determined by first actual scan |
-| URD-DEC-005 | constrains | ADD-DP-002 | C0 wT=0.75 mm |
-| URD-DEC-006 | constrains | ADD-DP-004 | platform-matched MONO controls |
-| URD-DEC-007 | constrains | ADD-DP-005 | 18 physical carriers / 72 nominal configurations |
-| MDD-MOD-001 | exposes | MDD-API-001 |  |
-| MDD-MOD-002 | exposes | MDD-API-002 |  |
-| MDD-MOD-002 | exposes | MDD-API-003 |  |
-| MDD-MOD-003 | exposes | MDD-API-004 |  |
-| MDD-MOD-003 | exposes | MDD-API-005 |  |
-| MDD-MOD-004 | exposes | MDD-API-006 |  |
-| MDD-MOD-004 | exposes | MDD-API-007 |  |
-| MDD-MOD-005 | exposes | MDD-API-008 |  |
-| MDD-MOD-006 | exposes | MDD-API-009 |  |
-| MDD-MOD-007 | exposes | MDD-API-010 |  |
-| MDD-MOD-008 | exposes | MDD-API-011 |  |
-| MDD-MOD-008 | exposes | MDD-API-012 |  |
-| MDD-MOD-001 | uses_data | MDD-DATA-002 |  |
-| MDD-MOD-002 | uses_data | MDD-DATA-001 |  |
-| MDD-MOD-002 | uses_data | MDD-DATA-003 |  |
-| MDD-MOD-002 | uses_data | MDD-DATA-004 |  |
-| MDD-MOD-003 | uses_data | MDD-DATA-001 |  |
-| MDD-MOD-003 | uses_data | MDD-DATA-003 |  |
-| MDD-MOD-004 | uses_data | MDD-DATA-005 |  |
-| MDD-MOD-004 | uses_data | MDD-DATA-008 |  |
-| MDD-MOD-005 | uses_data | MDD-DATA-001 |  |
-| MDD-MOD-005 | uses_data | MDD-DATA-006 |  |
-| MDD-MOD-006 | uses_data | MDD-DATA-006 |  |
-| MDD-MOD-006 | uses_data | MDD-DATA-007 |  |
-| MDD-MOD-007 | uses_data | MDD-DATA-007 |  |
-| MDD-MOD-007 | uses_data | MDD-DATA-008 |  |
-| MDD-MOD-007 | uses_data | MDD-DATA-009 |  |
-| MDD-MOD-007 | uses_data | MDD-DATA-010 |  |
-| MDD-MOD-008 | uses_data | MDD-DATA-011 |  |
-| URD-CON-003 | constrains | MDD-API-001 | connection.py-compatible ZOS-API lifecycle |
-| URD-REQ-015 | constrains | MDD-DATA-006 | matched MONO/EDOF carrier equality |
-| URD-REQ-016 | constrains | MDD-DATA-006 | residual platform lock and delta F |
-| URD-REQ-018 | constrains | MDD-DATA-007 | 72 deterministic nominal configs |
-| URD-REQ-021 | constrains | MDD-DATA-009 | minimum config result payload |
-| URD-REQ-022 | constrains | MDD-DATA-010 | EDOF-MONO paired deltas |
-| URD-REQ-025 | constrains | MDD-DATA-004 | failed/completed run state |
-| URD-REQ-028 | constrains | MDD-API-011 | minimal CustomTkinter desktop UI |
-| URD-ASM-006 | constrains | MDD-DATA-008 | analysis settings must be frozen in TDD |
-| URD-ASM-007 | constrains | MDD-API-010 | VSOTF only deterministic post-processing of Zemax data |
-| ADD-DP-001 | implemented_by | MDD-MOD-001 | MDD v1.1 corrected DP→module mapping |
-| ADD-DP-007 | implemented_by | MDD-MOD-002 | MDD v1.1 corrected DP→module mapping |
-| ADD-DP-002 | implemented_by | MDD-MOD-003 | MDD v1.1 corrected DP→module mapping |
-| ADD-DP-003 | implemented_by | MDD-MOD-004 | MDD v1.1 corrected DP→module mapping |
-| ADD-DP-004 | implemented_by | MDD-MOD-005 | MDD v1.1 corrected DP→module mapping |
-| ADD-DP-005 | implemented_by | MDD-MOD-006 | MDD v1.1 corrected DP→module mapping |
-| ADD-DP-006 | implemented_by | MDD-MOD-007 | MDD v1.1 corrected DP→module mapping |
-| ADD-DP-008 | implemented_by | MDD-MOD-008 | MDD v1.1 corrected DP→module mapping |
-| MDD-MOD-002 | uses_data | MDD-DATA-012 | per-run reproducibility metadata |
-| MDD-MOD-003 | uses_data | MDD-DATA-013 | residual readiness/validation |
-| MDD-MOD-005 | uses_data | MDD-DATA-013 | carrier prerequisite |
-| MDD-MOD-007 | uses_data | MDD-DATA-012 | formal run provenance |
-| MDD-MOD-008 | uses_data | MDD-DATA-012 | display/log run provenance |
-| URD-CON-006 | constrains | MDD-DATA-012 | program/Zemax/baseline/settings/manifest/lock reproducibility metadata |
-| URD-REQ-016 | constrains | MDD-DATA-013 | platform-frozen residual resource contract |
-| URD-DEC-008 | constrains | ADD-DP-008 | MVP GUI has no Pause/Cancel; recovery via Rerun |
-| URD-DEC-008 | constrains | MDD-MOD-008 | single long action; no Cancel/Pause |
-| URD-DEC-008 | verified_by | TDD-TEST-015 | GUI flow without Cancel requirement |
-| URD-DEC-008 | verified_by | TDD-TEST-112 | busy/action orchestration |
-| DEC-001 | constrains | MDD-DATA-008 | DOF_abs engineering threshold |
-| DEC-001 | verified_by | TDD-TEST-207 | absolute-threshold interpolation |
-| DEC-001 | verified_by | TDD-TEST-208 | absolute-threshold edge/empty behavior |
-| URD-AC-001 | verified_by | TDD-TEST-001 | TDD v1.1 acceptance oracle |
-| URD-AC-002 | verified_by | TDD-TEST-002 | TDD v1.1 acceptance oracle |
-| URD-AC-003 | verified_by | TDD-TEST-003 | TDD v1.1 acceptance oracle |
-| URD-AC-004 | verified_by | TDD-TEST-004 | TDD v1.1 acceptance oracle |
-| URD-AC-005 | verified_by | TDD-TEST-005 | TDD v1.1 acceptance oracle |
-| URD-AC-006 | verified_by | TDD-TEST-006 | TDD v1.1 acceptance oracle |
-| URD-AC-007 | verified_by | TDD-TEST-007 | TDD v1.1 acceptance oracle |
-| URD-AC-008 | verified_by | TDD-TEST-008 | TDD v1.1 acceptance oracle |
-| URD-AC-009 | verified_by | TDD-TEST-009 | TDD v1.1 acceptance oracle |
-| URD-AC-010 | verified_by | TDD-TEST-010 | TDD v1.1 acceptance oracle |
-| URD-AC-011 | verified_by | TDD-TEST-011 | TDD v1.1 acceptance oracle |
-| URD-AC-012 | verified_by | TDD-TEST-012 | TDD v1.1 acceptance oracle |
-| URD-AC-013 | verified_by | TDD-TEST-013 | TDD v1.1 acceptance oracle |
-| URD-AC-014 | verified_by | TDD-TEST-014 | TDD v1.1 acceptance oracle |
-| URD-AC-015 | verified_by | TDD-TEST-015 | TDD v1.1 acceptance oracle |
-| URD-AC-010 | verified_by | TDD-TEST-016 | 72/36/1080 end-to-end completeness |
-| URD-AC-011 | verified_by | TDD-TEST-016 | 72-config output completeness |
-| MDD-API-001 | verified_by | TDD-TEST-101 | TDD v1.1 public interface contract |
-| MDD-API-002 | verified_by | TDD-TEST-102 | TDD v1.1 public interface contract |
-| MDD-API-003 | verified_by | TDD-TEST-103 | TDD v1.1 public interface contract |
-| MDD-API-004 | verified_by | TDD-TEST-104 | TDD v1.1 public interface contract |
-| MDD-API-005 | verified_by | TDD-TEST-105 | TDD v1.1 public interface contract |
-| MDD-API-006 | verified_by | TDD-TEST-106 | TDD v1.1 public interface contract |
-| MDD-API-007 | verified_by | TDD-TEST-107 | TDD v1.1 public interface contract |
-| MDD-API-008 | verified_by | TDD-TEST-108 | TDD v1.1 public interface contract |
-| MDD-API-009 | verified_by | TDD-TEST-109 | TDD v1.1 public interface contract |
-| MDD-API-010 | verified_by | TDD-TEST-110 | TDD v1.1 public interface contract |
-| MDD-API-011 | verified_by | TDD-TEST-111 | TDD v1.1 public interface contract |
-| MDD-API-012 | verified_by | TDD-TEST-112 | TDD v1.1 public interface contract |
-| MDD-DATA-008 | verified_by | TDD-TEST-201 | B0/main settings grids |
-| MDD-DATA-008 | verified_by | TDD-TEST-209 | Huygens sampling convergence |
-| MDD-DATA-012 | verified_by | TDD-TEST-313 | complete RunEnvironment provenance |
-| MDD-DATA-013 | verified_by | TDD-TEST-303 | residual metadata/schema rejection |
-| MDD-DATA-013 | blocked_by | TDD-TEST-999 | scientific residual payload/calibration pending |
-| MDD-MOD-005 | verified_by | TDD-TEST-006 | power-specific Q(P) achieved-SA replay |
-| MDD-MOD-007 | verified_by | TDD-TEST-204 | phase-sensitive VSOTF golden |
-| MDD-MOD-007 | verified_by | TDD-TEST-403 | Zemax Huygens MTF cross-check |
-| MDD-MOD-008 | verified_by | TDD-TEST-401 | worker-thread environment gate |
-| ADD-DP-004 | protected_by | TDD-TEST-501 | lock boundary |
-| ADD-DP-005 | protected_by | TDD-TEST-502 | 18/72 identity |
-| ADD-DP-006 | protected_by | TDD-TEST-016 | complete nominal run |
-| URD-REQ-009 | verified_by | TDD-TEST-106 | A0-derived B0 thresholds/gates/ranking |
-| URD-REQ-020 | verified_by | TDD-TEST-110 | through-focus via analysis vergence; physical model fixed |
-| URD-REQ-021 | verified_by | TDD-TEST-010 | retina and shape-recentered frames |
-| URD-REQ-006 | verified_by | TDD-TEST-003 | ZERO_HOA_PARAXIAL_REFERENCE |
-| URD-REQ-016 | blocked_by | TDD-TEST-999 | residual payload plus low/median/high actual-power calibration |
-| MDD-DATA-005 | verified_by | TDD-TEST-107 | B0 recommendation and confirmation audit data |
-| MDD-DATA-009 | verified_by | TDD-TEST-110 | retina/shape dual defocus coordinates |
-| MDD-MOD-001 | implemented_in | RMD-TASK-002 | RMD v1.0 primary implementation slice |
-| MDD-MOD-002 | implemented_in | RMD-TASK-003 | RMD v1.0 primary implementation slice |
-| MDD-MOD-003 | implemented_in | RMD-TASK-005 | RMD v1.0 primary implementation slice |
-| MDD-MOD-004 | implemented_in | RMD-TASK-006 | RMD v1.0 primary implementation slice |
-| MDD-MOD-005 | implemented_in | RMD-TASK-007 | RMD v1.0 primary implementation slice |
-| MDD-MOD-006 | implemented_in | RMD-TASK-008 | RMD v1.0 primary implementation slice |
-| MDD-MOD-007 | implemented_in | RMD-TASK-009 | RMD v1.0 primary implementation slice |
-| MDD-MOD-008 | implemented_in | RMD-TASK-010 | RMD v1.0 primary implementation slice |
-| MDD-MOD-005 | completed_in | RMD-TASK-008 | formal carrier/pair locks after residual gate |
-| URD-AC-010 | accepted_in | RMD-TASK-011 | final 72/36/1080 run |
-| URD-AC-011 | accepted_in | RMD-TASK-011 | final output completeness |
-| TDD-TEST-999 | blocks | RMD-TASK-008 | must clear before formal carrier/pair locks |
-| TDD-TEST-401 | gates | RMD-TASK-010 | worker-thread result determines GUI orchestration |
-| TDD-TEST-209 | gates | RMD-TASK-011 | sampling convergence before Run72 |
-| TDD-TEST-403 | gates | RMD-TASK-011 | Huygens MTF cross-check before Run72 |
-| TDD-TEST-016 | executed_in | RMD-TASK-011 | 72/36/1080 completeness |
-| TDD-TEST-001 | executed_in | RMD-TASK-002 | RMD v1.0 test ownership |
-| TDD-TEST-101 | executed_in | RMD-TASK-002 | RMD v1.0 test ownership |
-| TDD-TEST-401 | executed_in | RMD-TASK-002 | RMD v1.0 test ownership |
-| TDD-TEST-102 | executed_in | RMD-TASK-003 | RMD v1.0 test ownership |
-| TDD-TEST-103 | executed_in | RMD-TASK-003 | RMD v1.0 test ownership |
-| TDD-TEST-201 | executed_in | RMD-TASK-003 | RMD v1.0 test ownership |
-| TDD-TEST-313 | executed_in | RMD-TASK-003 | RMD v1.0 test ownership |
-| TDD-TEST-314 | executed_in | RMD-TASK-003 | RMD v1.0 test ownership |
-| TDD-TEST-315 | executed_in | RMD-TASK-003 | RMD v1.0 test ownership |
-| TDD-TEST-503 | executed_in | RMD-TASK-003 | RMD v1.0 test ownership |
-| TDD-TEST-202 | executed_in | RMD-TASK-004 | RMD v1.0 test ownership |
-| TDD-TEST-203 | executed_in | RMD-TASK-004 | RMD v1.0 test ownership |
-| TDD-TEST-204 | executed_in | RMD-TASK-004 | RMD v1.0 test ownership |
-| TDD-TEST-205 | executed_in | RMD-TASK-004 | RMD v1.0 test ownership |
-| TDD-TEST-206 | executed_in | RMD-TASK-004 | RMD v1.0 test ownership |
-| TDD-TEST-207 | executed_in | RMD-TASK-004 | RMD v1.0 test ownership |
-| TDD-TEST-208 | executed_in | RMD-TASK-004 | RMD v1.0 test ownership |
-| TDD-TEST-211 | executed_in | RMD-TASK-004 | RMD v1.0 test ownership |
-| TDD-TEST-212 | executed_in | RMD-TASK-004 | RMD v1.0 test ownership |
-| TDD-TEST-002 | executed_in | RMD-TASK-005 | RMD v1.0 test ownership |
-| TDD-TEST-003 | executed_in | RMD-TASK-005 | RMD v1.0 test ownership |
-| TDD-TEST-005 | executed_in | RMD-TASK-005 | RMD v1.0 test ownership |
-| TDD-TEST-104 | executed_in | RMD-TASK-005 | RMD v1.0 test ownership |
-| TDD-TEST-105 | executed_in | RMD-TASK-005 | RMD v1.0 test ownership |
-| TDD-TEST-004 | executed_in | RMD-TASK-006 | RMD v1.0 test ownership |
-| TDD-TEST-106 | executed_in | RMD-TASK-006 | RMD v1.0 test ownership |
-| TDD-TEST-107 | executed_in | RMD-TASK-006 | RMD v1.0 test ownership |
-| TDD-TEST-304 | executed_in | RMD-TASK-006 | RMD v1.0 test ownership |
-| TDD-TEST-006 | executed_in | RMD-TASK-007 | RMD v1.0 test ownership |
-| TDD-TEST-303 | executed_in | RMD-TASK-007 | RMD v1.0 test ownership |
-| TDD-TEST-305 | executed_in | RMD-TASK-007 | RMD v1.0 test ownership |
-| TDD-TEST-999 | executed_in | RMD-TASK-007 | RMD v1.0 test ownership |
-| TDD-TEST-007 | executed_in | RMD-TASK-008 | RMD v1.0 test ownership |
-| TDD-TEST-008 | executed_in | RMD-TASK-008 | RMD v1.0 test ownership |
-| TDD-TEST-009 | executed_in | RMD-TASK-008 | RMD v1.0 test ownership |
-| TDD-TEST-108 | executed_in | RMD-TASK-008 | RMD v1.0 test ownership |
-| TDD-TEST-109 | executed_in | RMD-TASK-008 | RMD v1.0 test ownership |
-| TDD-TEST-301 | executed_in | RMD-TASK-008 | RMD v1.0 test ownership |
-| TDD-TEST-306 | executed_in | RMD-TASK-008 | RMD v1.0 test ownership |
-| TDD-TEST-307 | executed_in | RMD-TASK-008 | RMD v1.0 test ownership |
-| TDD-TEST-502 | executed_in | RMD-TASK-008 | RMD v1.0 test ownership |
-| TDD-TEST-010 | executed_in | RMD-TASK-009 | RMD v1.0 test ownership |
-| TDD-TEST-011 | executed_in | RMD-TASK-009 | RMD v1.0 test ownership |
-| TDD-TEST-110 | executed_in | RMD-TASK-009 | RMD v1.0 test ownership |
-| TDD-TEST-209 | executed_in | RMD-TASK-009 | RMD v1.0 test ownership |
-| TDD-TEST-210 | executed_in | RMD-TASK-009 | RMD v1.0 test ownership |
-| TDD-TEST-308 | executed_in | RMD-TASK-009 | RMD v1.0 test ownership |
-| TDD-TEST-309 | executed_in | RMD-TASK-009 | RMD v1.0 test ownership |
-| TDD-TEST-310 | executed_in | RMD-TASK-009 | RMD v1.0 test ownership |
-| TDD-TEST-402 | executed_in | RMD-TASK-009 | RMD v1.0 test ownership |
-| TDD-TEST-403 | executed_in | RMD-TASK-009 | RMD v1.0 test ownership |
-| TDD-TEST-501 | executed_in | RMD-TASK-009 | RMD v1.0 test ownership |
-| TDD-TEST-014 | executed_in | RMD-TASK-010 | RMD v1.0 test ownership |
-| TDD-TEST-015 | executed_in | RMD-TASK-010 | RMD v1.0 test ownership |
-| TDD-TEST-111 | executed_in | RMD-TASK-010 | RMD v1.0 test ownership |
-| TDD-TEST-112 | executed_in | RMD-TASK-010 | RMD v1.0 test ownership |
-| TDD-TEST-311 | executed_in | RMD-TASK-010 | RMD v1.0 test ownership |
-| TDD-TEST-312 | executed_in | RMD-TASK-010 | RMD v1.0 test ownership |
-| TDD-TEST-504 | executed_in | RMD-TASK-010 | RMD v1.0 test ownership |
-| TDD-TEST-012 | executed_in | RMD-TASK-011 | RMD v1.0 test ownership |
-| TDD-TEST-013 | executed_in | RMD-TASK-011 | RMD v1.0 test ownership |
-| TDD-TEST-404 | executed_in | RMD-TASK-011 | RMD v1.0 test ownership |
-| TDD-TEST-505 | executed_in | RMD-TASK-011 | RMD v1.0 test ownership |
-| RMD-TASK-001 | checkpointed_by | RMD-GIT-001 | planned local Git checkpoint |
-| RMD-TASK-002 | checkpointed_by | RMD-GIT-002 | planned local Git checkpoint |
-| RMD-TASK-003 | checkpointed_by | RMD-GIT-003 | planned local Git checkpoint |
-| RMD-TASK-004 | checkpointed_by | RMD-GIT-004 | planned local Git checkpoint |
-| RMD-TASK-005 | checkpointed_by | RMD-GIT-005 | planned local Git checkpoint |
-| RMD-TASK-006 | checkpointed_by | RMD-GIT-006 | planned local Git checkpoint |
-| RMD-TASK-007 | checkpointed_by | RMD-GIT-007 | planned local Git checkpoint |
-| RMD-TASK-008 | checkpointed_by | RMD-GIT-008 | planned local Git checkpoint |
-| RMD-TASK-009 | checkpointed_by | RMD-GIT-009 | planned local Git checkpoint |
-| RMD-TASK-010 | checkpointed_by | RMD-GIT-010 | planned local Git checkpoint |
-| RMD-TASK-011 | checkpointed_by | RMD-GIT-011 | planned local Git checkpoint |
+| URD-REQ-001 | refines_to | FR-001 | Python + ZOS-API / OpticStudio lifecycle |
+| URD-REQ-002 | refines_to | FR-002 | baseline/settings/hash/immutable provenance |
+| URD-REQ-003 | refines_to | FR-003 | LB/ATC bases |
+| URD-REQ-004 | refines_to | FR-003 | `STD_IOL_EYE_2024` EPD6 calibration asset |
+| URD-REQ-005 | refines_to | FR-003, FR-004 | A0/B0.20/C0 freeze and B0 lock |
+| URD-REQ-006 | refines_to | FR-005 | platform SA targets + power-specific Q(P) |
+| URD-REQ-007 | refines_to | FR-005 | 18 independent physical carriers |
+| URD-REQ-008 | refines_to | FR-005, FR-008 | matched MONO/EDOF identity; residual-only difference |
+| URD-REQ-009 | refines_to | FR-005 | residual payload / low-order / calibration gate |
+| URD-REQ-010 | refines_to | FR-006 | exact 18/72 immutable manifests and strict reload |
+| URD-REQ-011 | refines_to | FR-007 | frozen main numerical settings + MFE MTFA Grid=1 acquisition + paired residual-free MONO EFFL angular scale |
+| URD-REQ-012 | refines_to | FR-007 | retina/carrier/IOL/ELP/entity invariants |
+| URD-REQ-013 | refines_to | FR-007 | per-config MTFa/MTF/aberration/footprint/settings/provenance |
+| URD-REQ-014 | refines_to | FR-008 | 36 EDOF−MONO matched deltas |
+| URD-REQ-015 | refines_to | FR-009 | failed-target isolation and rerun |
+| URD-REQ-016 | refines_to | FR-007, FR-009 | repeatability under identical frozen inputs |
+| URD-REQ-017 | refines_to | FR-010 | minimal desktop workflow shell |
+| URD-REQ-018 | refines_to | FR-002, FR-007, FR-009 | structured results and auditable artifacts |
+
+## 2. ADD FR → DP
+
+| Source | Relation | Target |
+| --- | --- | --- |
+| FR-001 | satisfied_by | DP-001 |
+| FR-002 | satisfied_by | DP-002 |
+| FR-003 | satisfied_by | DP-003 |
+| FR-004 | satisfied_by | DP-004 |
+| FR-005 | satisfied_by | DP-005 |
+| FR-006 | satisfied_by | DP-006 |
+| FR-007 | satisfied_by | DP-007 |
+| FR-008 | satisfied_by | DP-008 |
+| FR-009 | satisfied_by | DP-009 |
+| FR-010 | satisfied_by | DP-010 |
+
+## 3. ADD DP → MDD modules / public APIs
+
+| Source | Relation | Target |
+| --- | --- | --- |
+| DP-001 | implemented_by | MDD-MOD-001 / MDD-API-001 |
+| DP-002 | implemented_by | MDD-MOD-002 / MDD-API-002 / MDD-API-003 |
+| DP-003 | implemented_by | MDD-MOD-003 / MDD-API-004 |
+| DP-004 | implemented_by | MDD-MOD-004 / MDD-API-005 |
+| DP-005 | implemented_by | MDD-MOD-005 / MDD-API-006 |
+| DP-006 | implemented_by | MDD-MOD-006 / MDD-API-007 |
+| DP-007 | implemented_by | MDD-MOD-007 / MDD-API-008 / MDD-API-009 / MDD-API-010 / MDD-API-011 |
+| DP-008 | implemented_by | MDD-MOD-008 / MDD-API-012 |
+| DP-009 | implemented_by | MDD-MOD-009 / MDD-API-011 |
+| DP-010 | implemented_by | MDD-MOD-010 / MDD-API-013 |
+
+## 4. URD acceptance → TDD oracle
+
+| Source | Relation | Target |
+| --- | --- | --- |
+| URD-AC-001 | verified_by | TDD-TEST-001 |
+| URD-AC-002 | verified_by | TDD-TEST-002 |
+| URD-AC-003 | verified_by | TDD-TEST-003 |
+| URD-AC-004 | verified_by | TDD-TEST-004 / TDD-TEST-005 |
+| URD-AC-005 | verified_by | TDD-TEST-006 / TDD-TEST-008 / TDD-TEST-109 |
+| URD-AC-006 | verified_by | TDD-TEST-108 / TDD-TEST-999 |
+| URD-AC-007 | verified_by | TDD-TEST-109 / TDD-TEST-110 |
+| URD-AC-008 | verified_by | TDD-TEST-201 / TDD-TEST-202 / TDD-TEST-203 / TDD-TEST-204 / TDD-TEST-205 / TDD-TEST-206 / TDD-TEST-207 |
+| URD-AC-009 | verified_by | TDD-TEST-401 / TDD-TEST-402 / TDD-TEST-403 |
+| URD-AC-010 | verified_by | TDD-TEST-301 / TDD-TEST-302 / TDD-TEST-303 / TDD-TEST-401 |
+
+## 5. Main-analysis implementation trace
+
+| Requirement / test | Implemented or exercised by |
+| --- | --- |
+| URD-REQ-010 / TDD-TEST-110 | `src/whole_eye_mvp/manifest_io.py` |
+| URD-REQ-011 / TDD-TEST-201 | `src/whole_eye_mvp/zos/mfe_mtfa.py`, `src/whole_eye_mvp/zos/mfe_mtf_grid.py`, `src/whole_eye_mvp/analysis_zos_pair_scale.py` |
+| TDD-TEST-202 | `src/whole_eye_mvp/zos/mfe_effl.py` + `measure_pair_mono_reference()` in `analysis_zos_pair_scale.py` |
+| TDD-TEST-203 | `frequencies_for_pair_reference()` + `paired_residual_free_MONO_EFFL` contract in `analysis_zos_pair_scale.py` |
+| URD-REQ-013 aberrations | `src/whole_eye_mvp/zos/mfe_hoa_full.py` |
+| URD-REQ-011 metrics | `src/whole_eye_mvp/metrics.py` |
+| URD-REQ-012 / TDD-TEST-302 | `capture_entity_snapshot` in `src/whole_eye_mvp/analysis_zos.py` |
+| URD-REQ-013 / TDD-TEST-301 | `ConfigResult` + `ZosMtfaPairScaleAnalysisBackend` |
+| URD-REQ-014 / TDD-TEST-303 | `matched_pair_delta` |
+| URD-REQ-015 | `run_analysis_batch` / failed-only TASK-011 resume path |
+| TDD-TEST-204/205 | corrected paired-MONO-scale TASK-009 representative batch |
+| TDD-TEST-206 | frozen-manifest selection + `ZosMtfaPairScaleAnalysisBackend` + `run_analysis_batch` |
+| TDD-TEST-207 | limited independent MFE extraction diagnostic in TASK-009 evidence |
+| URD-AC-009 | Run72 acceptance in `src/whole_eye_mvp/acceptance.py`, `src/whole_eye_mvp/run72.py`, `scripts/run_task_011_run72.py` |
+| TASK-011 formal matrix | 72 configs / 36 matched pairs / 1080 through-focus rows in `docs/evidence/task011/` |
+| TASK-012 source reconstruction | `src/whole_eye_mvp/run72_analysis.py` + `tests/unit/test_task012_run72_analysis.py` |
+| TASK-012 factor/censor/contrast analysis | `src/whole_eye_mvp/run72_analysis.py` + `scripts/analyze_task_012_run72.py` |
+| TASK-012 figures | `src/whole_eye_mvp/run72_figures.py` |
+| TASK-012 reproducible generation | `.github/workflows/task012-analysis.yml` |
+| TASK-012 formal derived evidence | `docs/evidence/task012/TASK_012_ANALYSIS_EVIDENCE.json`, pair/contrast/matrix CSVs, 24 figures |
+| TASK-012 independent results review | `docs/TASK_012_RESULTS_REVIEW_2026-08-20.md` |
+
+## 6. TASK-012 analysis trace
+
+```text
+analysis_plan = docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md
+source_task011_commit = f28b3032136aa28f54abb5fe5129765a125d3926
+analysis_code_commit = 330b59171e1dab2ea76d1425d56d8e5175d233ef
+analysis_evidence_commit = e92960b1f687ff844da07141f6e0aef50f32cea6
+result_review = PASS_WITH_SCIENTIFIC_CAVEATS
+opticstudio_used = false
+```
+
+Formal TASK-012 acceptance:
+
+```text
+pairs = 36
+contrasts = 1152
+coupling_cells = 9
+figures = 24
+DOF50 exact = 31
+DOF50 lower_bound = 5
+peak-window-censored pairs = 8
+reconstruction_gate = PASS
+censor_propagation = PASS
+```
+
+TASK-012 source verification preserves two separate provenance layers:
+
+- Git checkout repository-byte SHA256 for all four TASK-011 evidence files;
+- producer-export SHA256 recorded by TASK-011 evidence JSON for the three CSV files.
+
+These identities are both checked and are not substituted for each other.
+
+## 7. Versioned settings / acquisition trace
+
+| Identity | SHA-256 | Scope |
+| --- | --- | --- |
+| `NOMINAL_MAIN_FFT_MTF_555_v2` | `0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc` | historical settings ID retained for hash continuity; current Run72 numerical grid/settings |
+| `TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2` | `f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d` | active production MFE MTFA Grid=1 acquisition with paired residual-free MONO EFFL scale |
+| `TASK009_MFE_ZERN_HOA_555_v1` | `7c9a2d3a7685a6df14be4d9382e7c71a6d92ae8dfa76fb5502ecfd820974fcc2` | whole-eye C4/C6/HOA RMS readback |
+| `CORNEA_LOCK_B0_555_v2` | `aee210e884aa59f74e2963efddca9fc789f2b4e85de521606348d1e586790b8e` | historical frozen B0 selection acquisition |
+
+Active frequency-scale mode:
+
+```text
+paired_residual_free_MONO_EFFL
+```
+
+Formal Run72 pair-reference set:
+
+```text
+pair_reference_count = 36
+pair_reference_set_sha256 = a1cb8a899718d0327d8b1ecde21a4324e54090fd3db12cab36e649bb3cfc5b5d
+```
+
+## 8. Frozen provenance
+
+- TASK-007 reviewed evidence: `docs/evidence/task007/consolidated_review/TASK_007_CONSOLIDATED_REVIEW.json`.
+- TASK-008 formal evidence: `docs/evidence/task008/TASK_008_LOCK_MANIFEST_EVIDENCE.json`.
+- TASK-009 corrected representative evidence commit: `47f901dad36fb9d407826a6da8baceeef4c2edfd`.
+- TASK-009 active production acquisition: `TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2` with `paired_residual_free_MONO_EFFL`, sampling 128.
+- TASK-011 formal Run72 code baseline: `01f13b768cf1eca361703469b2fdce3d21f3376d`.
+- TASK-011 formal evidence commit: `f28b3032136aa28f54abb5fe5129765a125d3926`.
+- TASK-011 formal evidence: `docs/evidence/task011/TASK_011_RUN72_EVIDENCE.json` plus config, through-focus and paired-delta CSVs.
+- TASK-012 frozen analysis plan: `docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md`.
+- TASK-012 analysis code baseline: `330b59171e1dab2ea76d1425d56d8e5175d233ef`.
+- TASK-012 formal derived evidence commit: `e92960b1f687ff844da07141f6e0aef50f32cea6`.
+- TASK-012 independent results review: `docs/TASK_012_RESULTS_REVIEW_2026-08-20.md`.
+- TASK-005–009 scientific/method locks remain read-only during TASK-011/TASK-012 and subsequent paper writing.

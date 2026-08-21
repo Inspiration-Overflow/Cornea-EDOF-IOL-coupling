@@ -64,17 +64,34 @@ def read_csv_strict(
 
 def assert_trace_coverage(
     trace_text: str,
-    urd_ac_count: int = 15,
-    mdd_api_count: int = 12,
+    urd_ac_count: int = 10,
+    mdd_api_count: int = 13,
+    *,
+    urd_req_count: int = 18,
+    add_fr_count: int = 10,
+    add_dp_count: int = 10,
+    mdd_mod_count: int = 10,
 ) -> None:
+    """Fail if the active trace map silently retains an older document-ID universe.
+
+    ``urd_ac_count`` and ``mdd_api_count`` deliberately remain the first optional
+    positional parameters for compatibility with the pre-v1.6 helper signature.
+    New ID-universe counts are keyword-only.
+    """
+
+    expected_groups = (
+        ("URD-REQ", urd_req_count),
+        ("URD-AC", urd_ac_count),
+        ("FR", add_fr_count),
+        ("DP", add_dp_count),
+        ("MDD-MOD", mdd_mod_count),
+        ("MDD-API", mdd_api_count),
+    )
     missing: list[str] = []
-    for index in range(1, urd_ac_count + 1):
-        ident = f"URD-AC-{index:03d}"
-        if ident not in trace_text:
-            missing.append(ident)
-    for index in range(1, mdd_api_count + 1):
-        ident = f"MDD-API-{index:03d}"
-        if ident not in trace_text:
-            missing.append(ident)
+    for prefix, count in expected_groups:
+        for index in range(1, count + 1):
+            ident = f"{prefix}-{index:03d}"
+            if ident not in trace_text:
+                missing.append(ident)
     if missing:
         raise ValueError(f"trace coverage missing IDs: {missing}")

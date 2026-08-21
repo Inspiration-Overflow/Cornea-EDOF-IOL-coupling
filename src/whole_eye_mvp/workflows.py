@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import csv
 import json
-import math
 import os
 import tempfile
 from collections.abc import Mapping, Sequence
@@ -19,7 +18,13 @@ from .carriers import (
     residuals_ready,
     validate_18_provisional_carriers,
 )
-from .domain import NOMINAL_MAIN_555_V1, ArtifactRecord, RunEnvironment, RunRecord, RunStatus
+from .domain import (
+    NOMINAL_MAIN_FFT_MTF_555_V2,
+    ArtifactRecord,
+    RunEnvironment,
+    RunRecord,
+    RunStatus,
+)
 from .manifest import (
     CarrierLock,
     ManifestBundle,
@@ -69,11 +74,14 @@ def _now() -> str:
 def finalize_carrier_locks(
     carriers: Sequence[ProvisionalCarrier],
     residuals: Sequence[ResidualDefinition],
-    delta_f_by_carrier_id: Mapping[str, float],
     *,
     residual_policy: ResidualValidationPolicy,
 ) -> tuple[CarrierLock, ...]:
-    """Create formal locks only from validated optical results and evidence."""
+    """Create formal physical locks only from validated carrier/residual evidence.
+
+    Residual-induced best-focus shift is intentionally excluded from the physical lock.
+    It is pupil/metric dependent and remains an analysis/result quantity.
+    """
 
     validate_18_provisional_carriers(carriers)
     if not residuals_ready(
@@ -86,16 +94,10 @@ def finalize_carrier_locks(
             "formal carrier locks require three evidence-backed validated residuals"
         )
     residual_by_platform = {residual.platform_id: residual for residual in residuals}
-    expected_ids = {carrier.key.carrier_id for carrier in carriers}
-    if set(delta_f_by_carrier_id) != expected_ids:
-        raise ScientificInvariantError("delta-F map must contain exactly one value per carrier")
 
     locks: list[CarrierLock] = []
     for carrier in carriers:
         residual = residual_by_platform[carrier.key.platform_id]
-        delta_f = float(delta_f_by_carrier_id[carrier.key.carrier_id])
-        if not math.isfinite(delta_f):
-            raise ScientificInvariantError("delta-F values must be finite")
         policy_hash = residual_policy.policy_hash
         lock_hash = compute_carrier_lock_hash(
             carrier,
@@ -103,7 +105,6 @@ def finalize_carrier_locks(
             residual.sha256,
             residual_policy.policy_id,
             policy_hash,
-            delta_f,
         )
         locks.append(
             CarrierLock(
@@ -112,7 +113,6 @@ def finalize_carrier_locks(
                 residual_sha256=residual.sha256,
                 residual_validation_policy_id=residual_policy.policy_id,
                 residual_validation_policy_hash=policy_hash,
-                delta_f_residual_d=delta_f,
                 lock_hash=lock_hash,
             )
         )
@@ -178,7 +178,6 @@ def export_manifest_bundle(bundle: ManifestBundle, output_dir: str | Path) -> Ma
                 "residual_sha256": lock.residual_sha256,
                 "residual_validation_policy_id": lock.residual_validation_policy_id,
                 "residual_validation_policy_hash": lock.residual_validation_policy_hash,
-                "delta_f_residual_d": lock.delta_f_residual_d,
                 "lock_hash": lock.lock_hash,
             }
         )
@@ -196,7 +195,6 @@ def export_manifest_bundle(bundle: ManifestBundle, output_dir: str | Path) -> Ma
 def finalize_and_export_manifests(
     carriers: Sequence[ProvisionalCarrier],
     residuals: Sequence[ResidualDefinition],
-    delta_f_by_carrier_id: Mapping[str, float],
     output_dir: str | Path,
     *,
     residual_policy: ResidualValidationPolicy,
@@ -204,7 +202,6 @@ def finalize_and_export_manifests(
     locks = finalize_carrier_locks(
         carriers,
         residuals,
-        delta_f_by_carrier_id,
         residual_policy=residual_policy,
     )
     bundle = build_manifests(locks)
@@ -219,13 +216,29 @@ def _validate_analysis_environment(
     environment.validate()
     if environment.baseline_id != store.baseline.baseline_id:
         raise ProjectStoreError("analysis environment baseline does not match project baseline")
-    if environment.analysis_settings_id != NOMINAL_MAIN_555_V1.settings_id:
-        raise ProjectStoreError("analysis environment does not reference frozen nominal settings")
+    if environment.analysis_settings_id != NOMINAL_MAIN_FFT_MTF_555_V2.settings_id:
+        raise ProjectStoreError("analysis environment does not reference frozen main-analysis settings")
     if environment.manifest_hash != bundle.manifest_hash:
         raise ProjectStoreError("analysis environment manifest hash does not match manifest bundle")
     expected_lock_set_hash = compute_lock_set_hash(bundle.physical_carriers)
     if environment.lock_set_hash != expected_lock_set_hash:
         raise ProjectStoreError("analysis environment lock-set hash does not match manifest bundle")
+
+
+def _validate_backend_provenance(backend: AnalysisBackend, environment: RunEnvironment) -> None:
+    expected = {
+        "acquisition_contract_id": environment.acquisition_contract_id,
+        "acquisition_contract_hash": environment.acquisition_contract_hash,
+        "frequency_scale_mode": environment.frequency_scale_mode,
+    }
+    for name, value in expected.items():
+        actual = getattr(backend, name, None)
+        if not isinstance(actual, str) or not actual.strip():
+            raise ProjectStoreError(f"analysis backend does not expose required {name}")
+        if actual != value:
+            raise ProjectStoreError(
+                f"analysis backend {name} does not match the frozen run environment"
+            )
 
 
 def _ensure_project_output_dir(store: ProjectStore, output_dir: str | Path) -> Path:
@@ -278,6 +291,7 @@ def run_analysis_batch(
     require_files: bool = True,
 ) -> AnalysisBatchSummary:
     _validate_analysis_environment(store, bundle, environment)
+    _validate_backend_provenance(backend, environment)
     manifest = bundle.nominal_configs
     selected = manifest if selection is None else validate_selection(selection, manifest)
     output = _ensure_project_output_dir(store, output_dir)

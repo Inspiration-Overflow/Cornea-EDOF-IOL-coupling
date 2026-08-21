@@ -1,0 +1,590 @@
+{
+  "schema_version": 1,
+  "phase": "TASK-014-VERTEX-CORRECTED-POSTOP-CORNEA",
+  "run_id": "task014-e270a185207543149c21da83202c4b73",
+  "code_commit": "38ad14a12a18b1a7a30d259cde644d360442f57b",
+  "package_version": "0.1.0",
+  "opticstudio_version": "260127",
+  "baseline_id": "MVP_2026_v2",
+  "source_task008_manifest_hash": "29205cf1bd27848bb378fad956709b7cde4686ffd917b10351a992fc0d59ad49",
+  "source_task008_lock_set_hash": "b1dff4c05d2c817099c913c32d9eb8c0b1c9cfa3c9ca8a2022b20c6521e08923",
+  "source_task011_rerun": false,
+  "rollback_checkpoint": "checkpoint/pre-vertex-correction-2026-08-20",
+  "rx_contract": {
+    "contract_id": "TASK014_SPECTACLE_M3_VERTEX12_v1",
+    "preoperative_spectacle_sphere_d": -3.0,
+    "vertex_distance_mm": 12.0
+  },
+  "rx_contract_snapshot": {
+    "task_id": "TASK-014-VERTEX-CORRECTED-POSTOP-CORNEA",
+    "contract": {
+      "contract_id": "TASK014_SPECTACLE_M3_VERTEX12_v1",
+      "preoperative_spectacle_sphere_d": -3.0,
+      "vertex_distance_mm": 12.0
+    },
+    "corneal_plane_distance_treatment_d": -2.8957528957528957,
+    "legacy_direct_treatment_d": -3.0,
+    "legacy_to_vertex_corrected_delta_d": 0.10424710424710426,
+    "reference_cornea_equivalent_power_d": 42.251148573823,
+    "vertex_corrected_distance_cornea_power_d": 39.35539567807011,
+    "vertex_corrected_distance_front_radius_mm": 8.263362674864794,
+    "prescriptions": [
+      {
+        "candidate_id": "A0V12",
+        "cornea_id": "A0",
+        "surface_family": "Binary4",
+        "treatment_d": -2.8957528957528957,
+        "optical_zone_mm": 5.0,
+        "target_delta_c40_um": 0.13,
+        "near_diameter_mm": null,
+        "add_rx_d": null,
+        "transition_width_mm": null
+      },
+      {
+        "candidate_id": "B0V12",
+        "cornea_id": "B0",
+        "surface_family": "EvenAsphere",
+        "treatment_d": -2.8957528957528957,
+        "optical_zone_mm": 6.0,
+        "target_delta_c40_um": 0.2,
+        "near_diameter_mm": null,
+        "add_rx_d": null,
+        "transition_width_mm": null
+      },
+      {
+        "candidate_id": "C0V12",
+        "cornea_id": "C0",
+        "surface_family": "Binary4",
+        "treatment_d": -2.8957528957528957,
+        "optical_zone_mm": 6.5,
+        "target_delta_c40_um": null,
+        "near_diameter_mm": 3.0,
+        "add_rx_d": 1.75,
+        "transition_width_mm": 0.75
+      }
+    ],
+    "base_semantics": "base phenotype is orthogonal to the standardized surgical prescription; ATC source_refraction_d is not added to TASK-014 treatment"
+  },
+  "rx_contract_sha256": "5fd26da60094a331186e29891df7179a603b2e6c526015c67e1de2cdc19160e4",
+  "corrected_cornea_ids": [
+    "A0V12",
+    "B0V12",
+    "C0V12"
+  ],
+  "cornea_measurements": {
+    "A0V12": {
+      "candidate_id": "A0V12",
+      "surface_family": "Binary4",
+      "target_delta_c40_um": 0.13,
+      "achieved_delta_c40_um": 0.12977906435741532,
+      "reference_c40_um": 0.257399372038367,
+      "candidate_c40_um": 0.3871784363957823,
+      "control_name": "inner_zone_conic",
+      "control_value": -0.1125,
+      "wavefront": {
+        "c40_um": 0.3871784363957823,
+        "z11_waves": 0.6976188043167248,
+        "z37_waves": 0.11671350296228294,
+        "best_focus_shift_mm": 9.301372141674207
+      }
+    },
+    "B0V12": {
+      "candidate_id": "B0V12",
+      "surface_family": "EvenAsphere",
+      "target_delta_c40_um": 0.2,
+      "achieved_delta_c40_um": 0.20160045494293322,
+      "reference_c40_um": 0.257399372038367,
+      "candidate_c40_um": 0.4589998269813002,
+      "control_name": "even_asphere_r4",
+      "control_value": 0.000115625,
+      "wavefront": {
+        "c40_um": 0.4589998269813002,
+        "z11_waves": 0.827026715281622,
+        "z37_waves": 0.000290764433591089,
+        "best_focus_shift_mm": 8.816507367718302
+      }
+    },
+    "C0V12": {
+      "candidate_id": "C0V12",
+      "surface_family": "Binary4",
+      "target_delta_c40_um": null,
+      "achieved_delta_c40_um": -0.55425975385282,
+      "reference_c40_um": 0.257399372038367,
+      "candidate_c40_um": -0.29686038181445296,
+      "control_name": "transition_slices",
+      "control_value": 8.0,
+      "wavefront": {
+        "c40_um": -0.29686038181445296,
+        "z11_waves": -0.5348835708368521,
+        "z37_waves": 0.1250666959671525,
+        "best_focus_shift_mm": 8.937648496642115
+      }
+    }
+  },
+  "native_manifest_hash": "3a4b3c00c432016314ffea50e18ad888904a7ce176cae6fbe12ac31bf513c8ee",
+  "native_lock_set_hash": "e8360364a4acd35cc269d840b319474ec06f478f14d193645508689c5f3c074a",
+  "physical_carriers": 18,
+  "nominal_configs": 72,
+  "analysis_settings_id": "NOMINAL_MAIN_FFT_MTF_555_v2",
+  "analysis_settings_sha256": "0cb7cd5d4c1551463d0a0913abd23b35f2a6bb4da8a2f76f689a4ce69386cebc",
+  "acquisition_contract_id": "TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2",
+  "acquisition_contract_sha256": "f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d",
+  "frequency_scale_mode": "paired_residual_free_MONO_EFFL",
+  "production_sampling": 128,
+  "residual_power_envelope_checks": [
+    {
+      "platform_id": "WFS",
+      "carrier_id": "CAR_ATC_M3_AL24477_A0V12_WFS",
+      "corrected_power_d": 23.361566879368358,
+      "existing_min_power_d": 21.05255871628924,
+      "existing_max_power_d": 25.47664933274738,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "WFS",
+      "carrier_id": "CAR_ATC_M3_AL24477_B0V12_WFS",
+      "corrected_power_d": 23.13156874527021,
+      "existing_min_power_d": 21.05255871628924,
+      "existing_max_power_d": 25.47664933274738,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "WFS",
+      "carrier_id": "CAR_ATC_M3_AL24477_C0V12_WFS",
+      "corrected_power_d": 20.90296937910092,
+      "existing_min_power_d": 21.05255871628924,
+      "existing_max_power_d": 25.47664933274738,
+      "within_existing_coverage": false
+    },
+    {
+      "platform_id": "WFS",
+      "carrier_id": "CAR_LB_AL2395_A0V12_WFS",
+      "corrected_power_d": 25.341480797490647,
+      "existing_min_power_d": 21.05255871628924,
+      "existing_max_power_d": 25.47664933274738,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "WFS",
+      "carrier_id": "CAR_LB_AL2395_B0V12_WFS",
+      "corrected_power_d": 25.1031770619693,
+      "existing_min_power_d": 21.05255871628924,
+      "existing_max_power_d": 25.47664933274738,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "WFS",
+      "carrier_id": "CAR_LB_AL2395_C0V12_WFS",
+      "corrected_power_d": 22.887114641338275,
+      "existing_min_power_d": 21.05255871628924,
+      "existing_max_power_d": 25.47664933274738,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "RAD",
+      "carrier_id": "CAR_ATC_M3_AL24477_A0V12_RAD",
+      "corrected_power_d": 23.47688652737417,
+      "existing_min_power_d": 21.177612325137524,
+      "existing_max_power_d": 25.587058690007545,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "RAD",
+      "carrier_id": "CAR_ATC_M3_AL24477_B0V12_RAD",
+      "corrected_power_d": 23.241190195325593,
+      "existing_min_power_d": 21.177612325137524,
+      "existing_max_power_d": 25.587058690007545,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "RAD",
+      "carrier_id": "CAR_ATC_M3_AL24477_C0V12_RAD",
+      "corrected_power_d": 21.018859955422993,
+      "existing_min_power_d": 21.177612325137524,
+      "existing_max_power_d": 25.587058690007545,
+      "within_existing_coverage": false
+    },
+    {
+      "platform_id": "RAD",
+      "carrier_id": "CAR_LB_AL2395_A0V12_RAD",
+      "corrected_power_d": 25.45135045562381,
+      "existing_min_power_d": 21.177612325137524,
+      "existing_max_power_d": 25.587058690007545,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "RAD",
+      "carrier_id": "CAR_LB_AL2395_B0V12_RAD",
+      "corrected_power_d": 25.216987846525377,
+      "existing_min_power_d": 21.177612325137524,
+      "existing_max_power_d": 25.587058690007545,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "RAD",
+      "carrier_id": "CAR_LB_AL2395_C0V12_RAD",
+      "corrected_power_d": 23.004714307900212,
+      "existing_min_power_d": 21.177612325137524,
+      "existing_max_power_d": 25.587058690007545,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "HOA",
+      "carrier_id": "CAR_ATC_M3_AL24477_A0V12_HOA",
+      "corrected_power_d": 23.129792822147852,
+      "existing_min_power_d": 20.814928860453236,
+      "existing_max_power_d": 25.25866463479957,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "HOA",
+      "carrier_id": "CAR_ATC_M3_AL24477_B0V12_HOA",
+      "corrected_power_d": 22.89756719985331,
+      "existing_min_power_d": 20.814928860453236,
+      "existing_max_power_d": 25.25866463479957,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "HOA",
+      "carrier_id": "CAR_ATC_M3_AL24477_C0V12_HOA",
+      "corrected_power_d": 20.658885458406157,
+      "existing_min_power_d": 20.814928860453236,
+      "existing_max_power_d": 25.25866463479957,
+      "within_existing_coverage": false
+    },
+    {
+      "platform_id": "HOA",
+      "carrier_id": "CAR_LB_AL2395_A0V12_HOA",
+      "corrected_power_d": 25.114791104307077,
+      "existing_min_power_d": 20.814928860453236,
+      "existing_max_power_d": 25.25866463479957,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "HOA",
+      "carrier_id": "CAR_LB_AL2395_B0V12_HOA",
+      "corrected_power_d": 24.878609810544628,
+      "existing_min_power_d": 20.814928860453236,
+      "existing_max_power_d": 25.25866463479957,
+      "within_existing_coverage": true
+    },
+    {
+      "platform_id": "HOA",
+      "carrier_id": "CAR_LB_AL2395_C0V12_HOA",
+      "corrected_power_d": 22.64667054017476,
+      "existing_min_power_d": 20.814928860453236,
+      "existing_max_power_d": 25.25866463479957,
+      "within_existing_coverage": true
+    }
+  ],
+  "residual_power_envelope_passed": false,
+  "pair_reference_records": {
+    "CAR_ATC_M3_AL24477_A0V12_HOA_EPD3": {
+      "pair_key": "CAR_ATC_M3_AL24477_A0V12_HOA_EPD3",
+      "mono_config_id": "CFG_ATC_M3_AL24477_A0V12_HOA_MONO_EPD3",
+      "reference_effl_mm": 17.028899377109386,
+      "mm_per_degree": 0.29724054428352836,
+      "model_sha256": "11b7f3a4f61a9c330bf15159238ba67e9b5778b3dc58063a1e409fdb0b4b7437",
+      "entity_fingerprint": "17e3a5a4898d093e202b3ede0573ad8fa4256a86da0ceaedaed9f2ccc82bf0ce"
+    },
+    "CAR_ATC_M3_AL24477_A0V12_HOA_EPD5": {
+      "pair_key": "CAR_ATC_M3_AL24477_A0V12_HOA_EPD5",
+      "mono_config_id": "CFG_ATC_M3_AL24477_A0V12_HOA_MONO_EPD5",
+      "reference_effl_mm": 17.028899377109383,
+      "mm_per_degree": 0.29724054428352825,
+      "model_sha256": "b660e01078c87b9829d9a2e18664fc624d1cbd833699714f2938526559c03dc0",
+      "entity_fingerprint": "17e3a5a4898d093e202b3ede0573ad8fa4256a86da0ceaedaed9f2ccc82bf0ce"
+    },
+    "CAR_ATC_M3_AL24477_A0V12_RAD_EPD3": {
+      "pair_key": "CAR_ATC_M3_AL24477_A0V12_RAD_EPD3",
+      "mono_config_id": "CFG_ATC_M3_AL24477_A0V12_RAD_MONO_EPD3",
+      "reference_effl_mm": 16.94503700017158,
+      "mm_per_degree": 0.2957767210490443,
+      "model_sha256": "a60e36016a983ae1a3ec9504d050a93ef8722b491bfcc21721341235dc060988",
+      "entity_fingerprint": "e33c124d3a976cb7d03d0c44ad65c84450bde40746110e4e9e72f551d48879e0"
+    },
+    "CAR_ATC_M3_AL24477_A0V12_RAD_EPD5": {
+      "pair_key": "CAR_ATC_M3_AL24477_A0V12_RAD_EPD5",
+      "mono_config_id": "CFG_ATC_M3_AL24477_A0V12_RAD_MONO_EPD5",
+      "reference_effl_mm": 16.945037000171578,
+      "mm_per_degree": 0.29577672104904423,
+      "model_sha256": "f23fab0ce18d4e92b0bfe96be6e943526c33b74b34fccb0f8c5371c191d1e3e6",
+      "entity_fingerprint": "e33c124d3a976cb7d03d0c44ad65c84450bde40746110e4e9e72f551d48879e0"
+    },
+    "CAR_ATC_M3_AL24477_A0V12_WFS_EPD3": {
+      "pair_key": "CAR_ATC_M3_AL24477_A0V12_WFS_EPD3",
+      "mono_config_id": "CFG_ATC_M3_AL24477_A0V12_WFS_MONO_EPD3",
+      "reference_effl_mm": 16.972807939622292,
+      "mm_per_degree": 0.296261464600274,
+      "model_sha256": "cd62e7912ad3f5bac2bffa19eb9fce49f00fa4bf3a47d75add86ad751ffb1ed0",
+      "entity_fingerprint": "6a32efc05023a76f61f4825526be714e94393c5eba8012a5092075a039ab5ac8"
+    },
+    "CAR_ATC_M3_AL24477_A0V12_WFS_EPD5": {
+      "pair_key": "CAR_ATC_M3_AL24477_A0V12_WFS_EPD5",
+      "mono_config_id": "CFG_ATC_M3_AL24477_A0V12_WFS_MONO_EPD5",
+      "reference_effl_mm": 16.9728079396223,
+      "mm_per_degree": 0.2962614646002742,
+      "model_sha256": "22ec95095b5e4a51cc3705b1a32b396f55892acf960a55bda7c0f9af3c4ff382",
+      "entity_fingerprint": "6a32efc05023a76f61f4825526be714e94393c5eba8012a5092075a039ab5ac8"
+    },
+    "CAR_ATC_M3_AL24477_B0V12_HOA_EPD3": {
+      "pair_key": "CAR_ATC_M3_AL24477_B0V12_HOA_EPD3",
+      "mono_config_id": "CFG_ATC_M3_AL24477_B0V12_HOA_MONO_EPD3",
+      "reference_effl_mm": 17.085473231266697,
+      "mm_per_degree": 0.2982280445810837,
+      "model_sha256": "70c1a3479468d682c54f852207272077c44aefb585de9568159da9f401f603dd",
+      "entity_fingerprint": "f06a13be469e6e189af954ed4010ee5c87a9d00be7396fa63c45e7babd5abdab"
+    },
+    "CAR_ATC_M3_AL24477_B0V12_HOA_EPD5": {
+      "pair_key": "CAR_ATC_M3_AL24477_B0V12_HOA_EPD5",
+      "mono_config_id": "CFG_ATC_M3_AL24477_B0V12_HOA_MONO_EPD5",
+      "reference_effl_mm": 17.085473231266697,
+      "mm_per_degree": 0.2982280445810837,
+      "model_sha256": "0a0c6e8695ab2ae2cad004106c99d917069023e0373e8ab72533a15da492715e",
+      "entity_fingerprint": "f06a13be469e6e189af954ed4010ee5c87a9d00be7396fa63c45e7babd5abdab"
+    },
+    "CAR_ATC_M3_AL24477_B0V12_RAD_EPD3": {
+      "pair_key": "CAR_ATC_M3_AL24477_B0V12_RAD_EPD3",
+      "mono_config_id": "CFG_ATC_M3_AL24477_B0V12_RAD_MONO_EPD3",
+      "reference_effl_mm": 17.001893987237246,
+      "mm_per_degree": 0.2967691634498983,
+      "model_sha256": "46a8dbad493a9155d1bd836c8a0eeb74f24ac084df057956a30b6f8a5eddbb3f",
+      "entity_fingerprint": "918b3b57526a8a28d6762e3f7e0f20f12e5bd73f91b955edb637e15c8a514b06"
+    },
+    "CAR_ATC_M3_AL24477_B0V12_RAD_EPD5": {
+      "pair_key": "CAR_ATC_M3_AL24477_B0V12_RAD_EPD5",
+      "mono_config_id": "CFG_ATC_M3_AL24477_B0V12_RAD_MONO_EPD5",
+      "reference_effl_mm": 17.001893987237246,
+      "mm_per_degree": 0.2967691634498983,
+      "model_sha256": "a339825982d213f281ca6700e53602dacfbb34d11bef4efb003e4b3b90a2a785",
+      "entity_fingerprint": "918b3b57526a8a28d6762e3f7e0f20f12e5bd73f91b955edb637e15c8a514b06"
+    },
+    "CAR_ATC_M3_AL24477_B0V12_WFS_EPD3": {
+      "pair_key": "CAR_ATC_M3_AL24477_B0V12_WFS_EPD3",
+      "mono_config_id": "CFG_ATC_M3_AL24477_B0V12_WFS_MONO_EPD3",
+      "reference_effl_mm": 17.0284681777806,
+      "mm_per_degree": 0.2972330176712474,
+      "model_sha256": "b9097767de0ef6ba16d9a0a532a74c032874098a01589c1cca848478aade5f29",
+      "entity_fingerprint": "01a7c074700439af878bebcaf0c8a30c32a2101e4616e01ef007ebec7153800f"
+    },
+    "CAR_ATC_M3_AL24477_B0V12_WFS_EPD5": {
+      "pair_key": "CAR_ATC_M3_AL24477_B0V12_WFS_EPD5",
+      "mono_config_id": "CFG_ATC_M3_AL24477_B0V12_WFS_MONO_EPD5",
+      "reference_effl_mm": 17.028468177780603,
+      "mm_per_degree": 0.29723301767124743,
+      "model_sha256": "6ed0b612d3b8368bbaf1ca474e5ef392af58af9d49cbf19f555a1e2d9160edd8",
+      "entity_fingerprint": "01a7c074700439af878bebcaf0c8a30c32a2101e4616e01ef007ebec7153800f"
+    },
+    "CAR_ATC_M3_AL24477_C0V12_HOA_EPD3": {
+      "pair_key": "CAR_ATC_M3_AL24477_C0V12_HOA_EPD3",
+      "mono_config_id": "CFG_ATC_M3_AL24477_C0V12_HOA_MONO_EPD3",
+      "reference_effl_mm": 17.16518960808647,
+      "mm_per_degree": 0.2996194991143151,
+      "model_sha256": "ffd1dd9a9edf2bd567001c28dd43606234ef1e4cffb50fc179d10ac08f7a5f08",
+      "entity_fingerprint": "20e76ba26538140753f9c49f725eebc58327a153702130a07e466979457501fb"
+    },
+    "CAR_ATC_M3_AL24477_C0V12_HOA_EPD5": {
+      "pair_key": "CAR_ATC_M3_AL24477_C0V12_HOA_EPD5",
+      "mono_config_id": "CFG_ATC_M3_AL24477_C0V12_HOA_MONO_EPD5",
+      "reference_effl_mm": 17.16518960808647,
+      "mm_per_degree": 0.2996194991143151,
+      "model_sha256": "444fb566df84b88a745d99e14f277ff0922f8fbd340f542f0527e0184391f51e",
+      "entity_fingerprint": "20e76ba26538140753f9c49f725eebc58327a153702130a07e466979457501fb"
+    },
+    "CAR_ATC_M3_AL24477_C0V12_RAD_EPD3": {
+      "pair_key": "CAR_ATC_M3_AL24477_C0V12_RAD_EPD3",
+      "mono_config_id": "CFG_ATC_M3_AL24477_C0V12_RAD_MONO_EPD3",
+      "reference_effl_mm": 17.07758460796815,
+      "mm_per_degree": 0.2980903481492133,
+      "model_sha256": "af7a614707a38c228b16f8fa2c7b63c9c5ce78d50cd1a81a5f40155e9cc597dc",
+      "entity_fingerprint": "8a1a4d313703f438e5246833b62f26cad4c1edad5f3d18711fb3fc788bc829b4"
+    },
+    "CAR_ATC_M3_AL24477_C0V12_RAD_EPD5": {
+      "pair_key": "CAR_ATC_M3_AL24477_C0V12_RAD_EPD5",
+      "mono_config_id": "CFG_ATC_M3_AL24477_C0V12_RAD_MONO_EPD5",
+      "reference_effl_mm": 17.07758460796815,
+      "mm_per_degree": 0.2980903481492133,
+      "model_sha256": "9c4673e3b624e02ab1bbac419888c4e92c4f6dcd9a212f0e64676d84d44c1d28",
+      "entity_fingerprint": "8a1a4d313703f438e5246833b62f26cad4c1edad5f3d18711fb3fc788bc829b4"
+    },
+    "CAR_ATC_M3_AL24477_C0V12_WFS_EPD3": {
+      "pair_key": "CAR_ATC_M3_AL24477_C0V12_WFS_EPD3",
+      "mono_config_id": "CFG_ATC_M3_AL24477_C0V12_WFS_MONO_EPD3",
+      "reference_effl_mm": 17.105690474094924,
+      "mm_per_degree": 0.29858093786731993,
+      "model_sha256": "f6d6b6a5392fadfb1c9cdd24bba6cee22e5233a2e2060414629ed55efcc588c2",
+      "entity_fingerprint": "a4a40f844c5df2271f7a8b80fbf6272b96d77e4b1f306bac6961d7c54045aa4c"
+    },
+    "CAR_ATC_M3_AL24477_C0V12_WFS_EPD5": {
+      "pair_key": "CAR_ATC_M3_AL24477_C0V12_WFS_EPD5",
+      "mono_config_id": "CFG_ATC_M3_AL24477_C0V12_WFS_MONO_EPD5",
+      "reference_effl_mm": 17.105690474094924,
+      "mm_per_degree": 0.29858093786731993,
+      "model_sha256": "0a654b92de67e7a252a95eb7fb800700ee14a99c0f1ae28b6e757d079e520c4e",
+      "entity_fingerprint": "a4a40f844c5df2271f7a8b80fbf6272b96d77e4b1f306bac6961d7c54045aa4c"
+    },
+    "CAR_LB_AL2395_A0V12_HOA_EPD3": {
+      "pair_key": "CAR_LB_AL2395_A0V12_HOA_EPD3",
+      "mono_config_id": "CFG_LB_AL2395_A0V12_HOA_MONO_EPD3",
+      "reference_effl_mm": 16.560192406441637,
+      "mm_per_degree": 0.28905923367821457,
+      "model_sha256": "d312f8d7b570cd3d1acaf4e1108e71d7e9f99faf7d789e75504400419d4e798c",
+      "entity_fingerprint": "c45a6759cb7ee9156c54f36a74f1a5eb27166324511cc985acdedcf81925ca7f"
+    },
+    "CAR_LB_AL2395_A0V12_HOA_EPD5": {
+      "pair_key": "CAR_LB_AL2395_A0V12_HOA_EPD5",
+      "mono_config_id": "CFG_LB_AL2395_A0V12_HOA_MONO_EPD5",
+      "reference_effl_mm": 16.56019240644164,
+      "mm_per_degree": 0.2890592336782147,
+      "model_sha256": "9a1370fafbd90fc7a1209abdff11c2b8df8dd3bfa3afb71395abe3e93f2f0d08",
+      "entity_fingerprint": "c45a6759cb7ee9156c54f36a74f1a5eb27166324511cc985acdedcf81925ca7f"
+    },
+    "CAR_LB_AL2395_A0V12_RAD_EPD3": {
+      "pair_key": "CAR_LB_AL2395_A0V12_RAD_EPD3",
+      "mono_config_id": "CFG_LB_AL2395_A0V12_RAD_MONO_EPD3",
+      "reference_effl_mm": 16.483269291360298,
+      "mm_per_degree": 0.28771653570998906,
+      "model_sha256": "1024ea82e4e2f9435f5c08cbe1d4e973e05b741ac3fa647b5c93559257baff8c",
+      "entity_fingerprint": "a6e534808e637100142039cbabf83aa1c58bbfaf76ed72d4f1bcde15e6349c6e"
+    },
+    "CAR_LB_AL2395_A0V12_RAD_EPD5": {
+      "pair_key": "CAR_LB_AL2395_A0V12_RAD_EPD5",
+      "mono_config_id": "CFG_LB_AL2395_A0V12_RAD_MONO_EPD5",
+      "reference_effl_mm": 16.483269291360298,
+      "mm_per_degree": 0.28771653570998906,
+      "model_sha256": "7f8fac024daa4c4d437300180e39b1d818806b34d232cf793db79237d83cbec3",
+      "entity_fingerprint": "a6e534808e637100142039cbabf83aa1c58bbfaf76ed72d4f1bcde15e6349c6e"
+    },
+    "CAR_LB_AL2395_A0V12_WFS_EPD3": {
+      "pair_key": "CAR_LB_AL2395_A0V12_WFS_EPD3",
+      "mono_config_id": "CFG_LB_AL2395_A0V12_WFS_MONO_EPD3",
+      "reference_effl_mm": 16.508302108414806,
+      "mm_per_degree": 0.2881534851570117,
+      "model_sha256": "3ec8ebe1fb61cd170873c51bd34ca69cb1936ba7bc5a31c0ca3396fab5b78c3b",
+      "entity_fingerprint": "90b494870333bd35207b169e2ae779166072090c90faadc553fbcc9dffccdf23"
+    },
+    "CAR_LB_AL2395_A0V12_WFS_EPD5": {
+      "pair_key": "CAR_LB_AL2395_A0V12_WFS_EPD5",
+      "mono_config_id": "CFG_LB_AL2395_A0V12_WFS_MONO_EPD5",
+      "reference_effl_mm": 16.508302108414803,
+      "mm_per_degree": 0.28815348515701167,
+      "model_sha256": "139850669f4715124b13b5cacc35964003371dd32cb4acca985e75c5470d8d13",
+      "entity_fingerprint": "90b494870333bd35207b169e2ae779166072090c90faadc553fbcc9dffccdf23"
+    },
+    "CAR_LB_AL2395_B0V12_HOA_EPD3": {
+      "pair_key": "CAR_LB_AL2395_B0V12_HOA_EPD3",
+      "mono_config_id": "CFG_LB_AL2395_B0V12_HOA_MONO_EPD3",
+      "reference_effl_mm": 16.61460357231254,
+      "mm_per_degree": 0.2900089841113112,
+      "model_sha256": "cd92d8e0df3658b04f6cd4410fb52e4bd725de13e9f846787fe3b3b881617de2",
+      "entity_fingerprint": "249783166992f2e859821e4fc0e33043b5a48408bc91f2e8a5569c035bc4fbcc"
+    },
+    "CAR_LB_AL2395_B0V12_HOA_EPD5": {
+      "pair_key": "CAR_LB_AL2395_B0V12_HOA_EPD5",
+      "mono_config_id": "CFG_LB_AL2395_B0V12_HOA_MONO_EPD5",
+      "reference_effl_mm": 16.61460357231254,
+      "mm_per_degree": 0.2900089841113112,
+      "model_sha256": "9dd5bbe2e833132fddc077acbb8ed8939c2a91a8fccb02389d3f1791982d62db",
+      "entity_fingerprint": "249783166992f2e859821e4fc0e33043b5a48408bc91f2e8a5569c035bc4fbcc"
+    },
+    "CAR_LB_AL2395_B0V12_RAD_EPD3": {
+      "pair_key": "CAR_LB_AL2395_B0V12_RAD_EPD3",
+      "mono_config_id": "CFG_LB_AL2395_B0V12_RAD_MONO_EPD3",
+      "reference_effl_mm": 16.53675877590434,
+      "mm_per_degree": 0.2886501981356822,
+      "model_sha256": "7b60ca714c668eb2a531478915df9682d5b51b6a0aebe943b298f64359e91af0",
+      "entity_fingerprint": "78d3f925a3ab24244faef0fece8d15b591a3d2ee31ac39a25a0d629c26e6b48b"
+    },
+    "CAR_LB_AL2395_B0V12_RAD_EPD5": {
+      "pair_key": "CAR_LB_AL2395_B0V12_RAD_EPD5",
+      "mono_config_id": "CFG_LB_AL2395_B0V12_RAD_MONO_EPD5",
+      "reference_effl_mm": 16.536758775904342,
+      "mm_per_degree": 0.28865019813568227,
+      "model_sha256": "68ad9489ca6ab2b692d8d20cbb97faf41d6a2782cb99390ab2ad126880cf060a",
+      "entity_fingerprint": "78d3f925a3ab24244faef0fece8d15b591a3d2ee31ac39a25a0d629c26e6b48b"
+    },
+    "CAR_LB_AL2395_B0V12_WFS_EPD3": {
+      "pair_key": "CAR_LB_AL2395_B0V12_WFS_EPD3",
+      "mono_config_id": "CFG_LB_AL2395_B0V12_WFS_MONO_EPD3",
+      "reference_effl_mm": 16.56285970114806,
+      "mm_per_degree": 0.2891057914804979,
+      "model_sha256": "b31c29db2b463543a7a87916bdd2ecdfa00192d1a230bf8e96c7083c3486061c",
+      "entity_fingerprint": "44ac80c971a2f176575ceec3484c065d0c1f8d7b0fb98f721fa4d8b328ff643a"
+    },
+    "CAR_LB_AL2395_B0V12_WFS_EPD5": {
+      "pair_key": "CAR_LB_AL2395_B0V12_WFS_EPD5",
+      "mono_config_id": "CFG_LB_AL2395_B0V12_WFS_MONO_EPD5",
+      "reference_effl_mm": 16.562859701148067,
+      "mm_per_degree": 0.28910579148049803,
+      "model_sha256": "f95c723ab9daeb12fcbcd7bd00b73d5608cd0b4c74df8aee9351ef8b811b71f8",
+      "entity_fingerprint": "44ac80c971a2f176575ceec3484c065d0c1f8d7b0fb98f721fa4d8b328ff643a"
+    },
+    "CAR_LB_AL2395_C0V12_HOA_EPD3": {
+      "pair_key": "CAR_LB_AL2395_C0V12_HOA_EPD3",
+      "mono_config_id": "CFG_LB_AL2395_C0V12_HOA_MONO_EPD3",
+      "reference_effl_mm": 16.69234822428128,
+      "mm_per_degree": 0.2913660220592472,
+      "model_sha256": "b71eb2348003884ac87972766e8e739ddce4695559472e1d2a4805817515ab1a",
+      "entity_fingerprint": "7c5e2f5d5f0de17225e57594ef8d3b93a1cc66366df2e755052e48610cef58c5"
+    },
+    "CAR_LB_AL2395_C0V12_HOA_EPD5": {
+      "pair_key": "CAR_LB_AL2395_C0V12_HOA_EPD5",
+      "mono_config_id": "CFG_LB_AL2395_C0V12_HOA_MONO_EPD5",
+      "reference_effl_mm": 16.69234822428128,
+      "mm_per_degree": 0.2913660220592472,
+      "model_sha256": "89bd90ffa541467b48af749c454c11b2fe4d5a8acbc82579324969bd85a05ffd",
+      "entity_fingerprint": "7c5e2f5d5f0de17225e57594ef8d3b93a1cc66366df2e755052e48610cef58c5"
+    },
+    "CAR_LB_AL2395_C0V12_RAD_EPD3": {
+      "pair_key": "CAR_LB_AL2395_C0V12_RAD_EPD3",
+      "mono_config_id": "CFG_LB_AL2395_C0V12_RAD_MONO_EPD3",
+      "reference_effl_mm": 16.60993470407541,
+      "mm_per_degree": 0.2899274887130908,
+      "model_sha256": "0f51147f8bfd5a7fc3a17d767084c0ecff9eef6fec26ea75e43fb57d3c9cf289",
+      "entity_fingerprint": "95d393d62f5f56d752acc8087682a5675c6a1c41777f1c113f0d71a969e8ac0d"
+    },
+    "CAR_LB_AL2395_C0V12_RAD_EPD5": {
+      "pair_key": "CAR_LB_AL2395_C0V12_RAD_EPD5",
+      "mono_config_id": "CFG_LB_AL2395_C0V12_RAD_MONO_EPD5",
+      "reference_effl_mm": 16.609934704075407,
+      "mm_per_degree": 0.28992748871309076,
+      "model_sha256": "187065602cc5f45c6d1945de559fa8e76405e69a07cc02886f5b2d7e08872c81",
+      "entity_fingerprint": "95d393d62f5f56d752acc8087682a5675c6a1c41777f1c113f0d71a969e8ac0d"
+    },
+    "CAR_LB_AL2395_C0V12_WFS_EPD3": {
+      "pair_key": "CAR_LB_AL2395_C0V12_WFS_EPD3",
+      "mono_config_id": "CFG_LB_AL2395_C0V12_WFS_MONO_EPD3",
+      "reference_effl_mm": 16.636913555113853,
+      "mm_per_degree": 0.2903984063096556,
+      "model_sha256": "afd38ebe42d8cbfe2f36531921ec7f72c907c7eee65589bd418e91f28b85ec66",
+      "entity_fingerprint": "370395b980b4ed328b1a3cc7dd9980121a4bfdc4640efdb674e673784e9614be"
+    },
+    "CAR_LB_AL2395_C0V12_WFS_EPD5": {
+      "pair_key": "CAR_LB_AL2395_C0V12_WFS_EPD5",
+      "mono_config_id": "CFG_LB_AL2395_C0V12_WFS_MONO_EPD5",
+      "reference_effl_mm": 16.636913555113846,
+      "mm_per_degree": 0.29039840630965547,
+      "model_sha256": "3db49dff923a33469945e57a8b20c931c9f17995efa8fe1330e7283308050f03",
+      "entity_fingerprint": "370395b980b4ed328b1a3cc7dd9980121a4bfdc4640efdb674e673784e9614be"
+    }
+  },
+  "pair_reference_set_sha256": "a9bbd90f2fc39d8c0d74a9c139724f7dc7307c2088702ce73c0a2e6cee7e8bd4",
+  "pair_reference_count": 36,
+  "completed_configs": 72,
+  "failed_configs": 0,
+  "failed_config_ids": [],
+  "through_focus_rows": 1080,
+  "matched_pairs": 36,
+  "canonical_model_index_records": 137,
+  "model_archive_complete": true,
+  "acceptance_passed": true,
+  "task014_complete": true,
+  "evidence_only": true,
+  "formal_scientific_lock": false,
+  "extends_frozen_task011": true,
+  "task011_structured_evidence_changed": false,
+  "config_results_csv_sha256": "722ae6d45d68014cdf9e14eb61502f43f9a9c205f1fd0c0257bcc98d950e7a16",
+  "through_focus_csv_sha256": "b80fa48d80ce1466dd927e75190368e7144fbd2f652f0237b948380a70bb0fb6",
+  "paired_deltas_csv_sha256": "6a07326dc713a54602f892dfa60d34cf31a2c83098cfb008e2e97e7c11e72017",
+  "model_index_csv_sha256": "5e2044d819a3a6b115e38d99dcd34b879d2c14871526797b8602c3b3083c18ed"
+}
