@@ -1,16 +1,17 @@
 # 论文草稿模块：Structured Abstract 与 Methods
 
 > 状态：manuscript draft；不建立新的 scientific lock。  
-> 来源：`URD-0001 v1.6`、冻结 TASK-008/009/011 identity、`TASK012_RUN72_ANALYSIS_PLAN_2026-08-19` 与正式 TASK-012 evidence。  
-> 所有模型和分析定义以这些冻结文档为准。
+> 投稿主分析来源：已通过科学审核的 TASK-013、TASK-014 与 TASK-015 evidence。  
+> 所有模拟效应均定义为 `EDOF − MONO`。  
+> WFS-like / RAD-like / HOA-like 为机制 surrogate，不对应商业产品排名。
 
 ## 拟题
 
-**角膜屈光术后代表性光学原型与非衍射延伸焦深人工晶状体机制的耦合：基于双模型眼、双瞳孔与匹配单焦对照的计算光学研究**
+**角膜屈光术后代表性光学表型与非衍射延伸焦深人工晶状体机制的耦合：基于未治疗参照、双模型眼和双瞳孔的计算光学研究**
 
 英文工作标题：
 
-**Coupling Between Representative Post-Refractive Corneal Optical Phenotypes and Non-Diffractive Extended-Depth-of-Focus IOL Mechanisms: A Computational Optical Study Across Two Model Eyes and Two Pupil Sizes**
+**Coupling Between Representative Post-Refractive Corneal Optical Phenotypes and Non-Diffractive Extended-Depth-of-Focus IOL Mechanisms: A Computational Optical Study With an Untreated Corneal Reference Across Two Model Eyes and Two Pupil Sizes**
 
 ---
 
@@ -18,25 +19,25 @@
 
 ### Purpose
 
-评估代表性角膜屈光术后光学原型与不同非衍射延伸焦深（EDoF）人工晶状体机制之间是否存在非简单加和的耦合，并描述这种耦合如何随瞳孔和基础模型眼改变焦深、固定焦面成像质量、贯焦质量及全眼高阶像差。
+评估代表性角膜屈光术后光学表型是否会改变不同非衍射延伸焦深（EDoF）人工晶状体机制在完整眼中的作用，并以未治疗角膜（N0）为内部参照，描述这种耦合如何随瞳孔和基础模型眼改变焦深、固定焦面成像质量、贯焦质量及全眼高阶像差。
 
 ### Methods
 
-建立两个轴上、共轴、单色的人工晶状体模型眼：Liou–Brennan 型 `LB_AL2395`（眼轴23.950 mm）和 Atchison 近视型 `ATC_M3_AL24477`（代表约−3 D，眼轴24.477 mm）。设置三个冻结角膜原型：A0（−3.00 D近视术后、正球差增加型准单焦角膜）、B0.20（连续非球面角膜 EDoF 原型）和 C0（中央3.0 mm近用区、处方附加+1.75 D的径向多焦角膜）。三类 IOL 机制 surrogate 分别为波前塑形型（WFS-like）、连续径向屈光力调制型（RAD-like）和中央高阶球差调制型（HOA-like）。
+建立两个轴上、共轴、单色的人工晶状体模型眼：Liou–Brennan 型 `LB_AL2395`（眼轴23.950 mm）和 Atchison 近视型 `ATC_M3_AL24477`（代表约−3 D近视表型，眼轴24.477 mm）。角膜条件包括未治疗参照 N0，以及三个顶点距规范化术后原型 A0V12、B0V12 和 C0V12。术后处方统一定义为镜片平面−3.00 D、顶点距12 mm，对应角膜平面治疗量−2.8957529 D。A0V12 为正球差增加型准单焦术后角膜，B0V12 为冻结的连续非球面角膜 EDoF 原型，C0V12 为中央3.0 mm近用区、处方附加+1.75 D的径向多焦角膜。
 
-每个 Base×Cornea×Platform 建立独立 physical carrier；EDoF 与 matched MONO 使用完全相同的基础光焦度、曲率、conic、厚度、材料和位置，唯一设计差异为冻结 residual。正式矩阵包括18个 physical carriers、36个 matched MONO–EDoF pairs 和72个配置，分别在3和5 mm entrance pupil下计算。
+三类 IOL 机制 surrogate 分别为波前塑形型（WFS-like）、连续径向屈光力调制型（RAD-like）和中央高阶球差调制型（HOA-like）。每个 Base×Cornea×Platform 独立建立 physical carrier；EDoF 与 matched MONO 使用完全相同的基础光焦度、曲率、conic、厚度、材料和位置，唯一设计差异为冻结 residual。最终接受矩阵包含24个 physical carriers、48个严格匹配的 MONO–EDoF pairs 和96个配置，并分别在3和5 mm entrance pupil下计算。
 
-生产 MTF 通过 Zemax OpticStudio MFE `MTFA Grid=1` 获取，使用每个 matched pair 的 residual-free MONO EFFL 建立共同0–60 cycles/degree角频率尺度。贯焦范围固定为+0.50至−3.00 D，步长0.25 D，共15个平面。主要 paired outcomes 均定义为 `EDOF−MONO`，包括 DOF50 width、0 D MTFa、完整贯焦窗口平均 MTFa、窗口内 distance-peak MTFa以及 C40、C60和 HOA RMS。分析为预先冻结的确定性 factorial contrast 与 difference-in-differences，不把36个 pair视为随机临床样本进行传统显著性检验。DOF50 和 distance-peak censoring 均显式传播。
+生产 MTF 通过 Zemax OpticStudio MFE `MTFA Grid=1` 获取，使用每个 matched pair 的 residual-free MONO EFFL 建立共同0–60 cycles/degree角频率尺度。贯焦范围固定为+0.50至−3.00 D，步长0.25 D，共15个平面。主要 paired outcomes 包括 DOF50 width、0 D MTFa、完整贯焦窗口平均 MTFa、窗口内 distance-peak MTFa以及 C4⁰、C6⁰和 HOA RMS。术后耦合进一步定义为 `(EDOF−MONO)_postop − (EDOF−MONO)_N0`。分析为确定性 factorial / contrast 分析，不把48个 pair视为随机临床样本进行传统显著性检验；DOF50 和 distance-peak censoring 均显式保留和传播。
 
 ### Results
 
-72/72配置完成且无失败，共获得1080个贯焦采样点。36个 matched pair 中，30个（83.3%）的 `ΔDOF50` 为正、6个为负；31个 DOF50 effect 为精确值，5个为 lower bound。与此相对，`ΔMTFa@0D` 和完整窗口 `ΔTF MTFa mean` 在36/36 pair中均为负，提示延焦主要通过焦轴方向上的光学质量再分配实现。
+96/96配置完成且无失败，共获得1440个贯焦采样点和48个 matched pairs。35/48 pair 的 `ΔDOF50` 为正、13/48为负；43个 DOF50 effect 为精确值，5个为 lower bound，10个 pair 的 distance peak 位于预注册搜索窗边界。`ΔTF MTFa mean` 在48/48 pair中均为负，`ΔMTFa@0D` 在47/48 pair中为负；唯一0 D正值出现在 ATC+N0+RAD-like+EPD5，但其全贯焦平均 MTFa仍下降。
 
-B0×WFS-like 显示明显的小瞳孔特异耦合：B0相对A0的 WFS-vs-RAD DOF50 difference-in-differences 在两种基础眼的3 mm瞳孔均为正（≥+0.157和≥+0.195 D），但在5 mm瞳孔反转为−0.210和−0.097 D。C0×RAD-like 的相对 DOF coupling 在两种基础眼和两种瞳孔方向一致，并在5 mm瞳孔更明显，但伴随更大的0 D MTFa损失。HOA-like 在3 mm瞳孔产生最大的 DOF 扩展（多数组合约+0.63至+0.73 D），同时表现出最大的固定焦面/贯焦 MTFa下降和最强的瞳孔及基础眼依赖。
+N0-referenced interaction 显示明显的角膜背景×机制×瞳孔依赖。B0V12×WFS-like 在3 mm瞳孔下相对 N0 的 DOF50 增强在两种基础眼均为 lower bound（LB ≥+0.266 D；ATC ≥+0.260 D），5 mm时仍为较小正向增强。B0V12×RAD-like 的主要增强位于5 mm（LB +0.275 D；ATC +0.307 D）。C0V12×RAD-like 在5 mm呈强增强且两种基础眼均为 lower bound（LB ≥+0.379 D；ATC ≥+0.471 D）；C0V12×HOA-like 在5 mm同样明显增强（LB +0.246 D；ATC ≥+0.689 D），而3 mm相对 N0减弱。上述焦深变化均伴随整体贯焦质量下降，提示其本质为焦轴质量再分配而非无代价增益。
 
 ### Conclusions
 
-角膜屈光术后光学结构与非衍射 EDoF IOL 机制之间存在条件依赖的完整眼耦合，而非简单可加效应。B0×WFS-like 主要表现为小瞳孔特异的相对延焦耦合，C0×RAD-like 表现为较稳定但有固定焦面质量代价的 DOF-oriented coupling，HOA-like 则表现为最强但最不稳定的质量再分配。结果支持以角膜光学表型、瞳孔和 IOL 延焦机制共同分层的后续实验与临床研究，但不支持将机制 surrogate 直接转化为商业 IOL 排名或患者级推荐。
+角膜屈光术后光学结构会以机制特异且瞳孔依赖的方式调制非衍射 EDoF IOL 在完整眼中的效应，不能用简单可加模型描述。以 N0 为内部参照后，B0V12×WFS-like 的小瞳孔增强、B0V12/C0V12×RAD-like 的大瞳孔增强以及 C0V12×HOA-like 的大瞳孔增强均表现出可重复的机制信号，但均需与固定焦面和全贯焦质量代价共同解释。结果支持基于角膜光学表型、瞳孔和 IOL 延焦机制的后续分层研究，不支持将机制 surrogate 直接转化为商业 IOL 排名或患者级推荐。
 
 ---
 
@@ -44,9 +45,9 @@ B0×WFS-like 显示明显的小瞳孔特异耦合：B0相对A0的 WFS-vs-RAD DOF
 
 ## 1. Study design
 
-本研究为确定性计算光学研究，目标是隔离并比较三个代表性术后角膜光学原型与三类非衍射 EDoF IOL 机制的耦合。所有主分析均在单色555 nm、轴上0°视场、角膜/瞳孔/IOL共轴的条件下进行。MVP 不加入角膜治疗区偏心、IOL tilt/decentration 或微单视附加离焦，以避免将定位误差与设计机制混入同一主矩阵。
+本研究为确定性计算光学研究。最终投稿主矩阵旨在比较未治疗角膜与三个代表性屈光术后角膜背景下，三类非衍射 EDoF IOL 机制的完整眼效应。所有主分析均在单色555 nm、轴上0°视场、角膜/瞳孔/IOL共轴条件下进行。MVP 不加入角膜治疗区偏心、IOL tilt/decentration、微单视附加离焦或患者特异优化，以避免将定位误差和个体化变量混入机制主矩阵。
 
-研究采用 matched-pair 设计：对于每一个 Base×Cornea×Platform×Pupil 条件，EDoF 配置与 MONO 对照共享完全相同的 physical carrier，唯一设计差异是相应平台的冻结 EDoF residual。由此，所有 `EDOF−MONO` 差异可解释为 residual 加入后的完整眼光学效应，而不是基础 IOL power、conic、位置或材料变化。
+采用 matched-pair 设计：对于每一个 Base×Cornea×Platform×Pupil 条件，EDoF 配置与 MONO 对照共享同一 physical carrier，唯一设计差异是相应平台的冻结 EDoF residual。因此 `EDOF−MONO` 表示 residual 加入后的完整眼光学效应，而不混入基础 IOL power、conic、位置或材料变化。
 
 ## 2. Model eyes
 
@@ -58,83 +59,91 @@ B0×WFS-like 显示明显的小瞳孔特异耦合：B0相对A0的 WFS-vs-RAD DOF
 
 ### 2.2 ATC_M3_AL24477
 
-`ATC_M3_AL24477` 基于 Atchison Model 1 的近视眼框架，选择代表约−3 D近视的典型样本，眼轴长度固定为24.477 mm。
+`ATC_M3_AL24477` 基于 Atchison Model 1 近视眼框架，选择代表约−3 D近视表型的典型样本，眼轴长度固定为24.477 mm。这里的近视屈光状态属于基础眼表型，不作为角膜手术处方的第二次输入。
 
 两个基础眼共同使用后角膜至 STOP 3.150 mm、后角膜至 IOL 前表面参考位置4.500 mm，房水/玻璃体工程折射率约1.336。IMAGE 顶点由各自眼轴固定，贯焦分析不移动视网膜。
 
-## 3. Post-refractive corneal prototypes
+## 3. Corneal conditions
 
-三个角膜原型在主矩阵前冻结，且不允许依据 IOL 结果回调参数。
+最终主分析包括1个未治疗参照和3个顶点距规范化术后角膜。
 
-### 3.1 A0: aberration-altered post-myopic quasi-monofocal cornea
+### 3.1 N0: native untreated reference
 
-A0 表示传统近视角膜屈光术后准单焦原型。冻结 treatment 为−3.00 D，有效光学区约5.0 mm，并以6 mm口径下约 `+0.13 μm` 的 `ΔC4^0` 表示典型正球差增加；模型保持旋转对称和平滑过渡。
+N0 表示未治疗角膜参照，而非“正常眼”标签。两个基础眼使用同一冻结角膜 scaffold：前表面半径7.77 mm、conic −0.18，后表面半径6.40 mm、conic −0.60，中央厚度0.50 mm，角膜折射率1.376。N0 用于定义同一 IOL 机制在无角膜屈光治疗背景下的基线 EDoF−MONO 效应。
 
-### 3.2 B0.20: continuous aspheric corneal EDoF prototype
+### 3.2 顶点距规范化处方
 
-B0 用于模拟连续非球面角膜 EDoF 设计原则。候选角膜按6 mm口径 `ΔC4^0=+0.10,+0.15,+0.20,+0.25,+0.30 μm` 构建并经过真实 OpticStudio scan、morphology review 和预定义确定性排序。正式候选冻结为 `B0.20`，并在所有 IOL 主结果获得前锁定；后续禁止基于组合表现重新调参。
+术后角膜处方使用 `TASK014_SPECTACLE_M3_VERTEX12_v1`：镜片平面球镜−3.00 D、柱镜0、顶点距12.00 mm。角膜平面等效治疗量按
 
-### 3.3 C0: central-near radial multifocal cornea
+\[
+F_c=\frac{F_s}{1-dF_s}
+\]
 
-C0 表示中央近用型径向多焦角膜。冻结参数包括−3.00 D基础 treatment、3.00 mm中央近用区、+1.75 D处方 ADD、6.50 mm光学区和0.75 mm平滑过渡区。ADD 为处方层面的设计输入，而不是要求 ray-traced 任一局部位置严格等于+1.75 D局部屈光差。
+换算为−2.895752895753 D。三个术后原型均使用这一距离治疗量；ATC 基础眼的 `source_refraction` 只描述眼型，不再次叠加到手术处方。
+
+### 3.3 A0V12: aberration-altered post-myopic quasi-monofocal cornea
+
+A0V12 表示传统近视角膜屈光术后准单焦原型，并保留约5 mm有效光学区及6 mm口径下约 `+0.13 μm` 的 `ΔC4⁰` 正球差增加。正式构建实测约为+0.1298 μm。
+
+### 3.4 B0V12: continuous aspheric corneal EDoF prototype
+
+B0V12 使用已冻结的 B0.20 连续非球面角膜 EDoF 机制，不依据 IOL 组合表现回调参数。6 mm口径目标 `ΔC4⁰≈+0.20 μm`，正式构建实测约+0.2016 μm。
+
+### 3.5 C0V12: central-near radial multifocal cornea
+
+C0V12 表示中央近用型径向多焦角膜。冻结参数包括3.00 mm中央近用区、+1.75 D处方 ADD、6.50 mm光学区和0.75 mm平滑过渡区。ADD 为处方层面的设计输入，不要求 ray-traced 任一局部位置严格等于+1.75 D局部屈光差。
 
 ## 4. IOL carrier scaffold and spherical-aberration calibration
 
 所有平台使用统一 controlled carrier scaffold：IOL折射率1.460、周围介质1.336、中央厚度1.000 mm、光学直径6.000 mm、对称双凸弯曲；主要 conic 位于前表面，后表面 conic 为0。
 
-IOL基础球差通过独立标准眼 `STD_IOL_EYE_2024` 进行 power-specific conic 校准。该标准眼只用于 IOL 球差/锥常数校准，不作为主研究模型眼。冻结校准条件包括6.0 mm entrance pupil、约546 nm波长、模型角膜 `C4^0≈+0.258 μm`、介质折射率约1.336及约5.15±0.10 mm的 IOL footprint。
+IOL基础球差通过独立标准眼 `STD_IOL_EYE_2024` 进行 power-specific conic 校准。三平台在标准眼 EPD6 下的基础球差目标为：WFS-like −0.20±0.01 μm，RAD-like −0.27±0.01 μm，HOA-like 0.00±0.01 μm。
 
-三平台在标准眼 EPD6 下的基础球差目标为：WFS-like −0.20±0.01 μm，RAD-like −0.27±0.01 μm，HOA-like 0.00±0.01 μm。
+对于每个 Base×Cornea×Platform carrier，首先在实际基础眼与角膜中以Q=0求远焦基础 power；随后将该实际 power/geometry 放入标准眼求 power-specific conic `Q(P)`，再返回实际眼复核远焦与球差。不同 power 不共享单一 Q。N0 产生6个 physical carriers，三个术后角膜产生18个 physical carriers，总计24个。
 
-对于每个 Base×Cornea×Platform carrier，首先在真实基础眼和角膜中以Q=0求远焦基础 power/曲率；随后将该实际 power/geometry 放入标准眼求对应的 power-specific conic `Q(P)`；再放回真实眼进行远焦检查。每个 physical carrier 的 power 与 conic 均独立求取，不把一个固定 Q 复制到不同 power。
+## 5. EDoF mechanism surrogates and exact-carrier validation
 
-## 5. EDoF mechanism surrogates
-
-研究使用三类机制 surrogate，而非商业产品的处方级重建：
+研究使用三类机制 surrogate：
 
 - **WFS-like**：波前塑形型 residual；
 - **RAD-like**：连续径向屈光力调制型 residual；
 - **HOA-like**：中央高阶球差调制型 residual。
 
-三类 residual 均作为版本化 Grid Sag resource 冻结。对同一 matched pair，MONO 与 EDoF 的基础 P/R/Q、中央厚度、材料和IOL位置完全相同；EDoF 的唯一设计差异是相应 residual。Residual 冻结前移除非必要 piston 和整体 defocus，并经过实际 power 范围的 low/median/high calibration；加入 residual 后不重新优化 carrier。
+三类 residual 均作为版本化 Grid Sag resource 冻结。对同一 matched pair，MONO 与 EDoF 的基础 P/R/Q、中央厚度、材料和 IOL 位置完全相同；EDoF 的唯一设计差异是相应 residual。加入 residual 后不重新优化 carrier。
 
-## 6. Factorial matrix
+每个 exact carrier 在首次 EDoF materialization 前执行 schema-v2 residual validation。规范性 low-order hard gate 位于 `STD_IOL_EYE_2024`、EPD6、imported-residual readback，阈值为 `|piston|≤0.010 μm` 和 `|global defocus|≤0.125 D`；实际眼 MONO/EDOF EPD5 ray health 必须通过。实际眼 SSAG Mode-0 piston/defocus 仅作 aperture-limited diagnostic，不参与数值 pass/fail。最终24/24 exact-carrier validations 均通过。历史 carrier-power envelope 仅作为既有验证覆盖分类器；越界 carrier 通过 exact validation 后可进入正式矩阵。
 
-共有：
+## 6. Final factorial matrix
 
-```text
-2 Base × 3 Cornea × 3 Platform = 18 physical carriers
-18 carriers × 2 optic states × 2 pupils = 72 configurations
-36 matched MONO–EDoF pairs
-```
-
-正式因素为：
+最终接受矩阵为：
 
 ```text
-Base: LB_AL2395 / ATC_M3_AL24477
-Cornea: A0 / B0 / C0
-Platform: WFS / RAD / HOA
-Pupil: 3.0 / 5.0 mm
-Optic state: MONO / EDOF
+2 Base
+× 4 Cornea = N0 / A0V12 / B0V12 / C0V12
+× 3 Platform = WFS / RAD / HOA
+× 2 Optic state = MONO / EDOF
+× 2 Pupil = 3.0 / 5.0 mm
+= 96 configurations
+= 48 matched MONO–EDoF pairs
 ```
 
-报告层将 WFS/RAD/HOA 显示为 WFS-like/RAD-like/HOA-like，3.0/5.0 mm显示为 EPD3/EPD5；正式 evidence 原始 ID 不被改写。
+报告层将 WFS/RAD/HOA 显示为 WFS-like/RAD-like/HOA-like，3.0/5.0 mm显示为 EPD3/EPD5；正式 evidence 原始 ID 不改写。
 
 ## 7. MTF acquisition and common angular-frequency scale
 
 主 MTF acquisition 固定为 `TASK009_MFE_MTFA_GRID1_PAIR_MONO_SCALE_v2`。生产数据通过 OpticStudio Merit Function Editor 的 `MTFA` operand 获取，设置为 Grid=1、Data Type=0、Wave=1、Field=1，production sampling为128。
 
-为避免 EDoF residual 改变有效焦距后导致 MONO 与 EDoF 使用不同 cycles/degree 坐标，对每个 frozen matched pair 只在 residual-free MONO nominal-distance 状态测量一次 EFFL，并定义：
+为避免 EDoF residual 改变有效焦距后导致 MONO 与 EDoF 使用不同 cycles/degree 坐标，对每个 frozen matched pair 只在 residual-free MONO nominal-distance 状态测量一次 EFFL，并定义共同角频率尺度：
 
 \[
 mm/degree = EFL_{MONO}\tan(1^\circ)
 \]
 
-随后将共同的0–60 cycles/degree网格直接映射为 cycles/mm 查询频率。该 pair-specific MONO angular scale 被同一 pair 的 MONO、EDoF、全部贯焦平面和所有 production sampling共同使用；EDoF-state EFFL 不重新定义频率轴。
+随后将共同0–60 cycles/degree网格映射为 cycles/mm 查询频率。同一 pair 的 MONO、EDOF、全部贯焦平面均使用该 pair-specific MONO angular scale；EDoF-state EFFL 不重新定义频率轴。
 
 ## 8. Through-focus analysis and optical metrics
 
-贯焦范围固定为+0.50至−3.00 D，步长−0.25 D，共15个 retina-anchored平面。贯焦通过分析层改变输入离焦而不移动视网膜、IOL位置或重新优化 carrier。
+贯焦范围固定为+0.50至−3.00 D，步长−0.25 D，共15个 retina-anchored平面。贯焦分析不移动视网膜、IOL位置或重新优化 carrier。
 
 ### 8.1 MTFa
 
@@ -148,7 +157,7 @@ MTFa(F)=\frac{1}{60}\int_0^{60}MTFA(f,F)\,df
 
 ### 8.2 Distance peak
 
-在−0.50至+0.50 D范围内取 MTFa 最大点作为 distance peak。若最大值位于±0.50 D搜索边界，则标记 `peak_search_censored=true`；其 peak position 与 peak MTFa只按预注册窗口内观察值解释。
+在−0.50至+0.50 D范围内取 MTFa 最大点作为 distance peak。若最大值位于±0.50 D边界，则标记 `peak_search_censored=true`；其位置与 peak MTFa 仅作为预注册窗口内观察值解释。
 
 ### 8.3 DOF50
 
@@ -166,41 +175,47 @@ TF\_MTFa\_mean=\frac{1}{3.5D}\int_{-3.00}^{+0.50}MTFa(F)\,dF
 
 ### 8.5 Whole-eye higher-order aberrations
 
-完整眼 Zernike n=3–6通过独立冻结的 `TASK009_MFE_ZERN_HOA_555_v1` readback获取，并提取 C40、C60和 HOA RMS，用于机制解释。
+完整眼 Zernike n=3–6通过冻结的 `TASK009_MFE_ZERN_HOA_555_v1` readback获取，并提取 C4⁰、C6⁰和 HOA RMS，用于机制解释。
 
-## 9. Run72 execution and provenance
+## 9. Acquisition and provenance
 
-正式 Run72 使用冻结72-config manifest执行，正式 code baseline 为 `01f13b768cf1eca361703469b2fdce3d21f3376d`，run ID 为 `analysis-1cc1441dec4744a18d7ac73763507a6c`，`resume_mode=false`。72/72配置完成，无失败，获得1080行贯焦数据和36条 matched-pair delta。
+N0 数据来自正式 TASK-013 run `task013-183dcffcd1da4f1cb1a219d9eedb39db`：24/24配置完成、360行贯焦数据、12个 matched pairs、6/6 exact validations通过。A0V12/B0V12/C0V12 数据来自正式 TASK-014 run `task014-e270a185207543149c21da83202c4b73`：72/72配置完成、1080行贯焦数据、36个 matched pairs、18/18 exact validations通过。
 
-每个结果保存 baseline、manifest、lock-set、analysis settings、acquisition contract、pair-MONO angular reference、carrier/residual identity和run environment provenance。TASK-012 在分析前分别验证 Git repository-byte SHA256 与 TASK-011 evidence 中记录的 producer-export CSV SHA256，并独立复核72/36/1080结构完整性。
+两组 acquisition 分别通过独立 Web mechanism review，科学状态均为 `PASS_WITH_SCIENTIFIC_CAVEATS`。原始 repo evidence commits 分别为 `38ad14a12a18b1a7a30d259cde644d360442f57b` 和 `6ffb2eaf88e386729aa3965c0f12c9b7ca134081`。TASK-015 在不调用 OpticStudio 的情况下核验源 Git blob identity，并确定性重建96配置、1440行贯焦数据和48个 paired effects。
 
-## 10. Offline paired and interaction analysis
+## 10. Paired and N0-referenced coupling analysis
 
-主分析单元为36个 matched MONO–EDoF pairs。所有效应统一定义为：
+主要 paired effect 定义为：
 
 \[
 \Delta Y=Y_{EDOF}-Y_{MONO}
 \]
 
-主要 paired outcomes 为：
+主要 outcomes 为：
 
 1. `ΔDOF50 width`；
 2. `Δdistance-peak MTFa`；
 3. `ΔMTFa at 0 D`；
 4. `ΔTF MTFa mean`；
-5. `ΔC40`；
-6. `ΔC60`；
+5. `ΔC4⁰`；
+6. `ΔC6⁰`；
 7. `ΔHOA RMS`；
 8. `ΔF_residual`。
 
-TASK-012 首先从72-config summary重新构建36个 matched effects，并以absolute tolerance `1×10^-12` 与正式 paired-delta evidence比较；同时从1080-row贯焦 evidence重新计算0 D MTFa与贯焦平均 MTFa。
+为了直接回答角膜屈光术后背景是否改变 EDoF 机制，进一步定义：
 
-随后在固定 Base×Pupil strata 内计算预定义 platform contrasts、cornea contrasts以及 Cornea×Platform difference-in-differences，并计算 EPD5−EPD3 pupil sensitivity和 ATC−LB base-eye sensitivity。基础眼和瞳孔均作为正式因素，不在 interaction 分析前平均掉。
+\[
+Interaction_{postop-N0}=\Delta Y_{postop}-\Delta Y_{N0}
+\]
 
-DOF50 censoring通过区间代数传播至 pair-level effect、platform/cornea contrast、difference-in-differences及pupil/base sensitivity。5个正式 DOF50 effect 为 lower bound；8个 pair 的 peak-related metrics为预注册窗口条件值。
+比较在同一 Base×Platform×Pupil 内 A0V12、B0V12、C0V12 相对于 N0 的 EDoF−MONO 效应变化。TASK-015 共确定性重建288个 outcome-specific postop-minus-N0 interactions，并汇总为12个 Cornea×Platform coupling cells。
 
-本研究的36个 matched pairs是完整、确定性的模拟 factorial matrix，而不是从临床总体随机抽取的样本。因此默认报告 effect magnitude、direction consistency、interaction contrasts、ranges和censor-aware interpretation，不进行把36个pair视作独立随机临床样本的传统ANOVA或p-value显著性推断。
+DOF50 censoring通过区间代数传播：最终48个 paired DOF50 effects 中43个为 exact、5个为 lower bound；10个 pair 的 peak-related metrics为预注册搜索窗条件值。基础眼和瞳孔均作为正式因素，不在机制解释前静默平均掉。
 
-## 11. Reproducibility
+本研究的48个 matched pairs是完整、确定性的模拟 factorial matrix，不是从临床总体随机抽取的样本。因此默认报告 effect magnitude、direction consistency、N0-referenced interaction、ranges和censor-aware interpretation，不进行把48个 pair视作独立随机临床样本的传统ANOVA或p-value显著性推断。
 
-TASK-012分析和论文呈现均为纯Python离线流程，不重新调用 OpticStudio。正式分析产物包括36-pair table、1152个预定义 contrasts、9个3×3 coupling cells和24张分析图。论文级5张组合图仅从冻结 `TASK_012_PAIR_ANALYSIS.csv` 与 TASK-011 through-focus CSV重绘，presentation manifest明确记录 `scientific_values_changed=false` 和 `opticstudio_used=false`。
+## 11. Reproducibility and figures
+
+TASK-015 分析和图形呈现均为纯Python离线流程，不重新调用 OpticStudio。最终结构化产物包括48-pair table、12-cell coupling matrix、analysis evidence和scientific review。
+
+完整 figure supplement 已正式归档于 `docs/evidence/task015/figures/`，commit 为 `bc4e451c22b0cbe1a3f08798b0119942bb9bc5c5`。其中48张 raw figure 一一覆盖全部 Base×Cornea×Platform×Pupil matched pairs，每张同时展示 MONO/EDOF 的15-plane MTFa曲线；另保留24张 summary figures，总计72张。正式 manifest 记录 source through-focus rows=1440、raw=48、summary=24、OpticStudio used=false。48张 raw figures 不因正文选择少量主图而删除或抽样。
