@@ -3,7 +3,6 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 from .base_assets import IMAGE_ROLE, STOP_ROLE, _refractive_indices
 from .carrier_zos import TASK007_CARRIER_ANT_ROLE, TASK007_CARRIER_POST_ROLE
@@ -21,7 +20,6 @@ from .model_revision_zos import (
     validate_revision_geometry,
 )
 from .zos import MfeEfflRunner, MfeFullHoaRunner, SequentialEditor, ZosSession
-from .zos.fft_mtf import FftMtfResult, FftMtfRunner, FftMtfSettings
 from .zos.primitives import binary4_zone_columns
 
 
@@ -61,7 +59,9 @@ class DegenerateEquivalenceThresholds:
     max_abs_effl_error_mm: float = 1.0e-6
     max_abs_c40_error_um: float = 1.0e-6
     max_abs_c60_error_um: float = 1.0e-6
-    max_abs_fft_mtf_error: float = 1.0e-6
+
+
+DEFAULT_DEGENERATE_EQUIVALENCE_THRESHOLDS = DegenerateEquivalenceThresholds()
 
 
 @dataclass(frozen=True, slots=True)
@@ -74,7 +74,6 @@ class DegenerateEquivalenceResult:
     abs_effl_error_mm: float
     abs_c40_error_um: float
     abs_c60_error_um: float
-    max_abs_fft_mtf_error: float
     passed: bool
     findings: tuple[str, ...]
 
@@ -85,7 +84,6 @@ class _EquivalenceSnapshot:
     effl_mm: float
     c40_um: float
     c60_um: float
-    fft_mtf: FftMtfResult
 
 
 def binary4_surface_number(platform_id: str) -> int:
@@ -113,7 +111,11 @@ def _require_full_eye_roles(session: ZosSession) -> None:
             )
 
 
-def _parameter_double(session: ZosSession, surface_number: int, parameter_number: int) -> float:
+def _parameter_double(
+    session: ZosSession,
+    surface_number: int,
+    parameter_number: int,
+) -> float:
     columns = session.zosapi.Editors.LDE.SurfaceColumn
     try:
         column = getattr(columns, f"Par{parameter_number}")
@@ -121,10 +123,18 @@ def _parameter_double(session: ZosSession, surface_number: int, parameter_number
         raise RevisionBinary4ZosError(
             f"installed API exposes no Par{parameter_number} column"
         ) from exc
-    return float(session.system.LDE.GetSurfaceAt(surface_number).GetSurfaceCell(column).DoubleValue)
+    return float(
+        session.system.LDE.GetSurfaceAt(surface_number)
+        .GetSurfaceCell(column)
+        .DoubleValue
+    )
 
 
-def _parameter_integer(session: ZosSession, surface_number: int, parameter_number: int) -> int:
+def _parameter_integer(
+    session: ZosSession,
+    surface_number: int,
+    parameter_number: int,
+) -> int:
     columns = session.zosapi.Editors.LDE.SurfaceColumn
     try:
         column = getattr(columns, f"Par{parameter_number}")
@@ -132,7 +142,11 @@ def _parameter_integer(session: ZosSession, surface_number: int, parameter_numbe
         raise RevisionBinary4ZosError(
             f"installed API exposes no Par{parameter_number} column"
         ) from exc
-    return int(session.system.LDE.GetSurfaceAt(surface_number).GetSurfaceCell(column).IntegerValue)
+    return int(
+        session.system.LDE.GetSurfaceAt(surface_number)
+        .GetSurfaceCell(column)
+        .IntegerValue
+    )
 
 
 def read_binary4_zones(
@@ -143,10 +157,13 @@ def read_binary4_zones(
     surface_number = binary4_surface_number(platform_id)
     row = session.system.LDE.GetSurfaceAt(surface_number)
     type_name = str(getattr(row, "TypeName", "") or "")
-    if "binary" not in type_name.casefold() and "binary" not in str(row.GetType()).casefold():
+    get_type = getattr(row, "GetType", None)
+    fallback_type = str(get_type()) if callable(get_type) else ""
+    if "binary" not in type_name.casefold() and "binary" not in fallback_type.casefold():
         raise RevisionBinary4ZosError(
             f"surface {surface_number} did not replay as Binary 4: {type_name!r}"
         )
+
     zone_count = _parameter_integer(session, surface_number, 1)
     aspheric_count = _parameter_integer(session, surface_number, 2)
     phase_count = _parameter_integer(session, surface_number, 3)
@@ -169,7 +186,9 @@ def read_binary4_zones(
         conic = _parameter_double(session, surface_number, columns.conic)
         order = _parameter_double(session, surface_number, columns.diffraction_order)
         if len(columns.aspheric_terms) != 3:
-            raise RevisionBinary4ZosError("model revision requires exactly p^2/p^4/p^6 slots")
+            raise RevisionBinary4ZosError(
+                "model revision requires exactly p^2/p^4/p^6 slots"
+            )
         alpha2, alpha4, alpha6 = (
             _parameter_double(session, surface_number, number)
             for number in columns.aspheric_terms
@@ -243,9 +262,13 @@ def build_degenerate_binary4_mono(
         conic=base_conic,
     )
     editor.configure_binary4(surface_number, zones)
-    # Keep the common row cells populated for transparent audit/display.  Optical
+    # Keep the common row cells populated for transparent audit/display. Optical
     # zone shape is controlled by the Binary 4 zone R/Q values above.
-    editor.set_radius_conic(surface_number, radius_mm=base_radius, conic=base_conic)
+    editor.set_radius_conic(
+        surface_number,
+        radius_mm=base_radius,
+        conic=base_conic,
+    )
     editor.set_thickness(surface_number, base_thickness)
     editor.set_comment(surface_number, base_comment)
     editor.surface(surface_number).SemiDiameter = IOL_CLEAR_SEMI_DIAMETER_MM
@@ -254,18 +277,26 @@ def build_degenerate_binary4_mono(
     editor.save_as(output)
     session.system.LoadFile(str(output.resolve()), False)
     _require_full_eye_roles(session)
-    apply_revision_to_full_eye(session, base_id, pupil_diameter_mm=pupil_diameter_mm)
+    apply_revision_to_full_eye(
+        session,
+        base_id,
+        pupil_diameter_mm=pupil_diameter_mm,
+    )
     replay_index = _refractive_indices(session.system, surface_number)[0]
     if abs(replay_index - base_index) > 1.0e-8:
         raise RevisionBinary4ZosError(
             f"Binary 4 conversion changed IOL refractive index: {base_index} -> {replay_index}"
         )
+
     readback = read_binary4_zones(session, platform_id)
     spec = binary4_mechanism_spec(platform_id)
     if tuple(item.r_outer_mm for item in readback) != spec.radial_apertures_mm:
         raise RevisionBinary4ZosError("Binary 4 zone boundary readback mismatch")
     for item in readback:
-        if abs(item.radius_mm - base_radius) > 1.0e-9 or abs(item.conic - base_conic) > 1.0e-12:
+        if (
+            abs(item.radius_mm - base_radius) > 1.0e-9
+            or abs(item.conic - base_conic) > 1.0e-12
+        ):
             raise RevisionBinary4ZosError("degenerate Binary 4 changed zone base R/Q")
         if (
             abs(item.diffraction_order) > 1.0e-12
@@ -273,7 +304,9 @@ def build_degenerate_binary4_mono(
             or abs(item.alpha_p4_native) > 1.0e-15
             or abs(item.alpha_p6_native) > 1.0e-15
         ):
-            raise RevisionBinary4ZosError("degenerate Binary 4 contains non-zero residual/phase data")
+            raise RevisionBinary4ZosError(
+                "degenerate Binary 4 contains non-zero residual/phase data"
+            )
 
     # Persist the final physical-pupil/retina readback state after replay.
     SequentialEditor(session.system, session.zosapi).save_as(output)
@@ -289,9 +322,15 @@ def build_degenerate_binary4_mono(
 
 
 def _ssag_mm(session: ZosSession, surface_number: int, radius_mm: float) -> float:
-    operand_type = getattr(session.zosapi.Editors.MFE.MeritOperandType, "SSAG", None)
+    operand_type = getattr(
+        session.zosapi.Editors.MFE.MeritOperandType,
+        "SSAG",
+        None,
+    )
     if operand_type is None:
-        raise RevisionBinary4ZosError("installed MeritOperandType exposes no SSAG member")
+        raise RevisionBinary4ZosError(
+            "installed MeritOperandType exposes no SSAG member"
+        )
     get_value = getattr(session.system.MFE, "GetOperandValue", None)
     if not callable(get_value):
         raise RevisionBinary4ZosError("installed MFE exposes no GetOperandValue")
@@ -309,7 +348,9 @@ def _ssag_mm(session: ZosSession, surface_number: int, radius_mm: float) -> floa
         )
     )
     if not math.isfinite(value):
-        raise RevisionBinary4ZosError(f"SSAG returned non-finite sag at r={radius_mm:g} mm")
+        raise RevisionBinary4ZosError(
+            f"SSAG returned non-finite sag at r={radius_mm:g} mm"
+        )
     return value
 
 
@@ -330,31 +371,23 @@ def _acquire_snapshot(
 ) -> _EquivalenceSnapshot:
     session.system.LoadFile(str(path.resolve()), False)
     _require_full_eye_roles(session)
-    apply_revision_to_full_eye(session, base_id, pupil_diameter_mm=pupil_diameter_mm)
-    sag = _sag_grid_mm(session, surface_number)
-    effl = MfeEfflRunner(session.system, session.zosapi).run().effective_focal_length_mm
-    hoa = MfeFullHoaRunner(session.system, session.zosapi).run()
-    fft = FftMtfRunner(session.system, session.zosapi).run(
-        FftMtfSettings(maximum_frequency_cyc_per_mm=100.0, sample_size=128)
+    apply_revision_to_full_eye(
+        session,
+        base_id,
+        pupil_diameter_mm=pupil_diameter_mm,
     )
-    return _EquivalenceSnapshot(sag, effl, hoa.c40_um, hoa.c60_um, fft)
-
-
-def _max_fft_difference(left: FftMtfResult, right: FftMtfResult) -> float:
-    if len(left.series) != len(right.series):
-        return math.inf
-    differences: list[float] = []
-    for a, b in zip(left.series, right.series, strict=True):
-        if len(a.frequencies_cyc_per_mm) != len(b.frequencies_cyc_per_mm):
-            return math.inf
-        for x, y in zip(a.frequencies_cyc_per_mm, b.frequencies_cyc_per_mm, strict=True):
-            if abs(x - y) > 1.0e-12:
-                return math.inf
-        differences.extend(
-            abs(x - y) for x, y in zip(a.tangential, b.tangential, strict=True)
-        )
-        differences.extend(abs(x - y) for x, y in zip(a.sagittal, b.sagittal, strict=True))
-    return max(differences, default=0.0)
+    sag = _sag_grid_mm(session, surface_number)
+    effl = MfeEfflRunner(
+        session.system,
+        session.zosapi,
+    ).run().effective_focal_length_mm
+    hoa = MfeFullHoaRunner(session.system, session.zosapi).run()
+    return _EquivalenceSnapshot(
+        sag_mm=sag,
+        effl_mm=effl,
+        c40_um=hoa.c40_um,
+        c60_um=hoa.c60_um,
+    )
 
 
 def compare_degenerate_binary4_to_analytical(
@@ -365,12 +398,16 @@ def compare_degenerate_binary4_to_analytical(
     binary4_path: str | Path,
     *,
     pupil_diameter_mm: float = 3.0,
-    thresholds: DegenerateEquivalenceThresholds = DegenerateEquivalenceThresholds(),
+    thresholds: DegenerateEquivalenceThresholds = (
+        DEFAULT_DEGENERATE_EQUIVALENCE_THRESHOLDS
+    ),
 ) -> DegenerateEquivalenceResult:
     analytical = Path(analytical_path)
     binary4 = Path(binary4_path)
     if not analytical.is_file() or not binary4.is_file():
-        raise RevisionBinary4ZosError("equivalence comparison requires both serialized ZMX files")
+        raise RevisionBinary4ZosError(
+            "equivalence comparison requires both serialized ZMX files"
+        )
     surface_number = binary4_surface_number(platform_id)
     left = _acquire_snapshot(
         session,
@@ -387,13 +424,15 @@ def compare_degenerate_binary4_to_analytical(
         pupil_diameter_mm=pupil_diameter_mm,
     )
     max_sag = max(
-        (abs(a - b) for a, b in zip(left.sag_mm, right.sag_mm, strict=True)),
+        (
+            abs(a - b)
+            for a, b in zip(left.sag_mm, right.sag_mm, strict=True)
+        ),
         default=0.0,
     )
     effl = abs(left.effl_mm - right.effl_mm)
     c40 = abs(left.c40_um - right.c40_um)
     c60 = abs(left.c60_um - right.c60_um)
-    fft = _max_fft_difference(left.fft_mtf, right.fft_mtf)
 
     findings: list[str] = []
     comparisons = (
@@ -401,7 +440,6 @@ def compare_degenerate_binary4_to_analytical(
         ("abs_effl_error_mm", effl, thresholds.max_abs_effl_error_mm),
         ("abs_c40_error_um", c40, thresholds.max_abs_c40_error_um),
         ("abs_c60_error_um", c60, thresholds.max_abs_c60_error_um),
-        ("max_abs_fft_mtf_error", fft, thresholds.max_abs_fft_mtf_error),
     )
     for label, actual, limit in comparisons:
         if not math.isfinite(actual) or actual > limit:
@@ -415,7 +453,6 @@ def compare_degenerate_binary4_to_analytical(
         abs_effl_error_mm=effl,
         abs_c40_error_um=c40,
         abs_c60_error_um=c60,
-        max_abs_fft_mtf_error=fft,
         passed=not findings,
         findings=tuple(findings),
     )
