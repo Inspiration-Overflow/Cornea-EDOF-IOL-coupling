@@ -44,7 +44,7 @@ from .revision_r4_zos import (
     read_r4_mechanism,
     read_rad_power_profile,
 )
-from .revision_r5_lock import r5_zones_for_carrier
+from .revision_r5_lock import r5_1_zones_for_carrier
 from .zos import Binary4Zone, SequentialEditor, ZosSession
 from .zos.primitives import binary4_zone_columns
 
@@ -744,7 +744,7 @@ def build_and_validate_r6_carrier(
         base_radius_mm=actual_base_radius,
         base_conic=actual_base_conic,
     )
-    edof_prescriptions = r5_zones_for_carrier(
+    edof_prescriptions = r5_1_zones_for_carrier(
         platform,
         base_radius_mm=actual_base_radius,
         base_conic=actual_base_conic,

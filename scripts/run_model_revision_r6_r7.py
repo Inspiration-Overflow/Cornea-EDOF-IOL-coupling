@@ -27,7 +27,11 @@ from whole_eye_mvp.domain import (
     ScientificBaseline,
 )
 from whole_eye_mvp.revision_carrier_zos import build_revision_q0_analytical_carrier
-from whole_eye_mvp.revision_r5_lock import R5_FREEZE_ID, R5_GLOBAL_DEFOCUS_TOLERANCE_D
+from whole_eye_mvp.revision_r5_lock import (
+    R5_1_FREEZE_ID,
+    R5_FREEZE_ID,
+    R5_GLOBAL_DEFOCUS_TOLERANCE_D,
+)
 from whole_eye_mvp.revision_r6 import (
     R6_EXPECTED_CARRIER_COUNT,
     R6_MAX_PQ_RECHECK_CYCLES,
@@ -524,6 +528,11 @@ def main() -> None:
         "phase": R6_R7_PHASE,
         "code_commit": code_commit,
         "r5_freeze_id": R5_FREEZE_ID,
+        "r5_1_conic_normalization": {
+            "id": R5_1_FREEZE_ID,
+            "applies_to": "HOA",
+            "rule": "delta_conic * (R_zone(P)/R_zone(+20D))^3; WFS/RAD bit-identical to R5",
+        },
         "prerequisites": {
             "r2_r3_path": prerequisites["r2_r3_path"],
             "r2_r3_sha256": prerequisites["r2_r3_sha256"],

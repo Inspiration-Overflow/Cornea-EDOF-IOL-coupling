@@ -8,6 +8,7 @@ from .model_revision import binary4_mechanism_spec
 from .revision_r4_fit import R4ZonePrescription
 
 R5_FREEZE_ID = "MODEL-REVISION-R5-2026-08-21"
+R5_1_FREEZE_ID = "MODEL-REVISION-R5.1-HOA-CONIC-SAG-INVARIANT-2026-08-21"
 R5_REPRESENTATIVE_POWER_D = 20.0
 R5_REPRESENTATIVE_RADIUS_MM = 12.357387811201875
 R5_GLOBAL_DEFOCUS_TOLERANCE_D = 0.125
@@ -205,6 +206,57 @@ def r5_mechanism_lock(platform_id: str) -> R5MechanismLock:
     return result
 
 
+def _lock_zones_for_base(
+    lock: R5MechanismLock,
+    *,
+    base_radius_mm: float,
+    base_conic: float,
+    conic_sag_scaling: bool,
+) -> tuple[R4ZonePrescription, ...]:
+    radius = float(base_radius_mm)
+    conic = float(base_conic)
+    if not math.isfinite(radius) or radius == 0.0:
+        raise ValueError("R5 carrier base radius must be finite and non-zero")
+    if not math.isfinite(conic):
+        raise ValueError("R5 carrier base conic must be finite")
+    expected_sign = 1.0 if lock.surface_role == "anterior" else -1.0
+    if math.copysign(1.0, radius) != expected_sign:
+        raise ValueError("R5 carrier base radius sign does not match the frozen surface role")
+
+    base_curvature = 1.0 / radius
+    reference_curvature = 1.0 / lock.representative_base_radius_mm
+    output: list[R4ZonePrescription] = []
+    for zone in lock.zones:
+        curvature = base_curvature + zone.delta_curvature_mm_inv
+        if curvature == 0.0 or math.copysign(1.0, curvature) != expected_sign:
+            raise ValueError("R5 normalized curvature produced an invalid zone radius")
+        delta_conic = zone.delta_conic
+        if conic_sag_scaling and zone.delta_conic != 0.0:
+            # R5.1: the conic sag term Q*r^4/(8*R_zone^3) carries the frozen
+            # mechanism contribution.  Porting the absolute offset to another
+            # carrier power rescales that term as R_zone^-3, so restore it by
+            # scaling the offset with (R_zone/R_zone_at_freeze)^3.
+            reference_zone_curvature = (
+                reference_curvature + zone.delta_curvature_mm_inv
+            )
+            radius_ratio = reference_zone_curvature / curvature
+            delta_conic = zone.delta_conic * radius_ratio**3
+        output.append(
+            R4ZonePrescription(
+                zone=zone.zone,
+                r_inner_mm=zone.r_inner_mm,
+                r_outer_mm=zone.r_outer_mm,
+                radius_mm=1.0 / curvature,
+                conic=conic + delta_conic,
+                alpha_p2_native=0.0,
+                alpha_p4_native=zone.alpha_p4_native,
+                alpha_p6_native=zone.alpha_p6_native,
+                active=zone.active,
+            )
+        )
+    return tuple(output)
+
+
 def r5_zones_for_carrier(
     platform_id: str,
     *,
@@ -218,34 +270,33 @@ def r5_zones_for_carrier(
     This function does not refit any parameter.
     """
 
-    radius = float(base_radius_mm)
-    conic = float(base_conic)
-    if not math.isfinite(radius) or radius == 0.0:
-        raise ValueError("R5 carrier base radius must be finite and non-zero")
-    if not math.isfinite(conic):
-        raise ValueError("R5 carrier base conic must be finite")
     lock = r5_mechanism_lock(platform_id)
-    expected_sign = 1.0 if lock.surface_role == "anterior" else -1.0
-    if math.copysign(1.0, radius) != expected_sign:
-        raise ValueError("R5 carrier base radius sign does not match the frozen surface role")
+    return _lock_zones_for_base(
+        lock,
+        base_radius_mm=base_radius_mm,
+        base_conic=base_conic,
+        conic_sag_scaling=False,
+    )
 
-    base_curvature = 1.0 / radius
-    output: list[R4ZonePrescription] = []
-    for zone in lock.zones:
-        curvature = base_curvature + zone.delta_curvature_mm_inv
-        if curvature == 0.0 or math.copysign(1.0, curvature) != expected_sign:
-            raise ValueError("R5 normalized curvature produced an invalid zone radius")
-        output.append(
-            R4ZonePrescription(
-                zone=zone.zone,
-                r_inner_mm=zone.r_inner_mm,
-                r_outer_mm=zone.r_outer_mm,
-                radius_mm=1.0 / curvature,
-                conic=conic + zone.delta_conic,
-                alpha_p2_native=0.0,
-                alpha_p4_native=zone.alpha_p4_native,
-                alpha_p6_native=zone.alpha_p6_native,
-                active=zone.active,
-            )
-        )
-    return tuple(output)
+
+def r5_1_zones_for_carrier(
+    platform_id: str,
+    *,
+    base_radius_mm: float,
+    base_conic: float,
+) -> tuple[R4ZonePrescription, ...]:
+    """R5.1 application of the same frozen residual with HOA conic sag scaling.
+
+    WFS/RAD prescriptions are bit-identical to ``r5_zones_for_carrier``.  Only
+    the HOA conic offsets are rescaled to preserve the frozen r^4 sag term at
+    other carrier powers; curvature deltas and native p4/p6 coefficients stay
+    exactly as frozen.
+    """
+
+    lock = r5_mechanism_lock(platform_id)
+    return _lock_zones_for_base(
+        lock,
+        base_radius_mm=base_radius_mm,
+        base_conic=base_conic,
+        conic_sag_scaling=PlatformId(platform_id) is PlatformId.HOA,
+    )
