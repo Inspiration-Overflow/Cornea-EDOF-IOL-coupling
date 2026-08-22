@@ -2,20 +2,25 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import math
 import sys
 from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
+import whole_eye_mvp.analysis_zos_r8_direct as direct
 from whole_eye_mvp.analysis_zos_pair_scale import PairAngularScaleReference
 from whole_eye_mvp.analysis_zos_r8_direct import (
+    DIRECT_BINARY4_CARRIER_POWER_DIAGNOSTIC_D,
     DIRECT_MODEL_PROVENANCE_POLICY_ID,
     R8_CONFIG_REQUIRED_COLUMNS,
     R8_PAIRED_REQUIRED_COLUMNS,
     R8_THROUGH_FOCUS_REQUIRED_COLUMNS,
     R8DirectAcquisitionError,
     build_direct_model_specs,
+    capture_direct_entity_snapshot,
     group_direct_pairs,
     nominal_config_for_direct_model,
     validate_aggregate_rows,
@@ -185,3 +190,157 @@ def test_source_verification_fails_closed_on_missing_or_hash_drift(tmp_path: Pat
     first.source_path.write_bytes(b"drift")
     with pytest.raises(R8DirectAcquisitionError, match="source hash mismatch"):
         verify_direct_model_sources(actual_specs)
+
+
+class _FakeSurface:
+    def __init__(
+        self,
+        *,
+        comment: str,
+        radius: float,
+        conic: float,
+        thickness: float,
+        material: str = "",
+        is_stop: bool = False,
+        semi_diameter: float = 3.0,
+        type_name: str = "Standard",
+    ) -> None:
+        self.Comment = comment
+        self.Radius = radius
+        self.Conic = conic
+        self.Thickness = thickness
+        self.Material = material
+        self.IsStop = is_stop
+        self.SemiDiameter = semi_diameter
+        self.TypeName = type_name
+
+    def GetType(self) -> str:
+        return self.TypeName
+
+
+class _FakeLde:
+    NumberOfSurfaces = 7
+    StopSurface = 3
+
+    def __init__(self, surfaces: dict[int, _FakeSurface]) -> None:
+        self.surfaces = surfaces
+
+    def GetSurfaceAt(self, index: int) -> _FakeSurface:
+        return self.surfaces[index]
+
+
+def _fake_snapshot_session():
+    surfaces = {
+        0: _FakeSurface(comment="OBJECT", radius=0.0, conic=0.0, thickness=1.0e9),
+        1: _FakeSurface(comment="CORNEA_ANT", radius=7.8, conic=-0.2, thickness=0.55),
+        2: _FakeSurface(
+            comment=direct.FIXED_CORNEA_POST_ROLE,
+            radius=6.5,
+            conic=-0.1,
+            thickness=3.15,
+        ),
+        3: _FakeSurface(
+            comment=direct.STOP_ROLE,
+            radius=0.0,
+            conic=0.0,
+            thickness=1.35,
+            is_stop=True,
+            semi_diameter=1.5,
+        ),
+        4: _FakeSurface(
+            comment=direct.TASK007_CARRIER_ANT_ROLE,
+            radius=0.0,
+            conic=0.0,
+            thickness=1.0,
+            material="IOL",
+            type_name="Binary 4",
+        ),
+        5: _FakeSurface(
+            comment=direct.TASK007_CARRIER_POST_ROLE,
+            radius=-12.0,
+            conic=0.0,
+            thickness=16.0,
+            material="VITREOUS",
+        ),
+        6: _FakeSurface(
+            comment=direct.IMAGE_ROLE,
+            radius=-12.0,
+            conic=0.0,
+            thickness=0.0,
+            semi_diameter=5.0,
+        ),
+    }
+    session = SimpleNamespace(system=SimpleNamespace(LDE=_FakeLde(surfaces)))
+    return session, surfaces
+
+
+def _fake_binary4_zones():
+    return [
+        SimpleNamespace(
+            zone=1,
+            r_inner_mm=0.0,
+            r_outer_mm=0.9,
+            radius_mm=12.3,
+            conic=-0.1,
+            diffraction_order=0.0,
+            alpha_p2_native=0.0,
+            alpha_p4_native=0.001,
+            alpha_p6_native=0.002,
+        ),
+        SimpleNamespace(
+            zone=2,
+            r_inner_mm=0.9,
+            r_outer_mm=3.0,
+            radius_mm=12.3,
+            conic=-0.1,
+            diffraction_order=0.0,
+            alpha_p2_native=0.0,
+            alpha_p4_native=-0.001,
+            alpha_p6_native=-0.002,
+        ),
+    ]
+
+
+def test_direct_binary4_snapshot_excludes_object_and_requested_stop(monkeypatch) -> None:
+    session, surfaces = _fake_snapshot_session()
+    zones = _fake_binary4_zones()
+
+    def fake_read_binary4_zones(session_arg, platform_id, *, standard_eye):
+        assert session_arg is session
+        assert platform_id == "WFS"
+        assert standard_eye is False
+        return tuple(zones)
+
+    monkeypatch.setattr(direct, "_read_binary4_zones", fake_read_binary4_zones)
+    first = capture_direct_entity_snapshot(session, "WFS")
+    assert first.carrier_power_d == DIRECT_BINARY4_CARRIER_POWER_DIAGNOSTIC_D == 0.0
+    assert math.isfinite(first.carrier_power_d)
+
+    surfaces[0].Thickness = 250.0
+    surfaces[3].SemiDiameter = 2.5
+    second = capture_direct_entity_snapshot(session, "WFS")
+    assert second.fingerprint == first.fingerprint
+    assert second.retina_position_mm == first.retina_position_mm
+    assert second.iol_position_mm == first.iol_position_mm
+    assert second.elp_mm == first.elp_mm
+
+
+def test_direct_binary4_snapshot_detects_zone_and_surface_mutation(monkeypatch) -> None:
+    session, surfaces = _fake_snapshot_session()
+    zones = _fake_binary4_zones()
+    monkeypatch.setattr(
+        direct,
+        "_read_binary4_zones",
+        lambda *_args, **_kwargs: tuple(zones),
+    )
+    baseline = capture_direct_entity_snapshot(session, "WFS")
+
+    zones[0].alpha_p6_native += 1.0e-6
+    zone_changed = capture_direct_entity_snapshot(session, "WFS")
+    assert zone_changed.fingerprint != baseline.fingerprint
+
+    zones[0].alpha_p6_native -= 1.0e-6
+    surfaces[5].Thickness += 0.01
+    surface_changed = capture_direct_entity_snapshot(session, "WFS")
+    assert surface_changed.fingerprint != baseline.fingerprint
+    assert surface_changed.retina_position_mm != baseline.retina_position_mm
