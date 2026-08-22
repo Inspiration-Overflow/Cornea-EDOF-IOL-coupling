@@ -217,7 +217,7 @@ def build_direct_model_specs(
     """Map the validated R8 plan to immutable serialized R6/R7 model inputs."""
 
     project = Path(project_dir).resolve()
-    required_keys = {str(getattr(row, "model_artifact_key")) for row in plan}
+    required_keys = {str(row.model_artifact_key) for row in plan}
     if set(model_hashes) != required_keys:
         missing = sorted(required_keys - set(model_hashes))
         extra = sorted(set(model_hashes) - required_keys)
@@ -226,21 +226,21 @@ def build_direct_model_specs(
         )
     specs: list[DirectModelSpec] = []
     for row in plan:
-        key = str(getattr(row, "model_artifact_key"))
+        key = str(row.model_artifact_key)
         expected_sha = model_hashes[key]
         if not _is_sha256(expected_sha):
             raise R8DirectAcquisitionError(f"invalid source SHA-256 for {key}")
         source = (project / r6_r7_output_relative / key).resolve()
         specs.append(
             DirectModelSpec(
-                config_id=str(getattr(row, "config_id")),
-                pair_key=str(getattr(row, "pair_key")),
-                carrier_id=str(getattr(row, "carrier_id")),
-                base_id=str(getattr(row, "base_id")),
-                cornea_id=str(getattr(row, "cornea_id")),
-                platform_id=str(getattr(row, "platform_id")),
-                optic_state=str(getattr(row, "optic_state")),
-                pupil_mm=float(getattr(row, "pupil_mm")),
+                config_id=str(row.config_id),
+                pair_key=str(row.pair_key),
+                carrier_id=str(row.carrier_id),
+                base_id=str(row.base_id),
+                cornea_id=str(row.cornea_id),
+                platform_id=str(row.platform_id),
+                optic_state=str(row.optic_state),
+                pupil_mm=float(row.pupil_mm),
                 model_artifact_key=key,
                 source_path=source,
                 source_sha256=str(expected_sha),
