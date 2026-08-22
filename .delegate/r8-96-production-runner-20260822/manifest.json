@@ -1,0 +1,47 @@
+{
+  "schema_version": "1",
+  "task_id": "r8-96-production-runner-20260822",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "base_commit": "a1870b10b326fe96be66919cad987fbcc58f0bc3",
+  "task_branch": "delegate/r8-96-production-runner-20260822",
+  "task_ref": ".delegate/r8-96-production-runner-20260822/TASK.md",
+  "result_ref": ".delegate/r8-96-production-runner-20260822/result.json",
+  "authorized_read_paths": [
+    "src/whole_eye_mvp/revision_r5_lock.py",
+    "src/whole_eye_mvp/revision_r6_zos.py",
+    "src/whole_eye_mvp/revision_r6_native.py",
+    "src/whole_eye_mvp/revision_carrier_zos.py",
+    "src/whole_eye_mvp/revision_base_zos.py",
+    "src/whole_eye_mvp/revision_r4_zos.py",
+    "src/whole_eye_mvp/revision_r5_2.py",
+    "scripts/run_model_revision_r6_r7.py",
+    "scripts/run_task_011_run72.py",
+    "scripts/run_task_013_native_reference.py",
+    "scripts/run_task_014_vertex_corrected_cornea.py",
+    "src/whole_eye_mvp/run72.py",
+    "src/whole_eye_mvp/run72_analysis.py",
+    "src/whole_eye_mvp/extension96_analysis.py",
+    "docs/MODEL_REVISION_R6_R7_IMPLEMENTATION_AND_LOCAL_HANDOFF_2026-08-21.md",
+    "docs/TASK_015_96_CONFIG_INTEGRATION.md",
+    "docs/MANUSCRIPT_ABSTRACT_METHODS_DRAFT_2026-08-20.md",
+    "docs/MANUSCRIPT_DRAFT_96_CONFIG_2026-08-20.md",
+    "docs/MANUSCRIPT_FIGURE_TABLE_PLAN_2026-08-20.md",
+    "pyproject.toml",
+    "tests/unit/test_revision_r5_2.py",
+    "tests/unit/test_revision_r6.py",
+    "tests/unit/test_run72.py",
+    "tests/unit/test_task015_extension96.py"
+  ],
+  "authorized_write_paths": [
+    "scripts/run_model_revision_r8_96.py",
+    "tests/unit/test_model_revision_r8.py",
+    "docs/MODEL_REVISION_R8_IMPLEMENTATION_AND_LOCAL_HANDOFF_2026-08-22.md",
+    ".delegate/r8-96-production-runner-20260822/result.json"
+  ],
+  "expected_outputs": [
+    "scripts/run_model_revision_r8_96.py",
+    "tests/unit/test_model_revision_r8.py",
+    "docs/MODEL_REVISION_R8_IMPLEMENTATION_AND_LOCAL_HANDOFF_2026-08-22.md",
+    ".delegate/r8-96-production-runner-20260822/result.json"
+  ]
+}
