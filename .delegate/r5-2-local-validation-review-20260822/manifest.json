@@ -1,0 +1,31 @@
+{
+  "schema_version": "1",
+  "task_id": "r5-2-local-validation-review-20260822",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "base_commit": "a1870b10b326fe96be66919cad987fbcc58f0bc3",
+  "task_branch": "delegate/r5-2-local-validation-review-20260822",
+  "task_ref": ".delegate/r5-2-local-validation-review-20260822/TASK.md",
+  "result_ref": ".delegate/r5-2-local-validation-review-20260822/result.json",
+  "authorized_read_paths": [
+    "src/whole_eye_mvp/revision_r5_2.py",
+    "src/whole_eye_mvp/revision_r5_lock.py",
+    "src/whole_eye_mvp/revision_r6_zos.py",
+    "scripts/run_model_revision_r6_r7.py",
+    "tests/unit/test_revision_r5_2_lock.py",
+    "tests/unit/test_revision_r5_1_lock.py",
+    "docs/R5_2_WEB_IMPLEMENTATION_REVIEW_2026-08-21.md",
+    "docs/R5_2_ANALYTICAL_PRECHECK_2026-08-21.md"
+  ],
+  "authorized_write_paths": [
+    ".delegate/r5-2-local-validation-review-20260822/",
+    "docs/R5_2_LOCAL_VALIDATION_REVIEW_2026-08-22.md",
+    "src/whole_eye_mvp/revision_r5_2.py",
+    "src/whole_eye_mvp/revision_r6_zos.py",
+    "scripts/run_model_revision_r6_r7.py",
+    "tests/unit/test_revision_r5_2_lock.py"
+  ],
+  "expected_outputs": [
+    "docs/R5_2_LOCAL_VALIDATION_REVIEW_2026-08-22.md",
+    ".delegate/r5-2-local-validation-review-20260822/result.json"
+  ]
+}
