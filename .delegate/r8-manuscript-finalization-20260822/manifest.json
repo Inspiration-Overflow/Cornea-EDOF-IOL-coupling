@@ -1,0 +1,38 @@
+{
+  "schema_version": "1",
+  "task_id": "r8-manuscript-finalization-20260822",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "base_commit": "4d5e2ccf7e9e17319542b4062781ac7100d9489e",
+  "task_branch": "delegate/r8-manuscript-finalization-20260822",
+  "task_ref": ".delegate/r8-manuscript-finalization-20260822/TASK.md",
+  "result_ref": ".delegate/r8-manuscript-finalization-20260822/result.json",
+  "authorized_read_paths": [
+    "docs/MANUSCRIPT_ABSTRACT_METHODS_DRAFT_2026-08-20.md",
+    "docs/MANUSCRIPT_DRAFT_96_CONFIG_2026-08-20.md",
+    "docs/MANUSCRIPT_FIGURE_TABLE_PLAN_2026-08-20.md",
+    "docs/MANUSCRIPT_INTRODUCTION_DRAFT_2026-08-20.md",
+    "docs/MANUSCRIPT_RESULTS_DISCUSSION_DRAFT_2026-08-20.md",
+    "docs/MANUSCRIPT_SCIENTIFIC_QC_2026-08-20.md",
+    "docs/MANUSCRIPT_WORKING_DRAFT_2026-08-20.md",
+    "docs/evidence/r8_96/MODEL_REVISION_R8_96_OFFLINE_ANALYSIS_EVIDENCE.json",
+    "docs/evidence/r8_96/MODEL_REVISION_R8_96_PAIR_ANALYSIS.csv",
+    "docs/evidence/r8_96/MODEL_REVISION_R8_96_COUPLING_MATRIX.csv",
+    "docs/evidence/r8_96/production/MODEL_REVISION_R8_96_EVIDENCE.json",
+    "docs/evidence/r8_96/production/MODEL_REVISION_R8_96_CONFIG_RESULTS.csv",
+    "docs/evidence/r8_96/production/MODEL_REVISION_R8_96_THROUGH_FOCUS.csv",
+    "docs/evidence/r8_96/production/MODEL_REVISION_R8_96_PAIRED_DELTAS.csv",
+    "docs/evidence/r8_96/figures"
+  ],
+  "authorized_write_paths": [
+    "docs/MANUSCRIPT_FINAL_R8_2026-08-22.md",
+    "docs/MANUSCRIPT_R8_SCIENTIFIC_QC_2026-08-22.md",
+    "docs/MANUSCRIPT_R8_FIGURE_TABLE_PLAN_2026-08-22.md",
+    ".delegate/r8-manuscript-finalization-20260822/result.json"
+  ],
+  "expected_outputs": [
+    "docs/MANUSCRIPT_FINAL_R8_2026-08-22.md",
+    "docs/MANUSCRIPT_R8_SCIENTIFIC_QC_2026-08-22.md",
+    "docs/MANUSCRIPT_R8_FIGURE_TABLE_PLAN_2026-08-22.md",
+    ".delegate/r8-manuscript-finalization-20260822/result.json"
+  ]
+}
