@@ -1,0 +1,24 @@
+{
+  "schema_version": "1",
+  "task_id": "r6-r7-r5-2-final-review-path-fix-20260822",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "base_commit": "1249c25b76f6775a3b13401062e49d5cb7c7deb2",
+  "task_branch": "delegate/r6-r7-r5-2-final-review-path-fix-20260822",
+  "task_ref": ".delegate/r6-r7-r5-2-final-review-path-fix-20260822/TASK.md",
+  "result_ref": ".delegate/r6-r7-r5-2-final-review-path-fix-20260822/result.json",
+  "authorized_read_paths": [
+    "docs/R5_2_R6_R7_FINAL_VALIDATION_REVIEW_2026-08-22.md",
+    "docs/MANUSCRIPT_R5_2_R6_R7_RESULTS_ADDENDUM_2026-08-22.md",
+    ".delegate/r6-r7-r5-2-final-review-20260822/result.json"
+  ],
+  "authorized_write_paths": [
+    ".delegate/r6-r7-r5-2-final-review-path-fix-20260822/",
+    "docs/R6_R7_R5_2_FINAL_VALIDATION_REVIEW_2026-08-22.md",
+    "docs/MANUSCRIPT_R5_2_RESULTS_ADDENDUM_2026-08-22.md"
+  ],
+  "expected_outputs": [
+    "docs/R6_R7_R5_2_FINAL_VALIDATION_REVIEW_2026-08-22.md",
+    "docs/MANUSCRIPT_R5_2_RESULTS_ADDENDUM_2026-08-22.md",
+    ".delegate/r6-r7-r5-2-final-review-path-fix-20260822/result.json"
+  ]
+}
