@@ -1,34 +1,43 @@
-"""Plan and preflight the bounded R8 96-configuration production run.
-
-The current repository can prove the exact R8 factor matrix and validate the completed
-R6/R7 R5.2 serialized-model inputs. It does not expose, within this task's authorized
-surface, a production acquisition adapter that consumes those pre-serialized model
-paths without reapplying a legacy residual. Therefore ``--execute`` fails closed
-before any OpticStudio session can be opened.
-
-A later, explicitly authorized task may replace the implementation-gap guard once a
-direct prebuilt-model pair-scale acquisition adapter exists and is unit/integration
-tested against the frozen TASK-009 acquisition contract.
-"""
+"""Plan, preflight, and execute the bounded R8 96-configuration direct-model run."""
 
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
+import os
+import subprocess
+import uuid
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from whole_eye_mvp.domain import OpticState
+from whole_eye_mvp import __version__
+from whole_eye_mvp.analysis_zos_pair_scale import (
+    EXPECTED_PAIR_MONO_MTF_ACQUISITION_HASH,
+    PAIR_MONO_FREQUENCY_SCALE_MODE,
+    TASK009_PAIR_MONO_MTF_ACQUISITION,
+)
+from whole_eye_mvp.analysis_zos_r8_direct import (
+    DIRECT_MODEL_PROVENANCE_POLICY_HASH,
+    DIRECT_MODEL_PROVENANCE_POLICY_ID,
+    artifact_hashes,
+    build_direct_model_specs,
+    run_r8_direct_acquisition,
+    verify_direct_model_sources,
+    write_r8_aggregate_outputs,
+)
+from whole_eye_mvp.domain import NOMINAL_MAIN_FFT_MTF_555_V2, OpticState
 from whole_eye_mvp.extension96_analysis import EXPECTED_DEFOCUS_GRID, PUPIL_MM
+from whole_eye_mvp.quality import settings_hash
 from whole_eye_mvp.revision_r5_2 import R5_2_FREEZE_ID
 from whole_eye_mvp.revision_r6 import (
     R6_EXPECTED_CARRIER_COUNT,
     R6_R7_PHASE,
     expected_r6_carrier_keys,
 )
+from whole_eye_mvp.zos import open_zos_session
 
 TASK_ID = "r8-96-production-runner-20260822"
 R8_PHASE = "MODEL-REVISION-R8-96-PRODUCTION"
@@ -45,8 +54,9 @@ R8_EXPECTED_CONFIG_COUNT = 96
 R8_EXPECTED_PAIR_COUNT = 48
 R8_EXPECTED_THROUGH_FOCUS_ROWS = 1440
 R8_EXPECTED_MODEL_COUNT = 48
-
-MISSING_PREREQUISITE_ID = "DIRECT_R5_2_SERIALIZED_MODEL_PAIR_SCALE_BACKEND"
+INSTALL_ENV = "WHOLE_EYE_ZOS_INSTALL_DIR"
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_PROJECT_DIR = REPOSITORY_ROOT / "project_mvp_2026_v2_zmx"
 
 REQUIRED_R6_R7_LOCAL_CHECKS = (
     "all_24_carriers_present",
@@ -108,14 +118,12 @@ def build_r8_plan() -> tuple[R8ConfigPlan, ...]:
         carrier_id = _carrier_id(key.base_id, key.cornea_id, key.platform_id)
         for pupil_mm in _pupil_values():
             pupil_label = int(pupil_mm)
-            pair_key = (
-                f"R8_{key.base_id}_{key.cornea_id}_{key.platform_id}_EPD{pupil_label}"
-            )
+            pair_key = f"{carrier_id}_EPD{pupil_mm:g}"
             for optic_state in _state_values():
                 filename = f"ACTUAL_BINARY4_{optic_state}.zmx"
                 rows.append(
                     R8ConfigPlan(
-                        config_id=f"{pair_key}_{optic_state}",
+                        config_id=f"R8_{carrier_id}_{optic_state}_EPD{pupil_label}",
                         pair_key=pair_key,
                         carrier_id=carrier_id,
                         base_id=key.base_id,
@@ -138,9 +146,7 @@ def validate_r8_plan(plan: Sequence[R8ConfigPlan]) -> None:
         raise R8PlanError(
             f"R8 requires {R8_EXPECTED_CONFIG_COUNT} configs, got {len(plan)}"
         )
-
-    config_ids = {row.config_id for row in plan}
-    if len(config_ids) != R8_EXPECTED_CONFIG_COUNT:
+    if len({row.config_id for row in plan}) != R8_EXPECTED_CONFIG_COUNT:
         raise R8PlanError("R8 config IDs are not unique")
 
     expected_carriers = {
@@ -166,11 +172,11 @@ def validate_r8_plan(plan: Sequence[R8ConfigPlan]) -> None:
         raise R8PlanError("R8 does not contain exactly 24 carrier identities")
     if any(len(rows) != 4 for rows in by_carrier.values()):
         raise R8PlanError("each R8 carrier must contribute 2 states x 2 pupils")
-
     if len(by_pair) != R8_EXPECTED_PAIR_COUNT:
         raise R8PlanError(
             f"R8 requires {R8_EXPECTED_PAIR_COUNT} matched pairs, got {len(by_pair)}"
         )
+
     expected_states = set(_state_values())
     for pair_key, rows in by_pair.items():
         if len(rows) != 2 or {row.optic_state for row in rows} != expected_states:
@@ -187,20 +193,20 @@ def validate_r8_plan(plan: Sequence[R8ConfigPlan]) -> None:
         }
         if len(identities) != 1:
             raise R8PlanError(f"R8 matched carrier identity drift: {pair_key}")
+        expected_pair = f"{rows[0].carrier_id}_EPD{rows[0].pupil_mm:g}"
+        if pair_key != expected_pair:
+            raise R8PlanError(f"R8 pair key is not canonical: {pair_key}")
 
     if {row.pupil_mm for row in plan} != set(_pupil_values()):
         raise R8PlanError("R8 physical pupil set differs from the accepted R6 3/5-mm set")
     if {row.optic_state for row in plan} != expected_states:
         raise R8PlanError("R8 optic-state set drift")
-
     grid = focus_grid_d()
     if len(grid) != 15:
         raise R8PlanError(f"R8 requires 15 through-focus planes, got {len(grid)}")
     if len(plan) * len(grid) != R8_EXPECTED_THROUGH_FOCUS_ROWS:
         raise R8PlanError("R8 through-focus row count is not exactly 1440")
-
-    model_keys = {row.model_artifact_key for row in plan}
-    if len(model_keys) != R8_EXPECTED_MODEL_COUNT:
+    if len({row.model_artifact_key for row in plan}) != R8_EXPECTED_MODEL_COUNT:
         raise R8PlanError("R8 must resolve exactly 48 immutable MONO/EDOF model inputs")
 
 
@@ -219,8 +225,9 @@ def r8_contract_summary(plan: Sequence[R8ConfigPlan]) -> dict[str, object]:
         "optic_states": list(_state_values()),
         "focus_grid_retina_d": list(focus_grid_d()),
         "authorization_required": True,
-        "execution_ready": False,
-        "missing_prerequisite_id": MISSING_PREREQUISITE_ID,
+        "direct_model_adapter_implemented": True,
+        "execution_ready_after_preflight": True,
+        "missing_prerequisite_id": None,
     }
 
 
@@ -346,7 +353,8 @@ def verify_r6_r7_model_files(
         actual = _sha256(path)
         if actual != expected_sha:
             raise R8PlanError(
-                f"R6/R7 serialized model hash mismatch: {relative}: {actual} != {expected_sha}"
+                f"R6/R7 serialized model hash mismatch: {relative}: "
+                f"{actual} != {expected_sha}"
             )
 
 
@@ -360,30 +368,7 @@ def validate_execution_authorization(authorization_id: str | None) -> None:
         )
 
 
-def implementation_gap() -> dict[str, object]:
-    """Describe the exact prerequisite that prevents safe OpticStudio execution."""
-
-    return {
-        "id": MISSING_PREREQUISITE_ID,
-        "blocks_opticstudio_execution": True,
-        "required_capability": (
-            "A production analysis adapter that accepts immutable pre-serialized "
-            "R6/R7 ACTUAL_BINARY4_MONO/EDOF model paths and their expected SHA-256 "
-            "values, then runs the existing paired-MONO angular-scale MTFA Grid=1 "
-            "15-plane acquisition contract without reapplying a residual, refitting "
-            "the IOL, or rebuilding the physical carrier."
-        ),
-        "reason": (
-            "The authorized repository surface exposes the current R6/R7 serialized "
-            "models and legacy carrier+residual production runners, but no authorized "
-            "direct-model path adapter for the accepted R5.2 Binary4 inputs."
-        ),
-    }
-
-
 def expected_r8_artifact_paths() -> tuple[str, ...]:
-    """Return the minimum structured R8 outputs required after the gap is resolved."""
-
     return (
         str(R8_OUTPUT_RELATIVE / R8_EVIDENCE_NAME).replace("\\", "/"),
         str(R8_OUTPUT_RELATIVE / R8_CONFIG_RESULTS_NAME).replace("\\", "/"),
@@ -401,39 +386,233 @@ def _load_json(path: Path) -> Mapping[str, object]:
     return payload
 
 
-def preflight(project_dir: Path, evidence_path: Path | None = None) -> dict[str, object]:
+def _preflight_inputs(
+    project_dir: Path,
+    evidence_path: Path | None = None,
+) -> tuple[tuple[R8ConfigPlan, ...], dict[str, str], Path, dict[str, object]]:
     plan = build_r8_plan()
     report_path = (
-        evidence_path
+        evidence_path.resolve()
         if evidence_path is not None
         else project_dir / R6_R7_OUTPUT_RELATIVE / R6_R7_REPORT_NAME
     )
     payload = _load_json(report_path)
     hashes = validate_r6_r7_evidence_payload(payload, plan)
     verify_r6_r7_model_files(project_dir, hashes)
-    return {
+    status = {
         **r8_contract_summary(plan),
         "r6_r7_evidence_path": str(report_path.resolve()),
+        "r6_r7_evidence_sha256": _sha256(report_path),
         "r6_r7_serialized_model_hashes_verified": len(hashes),
         "input_preflight_passed": True,
         "expected_r8_artifacts": list(expected_r8_artifact_paths()),
+    }
+    return plan, hashes, report_path.resolve(), status
+
+
+def preflight(project_dir: Path, evidence_path: Path | None = None) -> dict[str, object]:
+    return _preflight_inputs(project_dir, evidence_path)[3]
+
+
+def _clean_git_head() -> str:
+    status = subprocess.run(
+        ["git", "status", "--porcelain", "--untracked-files=no"],
+        cwd=REPOSITORY_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    if status:
+        raise SystemExit("R8 execution requires a clean tracked Git checkout")
+    head = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=REPOSITORY_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    if len(head) != 40:
+        raise SystemExit("R8 execution could not resolve canonical Git HEAD")
+    return head
+
+
+def _opticstudio_version(session) -> str:
+    for name in ("OpticStudioVersion", "ZOSVersion", "Version"):
+        value = getattr(session.app, name, None)
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    raise RuntimeError("installed application exposes no OpticStudio version string")
+
+
+def _pair_reference_set_hash(records: Mapping[str, Mapping[str, object]]) -> str:
+    if len(records) != R8_EXPECTED_PAIR_COUNT:
+        raise R8PlanError("R8 requires exactly 48 pair-reference records")
+    text = json.dumps(records, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _formal_evidence(
+    *,
+    code_commit: str,
+    opticstudio_version: str,
+    run_id: str,
+    preflight_status: Mapping[str, object],
+    r6_r7_evidence_path: Path,
+    direct_run,
+    diagnostics: Mapping[str, Mapping[str, object]],
+    aggregate_paths: Mapping[str, Path],
+    output_root: Path,
+) -> dict[str, object]:
+    pair_records = {
+        key: asdict(value)
+        for key, value in sorted(direct_run.pair_references.items())
+    }
+    source_hashes = dict(sorted(direct_run.source_model_sha256.items()))
+    if len(source_hashes) != R8_EXPECTED_MODEL_COUNT:
+        raise R8PlanError("formal R8 evidence requires exactly 48 source model hashes")
+    if len(direct_run.results) != R8_EXPECTED_CONFIG_COUNT:
+        raise R8PlanError("formal R8 evidence requires exactly 96 ConfigResults")
+    if len(direct_run.paired_deltas) != R8_EXPECTED_PAIR_COUNT:
+        raise R8PlanError("formal R8 evidence requires exactly 48 matched deltas")
+    if len(direct_run.through_focus_rows) != R8_EXPECTED_THROUGH_FOCUS_ROWS:
+        raise R8PlanError("formal R8 evidence requires exactly 1440 through-focus rows")
+
+    artifact_map = artifact_hashes(
+        output_root,
+        exclude_names=(R8_EVIDENCE_NAME,),
+    )
+    if not artifact_map:
+        raise R8PlanError("formal R8 evidence has no runtime artifact hash map")
+    aggregate_hashes = {
+        name: _sha256(path)
+        for name, path in aggregate_paths.items()
+    }
+    if any(not value for value in aggregate_hashes.values()):
+        raise R8PlanError("formal R8 aggregate output hash is missing")
+
+    return {
+        "schema_version": 1,
+        "formal_artifact": True,
+        "pilot": False,
+        "phase": R8_PHASE,
+        "task_id": TASK_ID,
+        "run_id": run_id,
+        "code_commit": code_commit,
+        "package_version": __version__,
+        "opticstudio_version": opticstudio_version,
+        "r5_freeze_id": R5_2_FREEZE_ID,
+        "source_r6_r7_evidence_path": str(r6_r7_evidence_path),
+        "source_r6_r7_evidence_sha256": str(
+            preflight_status["r6_r7_evidence_sha256"]
+        ),
+        "source_model_sha256": source_hashes,
+        "direct_model_provenance_policy_id": DIRECT_MODEL_PROVENANCE_POLICY_ID,
+        "direct_model_provenance_policy_hash": DIRECT_MODEL_PROVENANCE_POLICY_HASH,
+        "legacy_residual_reapplied": False,
+        "carrier_rebuilt": False,
+        "iol_refit": False,
+        "analysis_settings_id": NOMINAL_MAIN_FFT_MTF_555_V2.settings_id,
+        "analysis_settings_sha256": settings_hash(NOMINAL_MAIN_FFT_MTF_555_V2),
+        "acquisition_contract_id": TASK009_PAIR_MONO_MTF_ACQUISITION.contract_id,
+        "acquisition_contract_sha256": EXPECTED_PAIR_MONO_MTF_ACQUISITION_HASH,
+        "frequency_scale_mode": PAIR_MONO_FREQUENCY_SCALE_MODE,
+        "production_sampling": NOMINAL_MAIN_FFT_MTF_555_V2.fft_mtf_sampling,
+        "pair_references": pair_records,
+        "pair_reference_count": len(pair_records),
+        "pair_reference_set_sha256": _pair_reference_set_hash(pair_records),
+        "completed_configs": len(direct_run.results),
+        "failed_configs": 0,
+        "matched_pairs": len(direct_run.paired_deltas),
+        "through_focus_rows": len(direct_run.through_focus_rows),
+        "config_results_csv_sha256": aggregate_hashes["config_csv"],
+        "through_focus_csv_sha256": aggregate_hashes["through_focus_csv"],
+        "paired_deltas_csv_sha256": aggregate_hashes["paired_csv"],
+        "config_diagnostics": diagnostics,
+        "artifact_sha256": artifact_map,
+        "local_r8_passed": True,
+        "manual_web_review_required": True,
+        "automatic_progression_allowed": False,
+        "next_gate": "STOP for Web R8 review; no automatic progression",
+    }
+
+
+def execute_r8(
+    *,
+    install_dir: Path,
+    project_dir: Path,
+    evidence_path: Path | None,
+) -> dict[str, object]:
+    code_commit = _clean_git_head()
+    plan, hashes, r6_r7_evidence_path, status = _preflight_inputs(
+        project_dir,
+        evidence_path,
+    )
+    specs = build_direct_model_specs(
+        project_dir,
+        plan,
+        hashes,
+        r6_r7_output_relative=R6_R7_OUTPUT_RELATIVE,
+    )
+    verify_direct_model_sources(specs)
+
+    output_root = (project_dir / R8_OUTPUT_RELATIVE).resolve()
+    if output_root.exists() and any(output_root.iterdir()):
+        raise SystemExit(f"R8 runtime output directory is not empty: {output_root}")
+    run_id = f"r8-{uuid.uuid4().hex}"
+
+    with open_zos_session(install_dir) as session:
+        opticstudio_version = _opticstudio_version(session)
+        direct_run, diagnostics = run_r8_direct_acquisition(
+            session,
+            project_dir=project_dir,
+            specs=specs,
+            output_root=output_root,
+            run_id=run_id,
+        )
+
+    aggregate_paths = write_r8_aggregate_outputs(
+        direct_run,
+        output_root=output_root,
+        config_csv_name=R8_CONFIG_RESULTS_NAME,
+        through_focus_csv_name=R8_THROUGH_FOCUS_NAME,
+        paired_csv_name=R8_PAIRED_DELTAS_NAME,
+    )
+    evidence = _formal_evidence(
+        code_commit=code_commit,
+        opticstudio_version=opticstudio_version,
+        run_id=run_id,
+        preflight_status=status,
+        r6_r7_evidence_path=r6_r7_evidence_path,
+        direct_run=direct_run,
+        diagnostics=diagnostics,
+        aggregate_paths=aggregate_paths,
+        output_root=output_root,
+    )
+    evidence_path_out = output_root / R8_EVIDENCE_NAME
+    evidence_path_out.write_text(
+        json.dumps(evidence, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return {
+        "report_path": str(evidence_path_out),
+        "run_id": run_id,
+        "completed_configs": evidence["completed_configs"],
+        "matched_pairs": evidence["matched_pairs"],
+        "through_focus_rows": evidence["through_focus_rows"],
+        "local_r8_passed": evidence["local_r8_passed"],
+        "manual_web_review_required": True,
+        "automatic_progression_allowed": False,
     }
 
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--project-dir",
-        type=Path,
-        default=Path(__file__).resolve().parents[1] / "project_mvp_2026_v2_zmx",
-    )
+    parser.add_argument("--install-dir", type=Path, default=os.environ.get(INSTALL_ENV))
+    parser.add_argument("--project-dir", type=Path, default=DEFAULT_PROJECT_DIR)
     parser.add_argument(
         "--r6-r7-evidence",
         type=Path,
-        help=(
-            "Optional explicit R6/R7 evidence JSON; defaults to the project "
-            "diagnostics path."
-        ),
+        help="Optional explicit R6/R7 evidence JSON; defaults to project diagnostics.",
     )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--plan-only", action="store_true")
@@ -441,33 +620,27 @@ def _parser() -> argparse.ArgumentParser:
     mode.add_argument("--execute", action="store_true")
     parser.add_argument(
         "--authorization-id",
-        help=(
-            "Required only with --execute; operational acknowledgement, not a "
-            "scientific result."
-        ),
+        help="Required only with --execute; operational acknowledgement, not a result.",
     )
     return parser
 
 
 def main() -> None:
     args = _parser().parse_args()
-    plan = build_r8_plan()
-
+    project_dir = args.project_dir.resolve()
     if args.execute:
         validate_execution_authorization(args.authorization_id)
-        status = preflight(args.project_dir.resolve(), args.r6_r7_evidence)
-        print(json.dumps(status, ensure_ascii=False, indent=2))
-        gap = implementation_gap()
-        raise SystemExit(
-            "STOP: R8 OpticStudio execution is not implemented in this authorized "
-            f"surface. Missing prerequisite {gap['id']}."
+        if args.install_dir is None:
+            raise SystemExit(f"Pass --install-dir or set {INSTALL_ENV}.")
+        payload = execute_r8(
+            install_dir=Path(args.install_dir),
+            project_dir=project_dir,
+            evidence_path=args.r6_r7_evidence,
         )
-
-    if args.preflight:
-        payload = preflight(args.project_dir.resolve(), args.r6_r7_evidence)
+    elif args.preflight:
+        payload = preflight(project_dir, args.r6_r7_evidence)
     else:
-        payload = r8_contract_summary(plan)
-    payload = {**payload, "implementation_gap": implementation_gap()}
+        payload = r8_contract_summary(build_r8_plan())
     print(json.dumps(payload, ensure_ascii=False, indent=2))
 
 
