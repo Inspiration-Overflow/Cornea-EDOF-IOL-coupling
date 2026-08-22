@@ -1,0 +1,21 @@
+{
+  "schema_version": "1",
+  "task_id": "r6-r7-r5-2-final-review-20260822",
+  "dispatch_commit": "8f287ba5e0ccafb01db17a60a8edabccc2cad4ff",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "task_branch": "delegate/r6-r7-r5-2-final-review-20260822",
+  "output_refs": [
+    "docs/R5_2_R6_R7_FINAL_VALIDATION_REVIEW_2026-08-22.md",
+    "docs/MANUSCRIPT_R5_2_R6_R7_RESULTS_ADDENDUM_2026-08-22.md",
+    ".delegate/r6-r7-r5-2-final-review-20260822/result.json"
+  ],
+  "review_disposition": "R6_R7_EVIDENCE_REVIEW_PASS_R8_LOCKED",
+  "code_changes": false,
+  "summary": "Final Web review found no source/evidence mismatch. The supplied R6/R7 evidence contains all 24 expected carriers, all nine local checks are true, and its R5.2 metadata matches the frozen deterministic HOA A6 rule including the +20 D reference, zone-1-to-zone-2 ordering, q_ant=0, gate_feedback_used=false, optimizer_used=false, WFS/RAD identity posture, and no automatic power-specific refit. The completed validation passes the R6/R7 carrier/mechanism review scope only; automatic progression remains disabled and R8 remains locked.",
+  "limitations": [
+    "ChatGPT Web did not run OpticStudio or perform any license operation; serialized R6/R7 execution results were reviewed from the supplied local evidence.",
+    "The evidence payload is marked formal_artifact=false, and this task did not run or authorize R8/96-config production.",
+    "The evidence JSON SHA-256 and the statement that artifact_sha256 contains 340 entries independently matched before dispatch are taken from the task contract; Web did not rehash the local binary artifact files.",
+    "docs/MANUSCRIPT_SCIENTIFIC_QC.md is listed as an authorized read path but was absent at the dispatch commit (404 Not Found), so it could not be included in manuscript consistency review and no external copy was substituted."
+  ]
+}
