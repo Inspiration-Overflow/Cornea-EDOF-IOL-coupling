@@ -1,0 +1,17 @@
+{
+  "schema_version": "1",
+  "task_id": "r6-r7-r5-2-final-review-path-fix-20260822",
+  "dispatch_commit": "c358d86bf8b4cfbf54f83bf4d6a6d3962c25bfac",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "task_branch": "delegate/r6-r7-r5-2-final-review-path-fix-20260822",
+  "output_refs": [
+    "docs/R6_R7_R5_2_FINAL_VALIDATION_REVIEW_2026-08-22.md",
+    "docs/MANUSCRIPT_R5_2_RESULTS_ADDENDUM_2026-08-22.md",
+    ".delegate/r6-r7-r5-2-final-review-path-fix-20260822/result.json"
+  ],
+  "summary": "Path-only correction completed. The preceding final validation review and manuscript results addendum were copied byte-for-byte to the exact authorized paths; their Git blob SHAs match the source files from preceding result commit 1249c25b76f6775a3b13401062e49d5cb7c7deb2. No scientific content or code was changed.",
+  "limitations": [
+    "The preceding task result was rejected because its output filenames did not match its manifest; this correction task only fixes those paths.",
+    "No OpticStudio execution, code change, scientific-content change, merge, force-push, default-branch modification, or preceding-branch modification was performed."
+  ]
+}
