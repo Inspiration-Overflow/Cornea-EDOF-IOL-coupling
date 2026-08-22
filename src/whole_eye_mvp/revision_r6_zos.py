@@ -44,7 +44,7 @@ from .revision_r4_zos import (
     read_r4_mechanism,
     read_rad_power_profile,
 )
-from .revision_r5_lock import r5_1_zones_for_carrier
+from .revision_r5_2 import r5_2_zones_for_carrier
 from .zos import Binary4Zone, SequentialEditor, ZosSession
 from .zos.primitives import binary4_zone_columns
 
@@ -295,7 +295,7 @@ def solve_revision_platform_carrier(
     output_dir: str | Path,
     max_rechecks: int,
 ) -> R6CarrierSolveResult:
-    del baseline  # geometry already belongs to the revised q0 carrier
+    del baseline
     if platform_id not in {item.value for item in PlatformId}:
         raise ValueError(f"unsupported R6 platform: {platform_id}")
     if max_rechecks < 0:
@@ -744,7 +744,7 @@ def build_and_validate_r6_carrier(
         base_radius_mm=actual_base_radius,
         base_conic=actual_base_conic,
     )
-    edof_prescriptions = r5_1_zones_for_carrier(
+    edof_prescriptions = r5_2_zones_for_carrier(
         platform,
         base_radius_mm=actual_base_radius,
         base_conic=actual_base_conic,
@@ -761,7 +761,6 @@ def build_and_validate_r6_carrier(
         prescriptions=mono_prescriptions,
         standard_eye=False,
     )
-    # EDoF is deliberately an independent analytical->Binary4 conversion.
     actual_edof = _build_binary4_model(
         session,
         source_path=carrier.path,
