@@ -1,0 +1,21 @@
+{
+  "schema_version": "1",
+  "task_id": "r8-96-production-runner-20260822",
+  "dispatch_commit": "1967dddcd3c1f71dbc22056ca8136ecbc69d9bc2",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "task_branch": "delegate/r8-96-production-runner-20260822",
+  "output_refs": [
+    "scripts/run_model_revision_r8_96.py",
+    "tests/unit/test_model_revision_r8.py",
+    "docs/MODEL_REVISION_R8_IMPLEMENTATION_AND_LOCAL_HANDOFF_2026-08-22.md",
+    ".delegate/r8-96-production-runner-20260822/result.json"
+  ],
+  "implementation_disposition": "PLANNING_PREFLIGHT_IMPLEMENTED_OPTICSTUDIO_EXECUTION_BLOCKED",
+  "summary": "Implemented a fail-closed R8 96-config planning/preflight layer and pure unit tests. The runner derives the exact 24-carrier R6 key space, expands it to 96 configurations, 48 matched pairs, and 1440 planned through-focus rows, preserves the R5.2 freeze identity and accepted 15-plane/3-5 mm factor definitions, validates completed R6/R7 evidence plus all 48 serialized MONO/EDOF model hashes, and requires explicit execution acknowledgement. A concrete missing direct serialized-model pair-scale acquisition adapter prevents safe OpticStudio production within the authorized surface, so --execute stops before opening OpticStudio and formal R8 evidence remains pending.",
+  "limitations": [
+    "ChatGPT Web did not run OpticStudio, perform any license operation, or create formal R8 production evidence.",
+    "The current authorized surface lacks a production adapter that consumes immutable R6/R7 ACTUAL_BINARY4_MONO/EDOF model paths while preserving the accepted paired-MONO angular-scale, MFE MTFA Grid=1, 15-plane acquisition contract without reapplying a legacy residual; execution therefore fails closed on DIRECT_R5_2_SERIALIZED_MODEL_PAIR_SCALE_BACKEND.",
+    "Repository pytest, ruff, compileall, and uv lock --check were not executed in ChatGPT Web and no GitHub commit status checks were present at the implementation commit; the new Python files passed isolated syntax compilation and the handoff records the exact required offline verification commands.",
+    "The authorized read path tests/unit/test_revision_r5_2.py was absent at the dispatch commit (404 Not Found); no unauthorized substitute path was read."
+  ]
+}
