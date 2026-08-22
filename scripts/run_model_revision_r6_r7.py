@@ -40,6 +40,10 @@ from whole_eye_mvp.revision_r6 import (
     rad_powp_local_gate,
     validate_r6_carrier_keys,
 )
+from whole_eye_mvp.revision_r6_native import (
+    NATIVE_CORNEA_SOURCE_ID,
+    build_native_cornea_source,
+)
 from whole_eye_mvp.revision_r6_zos import (
     R6CarrierValidationResult,
     build_and_validate_r6_carrier,
@@ -217,32 +221,6 @@ def _postop_cornea_sources(project_dir: Path) -> dict[str, dict[str, object]]:
     }
 
 
-def _native_source(
-    prerequisites: dict[str, object],
-    base_id: str,
-) -> dict[str, object]:
-    r2 = prerequisites["r2_r3"]
-    if not isinstance(r2, dict):
-        raise SystemExit("R2/R3 prerequisite payload is invalid")
-    bases = r2.get("revised_bases")
-    if not isinstance(bases, dict):
-        raise SystemExit("R2/R3 evidence lacks revised_bases")
-    item = bases.get(base_id)
-    if not isinstance(item, dict):
-        raise SystemExit(f"R2/R3 evidence lacks native revised base {base_id}")
-    measurement = item.get("measurement")
-    sha = item.get("sha256")
-    if not isinstance(measurement, dict) or not isinstance(sha, str):
-        raise SystemExit(f"R2/R3 native source metadata invalid for {base_id}")
-    path_text = measurement.get("path")
-    if not isinstance(path_text, str):
-        raise SystemExit(f"R2/R3 native source path invalid for {base_id}")
-    path = Path(path_text)
-    if not path.is_file() or sha256_path(path) != sha:
-        raise SystemExit(f"R2/R3 native revised base file/hash mismatch for {base_id}")
-    return {"path": path, "sha256": sha, "source": "R2_REVISED_NATIVE_BASE"}
-
-
 def _prepare_output(path: Path, overwrite: bool) -> None:
     if path.exists() and any(path.iterdir()):
         if not overwrite:
@@ -354,11 +332,29 @@ def main() -> None:
         for base in BaseId:
             base_id = base.value
             for cornea_id in ("N0", "A0", "B0", "C0"):
-                source = (
-                    _native_source(prerequisites, base_id)
-                    if cornea_id == "N0"
-                    else postop[cornea_id]
-                )
+                if cornea_id == "N0":
+                    # The frozen R2/R3 revised bases keep a plano coincident
+                    # corneal reference slot; N0 instead carries the frozen
+                    # untreated Liou cornea so carrier solves see real corneal
+                    # power.
+                    native_path = (
+                        output_dir
+                        / "sources"
+                        / f"N0_NATIVE_LIOU_{base_id}.zmx"
+                    )
+                    build_native_cornea_source(
+                        session,
+                        baseline,
+                        base_id,
+                        native_path,
+                    )
+                    source = {
+                        "path": native_path,
+                        "sha256": sha256_path(native_path),
+                        "source": NATIVE_CORNEA_SOURCE_ID,
+                    }
+                else:
+                    source = postop[cornea_id]
                 source_path = source["path"]
                 if not isinstance(source_path, Path):
                     raise SystemExit("resolved R6 cornea source path is invalid")
