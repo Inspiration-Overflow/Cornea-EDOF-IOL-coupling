@@ -88,8 +88,7 @@ def test_r8_plan_uses_only_r6_serialized_mono_edof_models() -> None:
     assert len(model_keys) == r8.R8_EXPECTED_MODEL_COUNT == 48
     assert all(key.startswith("validated/R6_") for key in model_keys)
     assert all(
-        key.endswith("/ACTUAL_BINARY4_MONO.zmx")
-        or key.endswith("/ACTUAL_BINARY4_EDOF.zmx")
+        key.endswith(("/ACTUAL_BINARY4_MONO.zmx", "/ACTUAL_BINARY4_EDOF.zmx"))
         for key in model_keys
     )
 
