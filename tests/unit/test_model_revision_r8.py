@@ -67,19 +67,21 @@ def test_r8_plan_is_exact_96_config_48_pair_1440_row_factorial() -> None:
     assert 0.0 in r8.focus_grid_d()
 
 
-def test_r8_pairs_share_exact_carrier_and_differ_only_by_state() -> None:
+def test_r8_pairs_share_exact_carrier_and_use_canonical_pair_keys() -> None:
     plan = r8.build_r8_plan()
     by_pair = {}
     for row in plan:
         by_pair.setdefault(row.pair_key, []).append(row)
     assert len(by_pair) == 48
-    for rows in by_pair.values():
+    for pair_key, rows in by_pair.items():
         assert {row.optic_state for row in rows} == set(r8._state_values())
         assert len({row.carrier_id for row in rows}) == 1
         assert len({row.base_id for row in rows}) == 1
         assert len({row.cornea_id for row in rows}) == 1
         assert len({row.platform_id for row in rows}) == 1
         assert len({row.pupil_mm for row in rows}) == 1
+        row = rows[0]
+        assert pair_key == f"{row.carrier_id}_EPD{row.pupil_mm:g}"
 
 
 def test_r8_plan_uses_only_r6_serialized_mono_edof_models() -> None:
@@ -93,11 +95,12 @@ def test_r8_plan_uses_only_r6_serialized_mono_edof_models() -> None:
     )
 
 
-def test_r8_contract_keeps_r5_2_identity_and_fails_closed_for_execution() -> None:
+def test_r8_contract_reports_direct_adapter_available_and_keeps_authorization() -> None:
     summary = r8.r8_contract_summary(r8.build_r8_plan())
     assert summary["r5_freeze_id"] == r8.R5_2_FREEZE_ID
-    assert summary["execution_ready"] is False
-    assert summary["missing_prerequisite_id"] == r8.MISSING_PREREQUISITE_ID
+    assert summary["direct_model_adapter_implemented"] is True
+    assert summary["execution_ready_after_preflight"] is True
+    assert summary["missing_prerequisite_id"] is None
     with pytest.raises(r8.R8AuthorizationError):
         r8.validate_execution_authorization(None)
     with pytest.raises(r8.R8AuthorizationError):
@@ -139,10 +142,7 @@ def test_r8_model_file_hash_verification_is_fail_closed(tmp_path: Path) -> None:
         r8.verify_r6_r7_model_files(tmp_path, {relative: "0" * 64})
 
 
-def test_r8_expected_outputs_are_structured_and_no_production_claim_exists() -> None:
+def test_r8_expected_outputs_are_structured() -> None:
     paths = r8.expected_r8_artifact_paths()
     assert len(paths) == 4
     assert paths[0].endswith(r8.R8_EVIDENCE_NAME)
-    gap = r8.implementation_gap()
-    assert gap["blocks_opticstudio_execution"] is True
-    assert gap["id"] == r8.MISSING_PREREQUISITE_ID
