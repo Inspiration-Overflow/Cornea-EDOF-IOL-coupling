@@ -1,0 +1,20 @@
+{
+  "schema_version": "1",
+  "task_id": "r5-2-local-validation-review-20260822",
+  "dispatch_commit": "ffff8a13c228cc742a66032628840985cc5b7d64",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "task_branch": "delegate/r5-2-local-validation-review-20260822",
+  "output_refs": [
+    "docs/R5_2_LOCAL_VALIDATION_REVIEW_2026-08-22.md",
+    ".delegate/r5-2-local-validation-review-20260822/result.json"
+  ],
+  "review_disposition": "SOURCE_REVIEW_PASS_OPTICSTUDIO_EXECUTION_BLOCKED",
+  "code_changes": false,
+  "summary": "Source review found no defect requiring code or test correction. The deterministic R5.2 HOA A6 direct solve, exact-sag/C0 handling, zone-1-then-zone-2 ordering, q_ant=0 contract, +20 D identity, WFS/RAD identity, production R6 wiring, evidence metadata, unchanged gate posture, and R8 lock state conform within the authorized review scope. Independent local offline evidence reports 340 unit tests passed plus ruff, compileall, and uv lock checks passed.",
+  "limitations": [
+    "The full R6/R7 OpticStudio run stopped before any carrier validation with whole_eye_mvp.zos.errors.ZosLicenseError: OpticStudio license is not valid for ZOS-API: Unknown; the supplied diagnostic was Mode=Server, IsValidLicenseForAPI=False, LicenseStatus=Unknown.",
+    "No OpticStudio serialized mechanism validation, 24-carrier R6/R7 gate result, canonical evidence, or new artifact hashes were produced in this review.",
+    "docs/R5_2_ANALYTICAL_PRECHECK_2026-08-21.md is listed as an authorized read path but is absent at the dispatch commit (404 Not Found), so that document could not be reviewed and no external copy was substituted.",
+    "ChatGPT Web did not rerun offline checks because no production code or tests were changed; offline status is based on the independent local evidence supplied by the task contract."
+  ]
+}
