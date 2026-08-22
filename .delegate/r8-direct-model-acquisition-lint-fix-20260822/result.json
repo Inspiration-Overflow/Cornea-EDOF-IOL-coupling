@@ -1,0 +1,19 @@
+{
+  "schema_version": "1",
+  "task_id": "r8-direct-model-acquisition-lint-fix-20260822",
+  "dispatch_commit": "eca682eaa3434e147f05835f424ff546be8c7b77",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "task_branch": "delegate/r8-direct-model-acquisition-lint-fix-20260822",
+  "output_refs": [
+    "src/whole_eye_mvp/analysis_zos_r8_direct.py",
+    ".delegate/r8-direct-model-acquisition-lint-fix-20260822/result.json"
+  ],
+  "summary": "Corrected only the independently observed Ruff B009 findings in the direct R8 adapter. Ten constant-name getattr(row, ...) accesses in build_direct_model_specs() were replaced with equivalent direct row attribute access. The net adapter diff is exactly 10 additions and 10 deletions in that mapping block; runtime behavior, scientific values, schemas, failure conditions, the R8 runner, tests, handoff, default branch, and preceding branch were not changed.",
+  "limitations": [
+    "ChatGPT Web did not run OpticStudio or any live optical regression.",
+    "The required direct-adapter pytest target could not run because the Web execution container has no checkout of the private repository; pytest reported the test path was not found.",
+    "Ruff could not run because no Ruff executable is installed in the Web execution container.",
+    "Repository compileall could not be claimed as passed because the changed Python target is absent from the execution container; compileall reported it could not list the target despite returning exit code 0.",
+    "uv lock --check could not run successfully because the execution container has no repository pyproject.toml. No GitHub Actions workflow run was present for the correction commit to substitute for these unavailable repository-local checks."
+  ]
+}
