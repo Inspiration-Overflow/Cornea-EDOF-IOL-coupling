@@ -22,11 +22,17 @@ from .analysis import (
     with_shape_axis,
 )
 from .analysis_zos import (
+    FIXED_CORNEA_POST_ROLE,
+    IMAGE_ROLE,
+    STOP_ROLE,
+    TASK007_CARRIER_ANT_ROLE,
+    TASK007_CARRIER_POST_ROLE,
+    EntitySnapshot,
     _require_cycles_per_mm,
+    _require_role,
     _write_plots,
     _write_through_focus_csv,
     acquire_footprints,
-    capture_entity_snapshot,
 )
 from .analysis_zos_pair_scale import (
     EXPECTED_PAIR_MONO_MTF_ACQUISITION_HASH,
@@ -48,11 +54,13 @@ from .model_revision_zos import (
 )
 from .quality import settings_hash
 from .revision_r5_2 import R5_2_FREEZE_ID
+from .revision_r6_zos import _read_binary4_zones
 from .run72 import config_scalar_row, paired_delta_row, through_focus_rows
 from .store import sha256_file
 from .zos import MfeEfflRunner, MfeFullHoaRunner, MfeMtfGridRunner, MfeMtfGridSettings, ZosSession
 
 DIRECT_MODEL_PROVENANCE_POLICY_ID = "R8_DIRECT_SERIALIZED_R5_2_MODEL_v1"
+DIRECT_BINARY4_CARRIER_POWER_DIAGNOSTIC_D = 0.0
 _DIRECT_MODEL_POLICY_PAYLOAD = {
     "policy_id": DIRECT_MODEL_PROVENANCE_POLICY_ID,
     "source": "R6/R7 ACTUAL_BINARY4_MONO/EDOF serialized models",
@@ -134,6 +142,93 @@ R8_PAIRED_REQUIRED_COLUMNS = (
 
 class R8DirectAcquisitionError(RuntimeError):
     """Direct serialized-model acquisition violated the frozen R8 contract."""
+
+
+def _direct_surface_payload(row: object, surface_number: int) -> dict[str, object]:
+    get_type = getattr(row, "GetType", None)
+    type_name = str(getattr(row, "TypeName", "") or (get_type() if callable(get_type) else ""))
+    payload: dict[str, object] = {
+        "surface": surface_number,
+        "comment": str(getattr(row, "Comment")),
+        "type": type_name,
+        "radius_mm": float(getattr(row, "Radius")),
+        "conic": float(getattr(row, "Conic")),
+        "thickness_mm": float(getattr(row, "Thickness")),
+        "material": str(getattr(row, "Material")),
+        "is_stop": bool(getattr(row, "IsStop")),
+    }
+    if surface_number != 3:
+        payload["semi_diameter_mm"] = float(getattr(row, "SemiDiameter"))
+    return payload
+
+
+def _direct_binary4_zone_payload(zone: object) -> dict[str, object]:
+    return {
+        "zone": int(getattr(zone, "zone")),
+        "r_inner_mm": float(getattr(zone, "r_inner_mm")),
+        "r_outer_mm": float(getattr(zone, "r_outer_mm")),
+        "radius_mm": float(getattr(zone, "radius_mm")),
+        "conic": float(getattr(zone, "conic")),
+        "diffraction_order": float(getattr(zone, "diffraction_order")),
+        "alpha_p2_native": float(getattr(zone, "alpha_p2_native")),
+        "alpha_p4_native": float(getattr(zone, "alpha_p4_native")),
+        "alpha_p6_native": float(getattr(zone, "alpha_p6_native")),
+    }
+
+
+def capture_direct_entity_snapshot(session: ZosSession, platform_id: str) -> EntitySnapshot:
+    """Hash a direct R6/R7 Binary4 full eye without assuming symmetric biconvex radii.
+
+    OBJECT thickness is intentionally excluded, as in the legacy snapshot. The physical
+    STOP semi-diameter is also excluded because 3/5-mm pupil is an approved per-config
+    acquisition setting. ``carrier_power_d`` is a finite compatibility diagnostic only;
+    Binary4 zone geometry has no single symmetric-biconvex power representation.
+    """
+
+    lde = session.system.LDE
+    if int(lde.NumberOfSurfaces) != 7:
+        raise R8DirectAcquisitionError("direct R8 physical model must contain exactly 7 surfaces")
+    _require_role(lde, 2, FIXED_CORNEA_POST_ROLE)
+    _require_role(lde, 3, STOP_ROLE)
+    _require_role(lde, 4, TASK007_CARRIER_ANT_ROLE)
+    _require_role(lde, 5, TASK007_CARRIER_POST_ROLE)
+    _require_role(lde, 6, IMAGE_ROLE)
+
+    surfaces = [
+        _direct_surface_payload(lde.GetSurfaceAt(index), index)
+        for index in range(1, 7)
+    ]
+    zones = _read_binary4_zones(session, platform_id, standard_eye=False)
+    zone_payload = [_direct_binary4_zone_payload(zone) for zone in zones]
+    if not zone_payload:
+        raise R8DirectAcquisitionError("direct R8 Binary4 snapshot has no zones")
+
+    retina_position = math.fsum(float(lde.GetSurfaceAt(index).Thickness) for index in range(1, 6))
+    iol_position = float(lde.GetSurfaceAt(2).Thickness) + float(lde.GetSurfaceAt(3).Thickness)
+    ant = lde.GetSurfaceAt(4)
+    post = lde.GetSurfaceAt(5)
+    payload = {
+        "surface_count": int(lde.NumberOfSurfaces),
+        "stop_surface": int(lde.StopSurface),
+        "surfaces_1_to_image": surfaces,
+        "retina_position_mm": retina_position,
+        "iol_position_from_post_cornea_mm": iol_position,
+        "binary4_platform_id": str(platform_id),
+        "binary4_zones": zone_payload,
+        "carrier_power_diagnostic_d": DIRECT_BINARY4_CARRIER_POWER_DIAGNOSTIC_D,
+    }
+    text = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return EntitySnapshot(
+        fingerprint=hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        retina_position_mm=retina_position,
+        iol_position_mm=iol_position,
+        elp_mm=iol_position,
+        carrier_power_d=DIRECT_BINARY4_CARRIER_POWER_DIAGNOSTIC_D,
+        radius_ant_mm=float(ant.Radius),
+        radius_post_mm=float(post.Radius),
+        q_ant=float(ant.Conic),
+        q_post=float(post.Conic),
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -499,10 +594,10 @@ class R8DirectModelAcquisitionAdapter:
             raise R8DirectAcquisitionError("copy-on-write model differs from immutable source")
 
         self.session.system.LoadFile(str(output), False)
-        source_entity = capture_entity_snapshot(self.session)
+        source_entity = capture_direct_entity_snapshot(self.session, spec.platform_id)
         configure_physical_pupil(self.session, spec.pupil_mm, stop_surface=3)
         _validate_loaded_direct_model(self.session, spec)
-        configured_entity = capture_entity_snapshot(self.session)
+        configured_entity = capture_direct_entity_snapshot(self.session, spec.platform_id)
         if configured_entity.fingerprint != source_entity.fingerprint:
             raise R8DirectAcquisitionError(
                 f"physical-pupil setup changed model entity identity: {spec.config_id}"
@@ -512,7 +607,7 @@ class R8DirectModelAcquisitionAdapter:
 
         self.session.system.LoadFile(str(output), False)
         _validate_loaded_direct_model(self.session, spec)
-        replay_entity = capture_entity_snapshot(self.session)
+        replay_entity = capture_direct_entity_snapshot(self.session, spec.platform_id)
         if replay_entity.fingerprint != configured_entity.fingerprint:
             raise R8DirectAcquisitionError(
                 f"configured working-model replay changed entity identity: {spec.config_id}"
@@ -531,12 +626,12 @@ class R8DirectModelAcquisitionAdapter:
     ) -> PairAngularScaleReference:
         pair.validate()
         source_sha, configured_sha = self._prepare_working_model(pair.mono, destination)
-        before = capture_entity_snapshot(self.session)
+        before = capture_direct_entity_snapshot(self.session, pair.mono.platform_id)
         baseline_mfe = int(self.session.system.MFE.NumberOfOperands)
         result = MfeEfflRunner(self.session.system, self.session.zosapi).run()
         if int(self.session.system.MFE.NumberOfOperands) != baseline_mfe:
             raise R8DirectAcquisitionError("EFFL acquisition left the MFE modified")
-        after = capture_entity_snapshot(self.session)
+        after = capture_direct_entity_snapshot(self.session, pair.mono.platform_id)
         if before.fingerprint != after.fingerprint:
             raise R8DirectAcquisitionError(
                 f"pair-reference EFFL changed entity identity: {pair.pair_key}"
@@ -581,7 +676,7 @@ class R8DirectModelAcquisitionAdapter:
         source_sha, model_hash_before = self._prepare_working_model(spec, working_model)
 
         config = nominal_config_for_direct_model(spec)
-        before = capture_entity_snapshot(self.session)
+        before = capture_direct_entity_snapshot(self.session, spec.platform_id)
         footprints = acquire_footprints(self.session)
         if footprints.unintended_vignetting:
             raise R8DirectAcquisitionError(
@@ -680,7 +775,7 @@ class R8DirectModelAcquisitionAdapter:
         hoa = MfeFullHoaRunner(self.session.system, self.session.zosapi).run()
         if int(self.session.system.MFE.NumberOfOperands) != baseline_mfe:
             raise R8DirectAcquisitionError("HOA acquisition left the MFE modified")
-        after = capture_entity_snapshot(self.session)
+        after = capture_direct_entity_snapshot(self.session, spec.platform_id)
         model_hash_after = sha256_file(working_model)
         if sha256_file(spec.source_path) != source_sha:
             raise R8DirectAcquisitionError(
