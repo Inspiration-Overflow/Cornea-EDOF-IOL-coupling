@@ -2,9 +2,9 @@
 
 This is a carrier/mechanism gate only. It builds N0+A0+B0+C0 across both base eyes
 and all three IOL platforms, solves each physical carrier P->Q(P) with the revised
-physical STOP/fixed-retina geometry, applies the frozen R5 normalized Binary4
-surrogate, validates mechanism identity, and stops for Web review. It never runs
-R8 production configurations and never performs an automatic power-specific refit.
+physical STOP/fixed-retina geometry, applies the frozen R5.2 Binary4 prescription,
+validates mechanism identity, and stops for Web review. It never runs R8 production
+configurations and never performs an automatic power-specific refit.
 """
 
 from __future__ import annotations
@@ -27,10 +27,12 @@ from whole_eye_mvp.domain import (
     ScientificBaseline,
 )
 from whole_eye_mvp.revision_carrier_zos import build_revision_q0_analytical_carrier
+from whole_eye_mvp.revision_r5_2 import R5_2_FREEZE_ID, R5_2_RULE_DESCRIPTION
 from whole_eye_mvp.revision_r5_lock import (
     R5_1_FREEZE_ID,
-    R5_FREEZE_ID,
     R5_GLOBAL_DEFOCUS_TOLERANCE_D,
+    R5_REPRESENTATIVE_POWER_D,
+    R5_REPRESENTATIVE_RADIUS_MM,
 )
 from whole_eye_mvp.revision_r6 import (
     R6_EXPECTED_CARRIER_COUNT,
@@ -330,22 +332,11 @@ def main() -> None:
     source_rows: dict[str, dict[str, object]] = {}
 
     with open_zos_session(args.install_dir) as session:
-        # R6: solve one Q=0 power start per Base×Cornea, then branch into the
-        # three platform-specific P->Q(P) carriers. EDoF never gets a separate
-        # focus callback; MONO/EDoF remain the same physical carrier.
         for base in BaseId:
             base_id = base.value
             for cornea_id in ("N0", "A0", "B0", "C0"):
                 if cornea_id == "N0":
-                    # The frozen R2/R3 revised bases keep a plano coincident
-                    # corneal reference slot; N0 instead carries the frozen
-                    # untreated Liou cornea so carrier solves see real corneal
-                    # power.
-                    native_path = (
-                        output_dir
-                        / "sources"
-                        / f"N0_NATIVE_LIOU_{base_id}.zmx"
-                    )
+                    native_path = output_dir / "sources" / f"N0_NATIVE_LIOU_{base_id}.zmx"
                     build_native_cornea_source(
                         session,
                         baseline,
@@ -431,9 +422,7 @@ def main() -> None:
                     "power_d": item.power_d,
                     "q_ant": item.q_ant,
                     "p_q_recheck_cycles": len(item.recheck_cycles),
-                    "final_focus_vergence_shift_d": (
-                        item.final_focus.equivalent_vergence_shift_d
-                    ),
+                    "final_focus_vergence_shift_d": item.final_focus.equivalent_vergence_shift_d,
                     "standard_eye_sa_target_um": item.q_solution.target_sa_um,
                     "standard_eye_sa_replay_um": item.standard_eye_sa_replay_um,
                     "standard_eye_sa_error_um": item.standard_eye_sa_error_um,
@@ -473,9 +462,7 @@ def main() -> None:
         if row["platform_id"] in {"WFS", "HOA"}
     )
     rad_rows = [row for row in summaries.values() if row["platform_id"] == "RAD"]
-    rad_identity_passed = all(
-        row["rad_powp_local_gate_passed"] is True for row in rad_rows
-    )
+    rad_identity_passed = all(row["rad_powp_local_gate_passed"] is True for row in rad_rows)
     defocus_all_passed = all(
         row["defocus_reference_passed"] is True for row in summaries.values()
     )
@@ -527,11 +514,21 @@ def main() -> None:
         "pilot": False,
         "phase": R6_R7_PHASE,
         "code_commit": code_commit,
-        "r5_freeze_id": R5_FREEZE_ID,
+        "r5_freeze_id": R5_2_FREEZE_ID,
         "r5_1_conic_normalization": {
             "id": R5_1_FREEZE_ID,
             "applies_to": "HOA",
             "rule": "delta_conic * (R_zone(P)/R_zone(+20D))^3; WFS/RAD bit-identical to R5",
+        },
+        "r5_2_hoa_a6_rule": {
+            "id": R5_2_FREEZE_ID,
+            "applies_to": "HOA active zones 1 and 2 only",
+            "reference_power_d": R5_REPRESENTATIVE_POWER_D,
+            "reference_radius_mm": R5_REPRESENTATIVE_RADIUS_MM,
+            "zone_order": [1, 2],
+            "rule": R5_2_RULE_DESCRIPTION,
+            "gate_feedback_used": False,
+            "optimizer_used": False,
         },
         "prerequisites": {
             "r2_r3_path": prerequisites["r2_r3_path"],
@@ -553,6 +550,7 @@ def main() -> None:
             "standard_eye_q_solve": "power-specific Q(P); EPD6 calibration domain only",
             "edof_separate_p_q_callback_allowed": False,
             "normalized_r5_residual_first": True,
+            "r5_2_hoa_q_ant_required": 0.0,
             "automatic_power_specific_refit_allowed": False,
             "mtf_used_in_mechanism_fit": False,
             "global_defocus_tolerance_d": R5_GLOBAL_DEFOCUS_TOLERANCE_D,
