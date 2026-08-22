@@ -1,0 +1,20 @@
+{
+  "schema_version": "1",
+  "task_id": "r8-manuscript-finalization-20260822",
+  "dispatch_commit": "874da79368f1f2d493946bf9fc37194811224762",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "task_branch": "delegate/r8-manuscript-finalization-20260822",
+  "output_refs": [
+    "docs/MANUSCRIPT_FINAL_R8_2026-08-22.md",
+    "docs/MANUSCRIPT_R8_SCIENTIFIC_QC_2026-08-22.md",
+    "docs/MANUSCRIPT_R8_FIGURE_TABLE_PLAN_2026-08-22.md",
+    ".delegate/r8-manuscript-finalization-20260822/result.json"
+  ],
+  "summary": "Finalized the reader-facing manuscript from the committed R8 96-config production and offline analysis evidence, replacing older Task015 numerical claims with the accepted R8 values and preserving the full censoring semantics. The manuscript now reports 96 configs, 48 matched MONO/EDoF pairs, 1440 through-focus rows, 25 exact/19 lower-bound/3 upper-bound/1 indeterminate DOF50 pair effects, 9 peak-window-censored pairs, 48/48 negative delta MTFa at 0 D, 48/48 negative delta through-focus mean MTFa, and a recorded mean delta DOF50 of +0.1669398601 D with 42 positive and 6 negative recorded pair effects. It documents the R5.2/R6/R7 serialized Binary4 copy-on-write provenance, no residual reapplication/carrier rebuild/IOL refit, entity-integrity boundary, and the distinction between local R8 acquisition PASS and the still-required manual Web scientific review. A separate scientific QC and an exact R8 figure/table plan were added using the committed 72-figure set and current coupling matrix.",
+  "limitations": [
+    "ChatGPT Web did not run OpticStudio, alter runtime evidence, modify the default branch, or modify accepted Task015 evidence.",
+    "The committed R8 offline analysis evidence explicitly has formal_scientific_lock=false, while production evidence requires manual_web_review_required=true and automatic_progression_allowed=false; this manuscript finalization therefore does not authorize automatic scientific progression or claim clinical validation.",
+    "No new figure rendering or journal-specific layout was performed in this task; the figure/table plan points to the existing committed 72 R8 figures and structured evidence for later presentation-layer assembly.",
+    "The six background references were carried forward from the authorized manuscript drafts; this task did not perform a new external literature re-verification because the requested basis was the committed repository evidence and drafts."
+  ]
+}
