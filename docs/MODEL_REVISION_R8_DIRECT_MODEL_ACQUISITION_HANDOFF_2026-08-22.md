@@ -61,7 +61,7 @@ source `.zmx` 永不直接保存或改写。每次 pair-reference 或 config acq
 
 不调用旧 `apply_grid_sag_residual`，不读取 TASK-013/TASK-014 residual asset，不重建 physical carrier，不重新求 P/Q，不重新拟合 R5.2，不改变 Binary4 zone topology。
 
-## 4. Physical pupil
+## 4. Physical pupil 与 direct Binary4 entity snapshot
 
 R8 继续使用 post-audit actual-eye 语义：
 
@@ -74,7 +74,19 @@ STOP = surface 3
 
 adapter 通过现有 `configure_physical_pupil()` 设置，并立刻使用 `read_revision_geometry()` + `validate_revision_geometry()` 对完整眼几何做回读。除 requested physical STOP setting 外，不调用 `apply_revision_to_full_eye()` 等会重写其他几何的 helper。
 
-`capture_entity_snapshot()` 在设置前后必须保持一致；该 fingerprint 有意排除 OBJECT vergence 与 pupil semi-diameter，但锁定 carrier/retina/IOL 的物理 identity。
+首次本地 R8 执行暴露出一个 implementation-only 问题：direct adapter 原先复用了 legacy `capture_entity_snapshot()`。该 legacy snapshot 专为对称 Standard 双凸 carrier 设计，要求 anterior/posterior ordinary `Radius` 保持正负对称；而已审核的 R6/R7 Binary4 模型在 Binary4 surface 的 ordinary `Radius=0`，真实 zone radius/conic 存放于 Binary4 参数，因此合法的 R6/R7 模型会在首次 pair EFFL 前被错误拒绝。
+
+修复后，R8 direct adapter **只使用** `capture_direct_entity_snapshot()`；legacy `capture_entity_snapshot()` 保持原行为，继续服务旧 Standard-biconvex acquisition 路径。direct snapshot：
+
+- 保留 7-surface、surface-role、STOP identity、retina/IOL/ELP 轴向完整性检查；
+- 复用 R6 `_read_binary4_zones()` 回读，不解析 ZMX 文本，也不建立第二套 Binary4 表示；
+- fingerprint 锁定 surfaces 1–6 的 comment/type/radius/conic/thickness/material/is-stop，且除 STOP 外锁定 clear semi-diameter；
+- fingerprint 同时锁定 Binary4 zone 的 inner/outer radius、zone radius/conic、diffraction order 与 native p²/p⁴/p⁶；
+- 有意排除 OBJECT thickness；
+- 有意排除 physical STOP semi-diameter，使 3/5-mm requested pupil 不被误判为 carrier mutation；
+- 对旧 `EntitySnapshot.carrier_power_d` 兼容字段写入有限诊断哨兵 `0.0 D`，仅表示“Binary4 geometry 无单一 symmetric-biconvex power 可报告”，该值不进入 EFFL、MTFa、HOA、paired delta 或任何科学结果计算。
+
+因此，设置 physical STOP 前后、save/reload 前后及 MFE/HOA acquisition 前后仍必须保持 direct entity fingerprint 一致；任何 Binary4 zone 值、非 STOP surface state、retina/IOL/ELP 轴向状态的未授权变化仍会立即失败。
 
 ## 5. 48 个 matched-pair angular scales
 
@@ -135,7 +147,7 @@ sampling = 128
 - frozen TASK-009 full-HOA：C4⁰、C6⁰、HOA RMS；
 - cornea / STOP / IOL real-ray footprints；
 - unintended vignetting；
-- entity snapshot；
+- direct Binary4 entity snapshot；
 - source/working model SHA provenance。
 
 任一非有限值、MTF batch 不完整、意外 vignette、entity drift、working model disk drift、MFE cleanup failure 或 source SHA drift均立即失败。
