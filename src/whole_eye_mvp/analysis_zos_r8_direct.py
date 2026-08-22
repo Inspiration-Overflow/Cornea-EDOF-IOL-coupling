@@ -11,6 +11,7 @@ from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Any
 
 from .analysis import (
     AberrationSummary,
@@ -144,35 +145,34 @@ class R8DirectAcquisitionError(RuntimeError):
     """Direct serialized-model acquisition violated the frozen R8 contract."""
 
 
-def _direct_surface_payload(row: object, surface_number: int) -> dict[str, object]:
-    get_type = getattr(row, "GetType", None)
-    type_name = str(getattr(row, "TypeName", "") or (get_type() if callable(get_type) else ""))
+def _direct_surface_payload(row: Any, surface_number: int) -> dict[str, object]:
+    type_name = str(row.TypeName or row.GetType())
     payload: dict[str, object] = {
         "surface": surface_number,
-        "comment": str(getattr(row, "Comment")),
+        "comment": str(row.Comment),
         "type": type_name,
-        "radius_mm": float(getattr(row, "Radius")),
-        "conic": float(getattr(row, "Conic")),
-        "thickness_mm": float(getattr(row, "Thickness")),
-        "material": str(getattr(row, "Material")),
-        "is_stop": bool(getattr(row, "IsStop")),
+        "radius_mm": float(row.Radius),
+        "conic": float(row.Conic),
+        "thickness_mm": float(row.Thickness),
+        "material": str(row.Material),
+        "is_stop": bool(row.IsStop),
     }
     if surface_number != 3:
-        payload["semi_diameter_mm"] = float(getattr(row, "SemiDiameter"))
+        payload["semi_diameter_mm"] = float(row.SemiDiameter)
     return payload
 
 
-def _direct_binary4_zone_payload(zone: object) -> dict[str, object]:
+def _direct_binary4_zone_payload(zone: Any) -> dict[str, object]:
     return {
-        "zone": int(getattr(zone, "zone")),
-        "r_inner_mm": float(getattr(zone, "r_inner_mm")),
-        "r_outer_mm": float(getattr(zone, "r_outer_mm")),
-        "radius_mm": float(getattr(zone, "radius_mm")),
-        "conic": float(getattr(zone, "conic")),
-        "diffraction_order": float(getattr(zone, "diffraction_order")),
-        "alpha_p2_native": float(getattr(zone, "alpha_p2_native")),
-        "alpha_p4_native": float(getattr(zone, "alpha_p4_native")),
-        "alpha_p6_native": float(getattr(zone, "alpha_p6_native")),
+        "zone": int(zone.zone),
+        "r_inner_mm": float(zone.r_inner_mm),
+        "r_outer_mm": float(zone.r_outer_mm),
+        "radius_mm": float(zone.radius_mm),
+        "conic": float(zone.conic),
+        "diffraction_order": float(zone.diffraction_order),
+        "alpha_p2_native": float(zone.alpha_p2_native),
+        "alpha_p4_native": float(zone.alpha_p4_native),
+        "alpha_p6_native": float(zone.alpha_p6_native),
     }
 
 
@@ -187,7 +187,9 @@ def capture_direct_entity_snapshot(session: ZosSession, platform_id: str) -> Ent
 
     lde = session.system.LDE
     if int(lde.NumberOfSurfaces) != 7:
-        raise R8DirectAcquisitionError("direct R8 physical model must contain exactly 7 surfaces")
+        raise R8DirectAcquisitionError(
+            "direct R8 physical model must contain exactly 7 surfaces"
+        )
     _require_role(lde, 2, FIXED_CORNEA_POST_ROLE)
     _require_role(lde, 3, STOP_ROLE)
     _require_role(lde, 4, TASK007_CARRIER_ANT_ROLE)
@@ -203,8 +205,13 @@ def capture_direct_entity_snapshot(session: ZosSession, platform_id: str) -> Ent
     if not zone_payload:
         raise R8DirectAcquisitionError("direct R8 Binary4 snapshot has no zones")
 
-    retina_position = math.fsum(float(lde.GetSurfaceAt(index).Thickness) for index in range(1, 6))
-    iol_position = float(lde.GetSurfaceAt(2).Thickness) + float(lde.GetSurfaceAt(3).Thickness)
+    retina_position = math.fsum(
+        float(lde.GetSurfaceAt(index).Thickness) for index in range(1, 6)
+    )
+    iol_position = (
+        float(lde.GetSurfaceAt(2).Thickness)
+        + float(lde.GetSurfaceAt(3).Thickness)
+    )
     ant = lde.GetSurfaceAt(4)
     post = lde.GetSurfaceAt(5)
     payload = {
