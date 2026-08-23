@@ -1,0 +1,23 @@
+{
+  "schema_version": "1",
+  "task_id": "r8-96-production-runner-lint-fix-20260822",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "base_commit": "37159094998dcf1e501f0938b6096bef3e5a9c82",
+  "task_branch": "delegate/r8-96-production-runner-lint-fix-20260822",
+  "task_ref": ".delegate/r8-96-production-runner-lint-fix-20260822/TASK.md",
+  "result_ref": ".delegate/r8-96-production-runner-lint-fix-20260822/result.json",
+  "authorized_read_paths": [
+    "tests/unit/test_model_revision_r8.py",
+    "scripts/run_model_revision_r8_96.py",
+    "docs/MODEL_REVISION_R8_IMPLEMENTATION_AND_LOCAL_HANDOFF_2026-08-22.md",
+    ".delegate/r8-96-production-runner-20260822/result.json"
+  ],
+  "authorized_write_paths": [
+    "tests/unit/test_model_revision_r8.py",
+    ".delegate/r8-96-production-runner-lint-fix-20260822/result.json"
+  ],
+  "expected_outputs": [
+    "tests/unit/test_model_revision_r8.py",
+    ".delegate/r8-96-production-runner-lint-fix-20260822/result.json"
+  ]
+}

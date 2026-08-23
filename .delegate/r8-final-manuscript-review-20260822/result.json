@@ -1,0 +1,19 @@
+{
+  "schema_version": "1",
+  "task_id": "r8-final-manuscript-review-20260822",
+  "dispatch_commit": "1a00d9340355bbb724f3b78756a2f072a7825d27",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "task_branch": "delegate/r8-final-manuscript-review-20260822",
+  "output_refs": [
+    ".delegate/r8-final-manuscript-review-20260822/result.json"
+  ],
+  "documents_required_correction": false,
+  "review_verdict": "PASS",
+  "summary": "Final Web scientific review found no genuine discrepancy requiring correction, so MANUSCRIPT_FINAL_R8_2026-08-22.md, MANUSCRIPT_R8_SCIENTIFIC_QC_2026-08-22.md, and MANUSCRIPT_R8_FIGURE_TABLE_PLAN_2026-08-22.md were intentionally left unchanged. The package matches the committed R8 production/offline evidence for the 96-config/48-pair/1440-row factor space; 25 exact, 19 lower-bound, 3 upper-bound, and 1 indeterminate DOF50 effects; 9 peak-window-censored pairs; recorded mean delta DOF50 of 0.16693986012763976 D with 42 positive and 6 negative recorded effects; 48/48 negative delta MTFa at 0 D and 48/48 negative through-focus mean delta MTFa; all 12 coupling-cell censoring/bound semantics; production CSV provenance hashes; R5.2/R6/R7 direct Binary4 copy-on-write provenance; 96 entity-before and 96 entity-after snapshots; and the committed 72-figure traceability set (48 raw plus 24 summary).",
+  "limitations": [
+    "OpticStudio was not run, and no production evidence, offline evidence, source code, accepted Task015 evidence, runtime diagnostics, default branch, or preceding branch was modified.",
+    "This review establishes scientific and traceability consistency of the manuscript package against the committed R8 evidence; it is not clinical validation, does not add patient-level evidence, and does not authorize commercial-IOL ranking or patient-level selection claims.",
+    "The immutable production evidence continues to record manual_web_review_required=true and automatic_progression_allowed=false, while the offline evidence continues to record formal_scientific_lock=false. This task records completion and PASS of the requested final Web manuscript review without rewriting those evidence fields or authorizing automatic progression or merge.",
+    "The external background literature cited in the manuscript was not independently re-verified in this bounded review; the review was restricted to the declared committed manuscript and R8 evidence sources."
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": "1",
+  "task_id": "r8-direct-model-acquisition-lint-fix-20260822",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "base_commit": "0cbf24c0fdd1c1709d8109c2334cb43c02a8925d",
+  "task_branch": "delegate/r8-direct-model-acquisition-lint-fix-20260822",
+  "task_ref": ".delegate/r8-direct-model-acquisition-lint-fix-20260822/TASK.md",
+  "result_ref": ".delegate/r8-direct-model-acquisition-lint-fix-20260822/result.json",
+  "authorized_read_paths": [
+    "src/whole_eye_mvp/analysis_zos_r8_direct.py",
+    "scripts/run_model_revision_r8_96.py",
+    "tests/unit/test_analysis_zos_r8_direct.py",
+    ".delegate/r8-direct-model-acquisition-20260822/result.json"
+  ],
+  "authorized_write_paths": [
+    "src/whole_eye_mvp/analysis_zos_r8_direct.py",
+    ".delegate/r8-direct-model-acquisition-lint-fix-20260822/result.json"
+  ],
+  "expected_outputs": [
+    "src/whole_eye_mvp/analysis_zos_r8_direct.py",
+    ".delegate/r8-direct-model-acquisition-lint-fix-20260822/result.json"
+  ]
+}

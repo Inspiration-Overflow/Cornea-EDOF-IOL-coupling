@@ -1,0 +1,47 @@
+{
+  "schema_version": "1",
+  "task_id": "r4-wfs-serialized-readback-fix-20260821",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "task_branch": "delegate/r4-wfs-serialized-readback-fix-20260821",
+  "task_ref": ".delegate/r4-wfs-serialized-readback-fix-20260821/TASK.md",
+  "result_ref": ".delegate/r4-wfs-serialized-readback-fix-20260821/result.json",
+  "dispatch_commit": "2d4696a44c7195e10765fe9dae3baa0765784850",
+  "base_commit": "35297ef4477bec555e19c5b0aa6bfe709b122016",
+  "result_commit_ref": "delegate/r4-wfs-serialized-readback-fix-20260821",
+  "status": "completed",
+  "changed_paths": [
+    "src/whole_eye_mvp/revision_r4_zos.py",
+    "tests/unit/test_revision_r4_zos.py",
+    ".delegate/r4-wfs-serialized-readback-fix-20260821/result.json"
+  ],
+  "output_refs": [
+    "src/whole_eye_mvp/revision_r4_zos.py",
+    "tests/unit/test_revision_r4_zos.py",
+    ".delegate/r4-wfs-serialized-readback-fix-20260821/result.json"
+  ],
+  "tests": [
+    {
+      "name": "authorized-scope diff audit",
+      "status": "passed",
+      "details": "Before result.json, dispatch-to-branch diff contained only src/whole_eye_mvp/revision_r4_zos.py and tests/unit/test_revision_r4_zos.py, both authorized write paths."
+    },
+    {
+      "name": "narrow R4 regression",
+      "command": "uv run pytest tests/unit/test_revision_r4_zos.py tests/unit/test_revision_r4_fit.py",
+      "status": "not_run",
+      "reason": "The delegate branch did not trigger a GitHub Actions run, and the Web execution runtime has no networked repository checkout. The regression test is committed for local/CI execution."
+    },
+    {
+      "name": "repository unit suite",
+      "command": "uv run pytest tests/unit",
+      "status": "not_run",
+      "reason": "No executable CI run was available for the un-PR'd delegate branch; live OpticStudio execution is prohibited by the task contract."
+    }
+  ],
+  "summary": "Changed the R4 Binary4 EDoF construction source from the already-serialized Binary4 MONO file to the same analytical Standard carrier used to build MONO, and added the existing standard-carrier guard before conversion. This makes MONO and EDoF independent single-pass Standard-to-Binary4 conversions so the final zone prescriptions receive a fresh serialized inter-zone sag-offset construction. Added a narrow orchestration regression that fails if EDoF is sourced from R4_BINARY4_MONO instead of R4_ANALYTICAL_MONO. No fitter, scientific target, threshold, zone, pupil, retina, Binary4 parameter, or analysis-setting changes were made.",
+  "limitations": [
+    "No live OpticStudio run was performed, as required by the task contract.",
+    "The authorized local WFS ZMX failure files were not present in the GitHub repository at the dispatch commit, so the diagnosis is based on the authorized code path plus the reported serialized-readback stop condition.",
+    "GitHub Actions/pytest did not execute for this standalone delegate branch; the committed regression and repository unit suite still require execution by local Codex or an authorized CI path before the R4 pilot is rerun."
+  ]
+}

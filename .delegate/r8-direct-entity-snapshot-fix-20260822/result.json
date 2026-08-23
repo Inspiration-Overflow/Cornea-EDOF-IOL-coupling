@@ -1,0 +1,20 @@
+{
+  "schema_version": "1",
+  "task_id": "r8-direct-entity-snapshot-fix-20260822",
+  "dispatch_commit": "6f785428b2c06f77de10f9a2d83fac7ba3ee7d50",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "task_branch": "delegate/r8-direct-entity-snapshot-fix-20260822",
+  "output_refs": [
+    "src/whole_eye_mvp/analysis_zos_r8_direct.py",
+    "tests/unit/test_analysis_zos_r8_direct.py",
+    "docs/MODEL_REVISION_R8_DIRECT_MODEL_ACQUISITION_HANDOFF_2026-08-22.md",
+    ".delegate/r8-direct-entity-snapshot-fix-20260822/result.json"
+  ],
+  "summary": "Replaced the R8 direct adapter's legacy symmetric-biconvex entity snapshot calls with a Binary4-aware direct snapshot while leaving the legacy snapshot unchanged. The direct fingerprint preserves the existing full-eye role and axial landmark checks, fingerprints non-STOP surface state, reuses the R6 Binary4 zone readback for zone boundaries/radius/conic/order/native p2-p4-p6 state, excludes OBJECT thickness and the approved per-config physical STOP semi-diameter, and uses a documented finite 0.0 D compatibility diagnostic for carrier_power_d rather than inventing a single Binary4 biconvex power. Pure fake-session tests cover OBJECT/STOP exclusion plus Binary4-zone and axial-surface mutation detection, and the R8 handoff documents the first local failure and correction. No runner, R5.2/R6/R7 source model, accepted evidence, default branch, or preceding branch was changed.",
+  "limitations": [
+    "ChatGPT Web did not run OpticStudio, change license settings, execute a live R8 regression, or create/modify R8 runtime diagnostic evidence; the correction still requires local OpticStudio execution followed by Web review before any R8 production PASS can be claimed.",
+    "The required changed-test pytest target could not run because the Web execution container has no checkout of the private repository; pytest reported tests/unit/test_analysis_zos_r8_direct.py was not found.",
+    "Ruff could not run because no Ruff executable is installed, and uvx --offline could not resolve Ruff because it is absent from the disabled-network cache.",
+    "Repository compileall cannot be claimed as passed because both changed Python targets are absent from the execution container; compileall reported it could not list them. uv lock --check failed because no repository pyproject.toml is present. No GitHub Actions workflow run was available to substitute for these repository-local checks."
+  ]
+}

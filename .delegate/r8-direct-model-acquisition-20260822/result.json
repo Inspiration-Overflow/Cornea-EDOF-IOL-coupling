@@ -1,0 +1,21 @@
+{
+  "schema_version": "1",
+  "task_id": "r8-direct-model-acquisition-20260822",
+  "dispatch_commit": "8d0924ea938da9d13d14c5eebc3299d424641425",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "task_branch": "delegate/r8-direct-model-acquisition-20260822",
+  "output_refs": [
+    "src/whole_eye_mvp/analysis_zos_r8_direct.py",
+    "scripts/run_model_revision_r8_96.py",
+    "tests/unit/test_model_revision_r8.py",
+    "tests/unit/test_analysis_zos_r8_direct.py",
+    "docs/MODEL_REVISION_R8_DIRECT_MODEL_ACQUISITION_HANDOFF_2026-08-22.md",
+    ".delegate/r8-direct-model-acquisition-20260822/result.json"
+  ],
+  "summary": "Implemented the direct serialized-model R8 acquisition adapter and wired the existing 96-config runner to it. The execution path verifies the accepted R6/R7 evidence and all 48 ACTUAL_BINARY4_MONO/EDOF source hashes before opening ZOS, consumes those immutable R5.2 models by copy-on-write, changes only the requested physical STOP on the working copy, measures one direct-MONO EFFL scale for each of 48 matched pairs, applies the frozen TASK-009 MTFA Grid=1 acquisition contract across 15 focus planes for 96 configs, validates existing footprint/entity/result invariants, writes exact 96/1440/48 aggregate outputs, and only then permits formal R8 local evidence with manual Web review still required. The legacy carrier+residual preparation path is not used and the previous DIRECT_R5_2_SERIALIZED_MODEL_PAIR_SCALE_BACKEND implementation gap is removed.",
+  "limitations": [
+    "ChatGPT Web did not run OpticStudio, change license settings, or create any R8 runtime optical evidence; formal R8 production results remain pending local execution and subsequent Web review.",
+    "Repository-local pytest, Ruff, compileall, and uv lock --check could not be completed in this Web environment because the private repository could not be cloned or resolved from the execution container; direct pytest/compileall targets therefore were not present locally. Ruff was also unavailable and uvx --offline could not resolve it from cache. No GitHub Actions workflow run was present to substitute for those checks.",
+    "The adapter has pure unit coverage committed for direct source mapping, 3/5-mm physical STOP semantics, 48-pair grouping, one-MONO-scale pair references, exact 96/1440/48 output schemas, and fail-closed missing/hash-drift behavior, but a live OpticStudio regression is intentionally outside this Web task."
+  ]
+}

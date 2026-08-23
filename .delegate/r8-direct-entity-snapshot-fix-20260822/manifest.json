@@ -1,0 +1,31 @@
+{
+  "schema_version": "1",
+  "task_id": "r8-direct-entity-snapshot-fix-20260822",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "base_commit": "5254a56d361bd48d3ce05717b6d74ae80f782d12",
+  "task_branch": "delegate/r8-direct-entity-snapshot-fix-20260822",
+  "task_ref": ".delegate/r8-direct-entity-snapshot-fix-20260822/TASK.md",
+  "result_ref": ".delegate/r8-direct-entity-snapshot-fix-20260822/result.json",
+  "authorized_read_paths": [
+    "src/whole_eye_mvp/analysis_zos_r8_direct.py",
+    "src/whole_eye_mvp/analysis_zos.py",
+    "src/whole_eye_mvp/revision_r6_zos.py",
+    "src/whole_eye_mvp/zos/primitives.py",
+    "src/whole_eye_mvp/model_revision_zos.py",
+    "tests/unit/test_analysis_zos_r8_direct.py",
+    "docs/MODEL_REVISION_R8_DIRECT_MODEL_ACQUISITION_HANDOFF_2026-08-22.md",
+    ".delegate/r8-direct-model-acquisition-20260822/result.json"
+  ],
+  "authorized_write_paths": [
+    "src/whole_eye_mvp/analysis_zos_r8_direct.py",
+    "tests/unit/test_analysis_zos_r8_direct.py",
+    "docs/MODEL_REVISION_R8_DIRECT_MODEL_ACQUISITION_HANDOFF_2026-08-22.md",
+    ".delegate/r8-direct-entity-snapshot-fix-20260822/result.json"
+  ],
+  "expected_outputs": [
+    "src/whole_eye_mvp/analysis_zos_r8_direct.py",
+    "tests/unit/test_analysis_zos_r8_direct.py",
+    "docs/MODEL_REVISION_R8_DIRECT_MODEL_ACQUISITION_HANDOFF_2026-08-22.md",
+    ".delegate/r8-direct-entity-snapshot-fix-20260822/result.json"
+  ]
+}
