@@ -3,6 +3,7 @@ name: Offline quality gate
 on:
   push:
     branches:
+      - main
       - feat/task-009-fft-mtf-main
   pull_request:
   workflow_dispatch:

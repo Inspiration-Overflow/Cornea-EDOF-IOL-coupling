@@ -1,34 +1,35 @@
 # RMD 执行状态
 
-> `RMD-0001 v1.8` 的执行伴随记录。本文只记录当前真实状态、不可变上游资产和下一执行闸门。
+> `RMD-0001 v1.8` 的执行伴随记录。更新日期：2026-08-24。本文记录当前真实状态、冻结身份、正式证据和下一执行边界。
 
 ## 当前项目
 
 - baseline：`MVP_2026_v2`
-- active branch：`feat/task-011-run72`
-- TASK-005/006/007/008：完成并冻结
-- TDD-999：cleared
-- TASK-009：**COMPLETE**
-- production sampling：**128，正式锁定**
-- TASK-011 formal Run72：**COMPLETE / ACCEPTED / WEB REVIEW PASS**
+- active branch：`main`
+- R8 主研究与最终稿整合提交：`ef407958303be8736f56b17a8c43de3398343466`（`Merge R8 study and final manuscript`）
+- TASK-005/006/007/008：**COMPLETE / FROZEN**
+- TDD-999：**CLEARED**
+- TASK-009：**COMPLETE**；production sampling = **128**
+- TASK-011 Run72：**COMPLETE / ACCEPTED / WEB REVIEW PASS**
 - TASK-012：**COMPLETE / OFFLINE RECONSTRUCTION PASS / RESULT REVIEW PASS**
-- TASK-012 OpticStudio：**未使用，也不需要补跑**
-- TASK-010 GUI：可选，不是当前科学前置
+- R5.2：**ACTIVE PRESCRIPTION FREEZE**
+- R6/R7：**COMPLETE / 24 PHYSICAL CARRIERS VALIDATED**
+- R8 96-config production：**COMPLETE / LOCAL PASS**
+- R8 offline integration：**COMPLETE / RECONSTRUCTION + CENSOR PROPAGATION PASS**
+- R8 manuscript numeric/scientific QC：**PASS**
+- R8 final Web manuscript review：**PASS**（`f4f5fc4498cdf411924c36db489271bedf886d86`）
+- 最终 R8 稿：`docs/MANUSCRIPT_FINAL_R8_2026-08-22.md`
+- TASK-010 GUI：可选，不是科学前置
 
-## 不可变正式身份
+历史 Draft PR #25 与 #28 已于 2026-08-24 关闭且未合并；其内容已被后续 Run72、R5.2/R6/R7、R8 和 `main` 集成状态取代。
+
+---
+
+## 当前冻结方法身份
 
 ```text
 baseline_id = MVP_2026_v2
-carrier_count = 18
-residual_count = 3
-nominal_config_count = 72
-pair_key_count = 36
-
-manifest_hash =
-29205cf1bd27848bb378fad956709b7cde4686ffd917b10351a992fc0d59ad49
-
-lock_set_hash =
-b1dff4c05d2c817099c913c32d9eb8c0b1c9cfa3c9ca8a2022b20c6521e08923
+r5_freeze_id = MODEL-REVISION-R5.2-HOA-BOUNDARY-SAG-INVARIANT-2026-08-21
 
 analysis_settings_id = NOMINAL_MAIN_FFT_MTF_555_v2
 analysis_settings_sha256 =
@@ -40,188 +41,180 @@ f7f1551eeb3b339bf8b3353067786e1e7a943fd4383d58ee1f33fc4f59c8c21d
 
 frequency_scale_mode = paired_residual_free_MONO_EFFL
 production_sampling = 128
+physical_pupils = 3 mm / 5 mm
+through_focus = +0.50 to -3.00 D, 0.25-D step, 15 planes/config
 B0 = B0.20 immutable
 ```
 
-TASK-011/TASK-012 对 TASK-005–009 scientific/method locks 只读。
+R8 对 R5.2/R6/R7 已序列化 Binary4 模型只读。生产阶段不重新应用 legacy residual、不重建 carrier、不重新求 P/Q、不重新拟合 IOL。
 
 ---
 
-## TASK-011 正式 Run72
+## R8 正式 production
+
+权威 evidence：
 
 ```text
-code_commit = 01f13b768cf1eca361703469b2fdce3d21f3376d
-formal_evidence_commit = f28b3032136aa28f54abb5fe5129765a125d3926
-run_id = analysis-1cc1441dec4744a18d7ac73763507a6c
-resume_mode = false
-completed_configs = 72
+docs/evidence/r8_96/production/MODEL_REVISION_R8_96_EVIDENCE.json
+```
+
+身份与结果：
+
+```text
+phase = MODEL-REVISION-R8-96-PRODUCTION
+formal_artifact = true
+pilot = false
+run_id = r8-742953bd22b341c38ebb67af89ccc76e
+code_commit = e9083c5faf2bd6fedf061be4c8002b7502d00e1e
+opticstudio_version = 260127
+
+physical_carriers = 24
+serialized_source_models = 48
+completed_configs = 96
 failed_configs = 0
-matched_pairs = 36
-through_focus_rows = 1080
-pair_reference_records = 36
-acceptance_passed = true
-run72_complete = true
-pair_reference_set_sha256 =
-a1cb8a899718d0327d8b1ecde21a4324e54090fd3db12cab36e649bb3cfc5b5d
+matched_pairs = 48
+pair_reference_count = 48
+through_focus_rows = 1440
+
+legacy_residual_reapplied = false
+carrier_rebuilt = false
+iol_refit = false
+local_r8_passed = true
+manual_web_review_required = true
+automatic_progression_allowed = false
 ```
 
-正式文件：
+三个 aggregate CSV 的 production SHA-256：
 
 ```text
-docs/evidence/task011/TASK_011_RUN72_EVIDENCE.json
-docs/evidence/task011/TASK_011_RUN72_CONFIG_RESULTS.csv
-docs/evidence/task011/TASK_011_RUN72_THROUGH_FOCUS.csv
-docs/evidence/task011/TASK_011_RUN72_PAIRED_DELTAS.csv
+MODEL_REVISION_R8_96_CONFIG_RESULTS.csv
+353ffe24965d6a7e4e8f4087c76574a377f77560acfa0775462af95086d7823f
+
+MODEL_REVISION_R8_96_THROUGH_FOCUS.csv
+3c5dec2b193f3851d4ec888904c21a0b7ec2471c786ac02eb08ee23e10b1e46b
+
+MODEL_REVISION_R8_96_PAIRED_DELTAS.csv
+eadfaa6ca0f9c7e6129a7ef32fc8ed86470feea3d4f60e4af0b78ba9a7417e04
 ```
 
-TASK-012 复核时明确拆分了两层文件身份。
-
-### Git repository-byte SHA256
-
-```text
-TASK_011_RUN72_EVIDENCE.json
-= d1b347cc221293fccd5a08679e8b6368788b22eecaa904f6b8f617a6296c50ee
-
-TASK_011_RUN72_CONFIG_RESULTS.csv
-= f51975b588bae3764806a7930fe6b49b0fc09f357d3ca9c11074fa20749cf615
-
-TASK_011_RUN72_THROUGH_FOCUS.csv
-= f2723a30e0629b6f0b27f8f4f73bc469f1ee7fee7fe3c62d2413c0d4a8eba2b6
-
-TASK_011_RUN72_PAIRED_DELTAS.csv
-= a6f0708e3339a6cec7b029f7d6675de291db4cea3162528d489189720c4598c5
-```
-
-### TASK-011 producer-export CSV SHA256
-
-由正式 TASK-011 evidence JSON 在 Windows 生产端记录：
-
-```text
-CONFIG_RESULTS = 337628d95529a3711f36e7ea250ef435413d8f6aff11c25739e3c9b9ccc69dfa
-THROUGH_FOCUS = cb4ece26a0a5d3a931db52a5f3b7e3325a99cbe26c9e175abd12bec5b7ec79da
-PAIRED_DELTAS = 03dfe506566f83f6868c72890c042389ed8d0cd370255967fd1ff3b1ca25fa62
-```
-
-两层 SHA 不相等是 Git text normalization 后的字节差异。四个文件在 `f28b303...` 与当前 branch 的 Git blob 已逐一确认一致；没有 TASK-011 evidence 内容漂移。
+`manual_web_review_required=true` 与 `automatic_progression_allowed=false` 是不可变 production evidence 中的审核边界；后续最终 Web manuscript review 已单独完成并记录为 PASS，不回写生产 evidence。
 
 ---
 
-## TASK-012 已完成
+## R8 离线整合与科学结果
 
-正式计划：
+权威 evidence：
 
 ```text
-docs/TASK_012_RUN72_ANALYSIS_PLAN_2026-08-19.md
+docs/evidence/r8_96/MODEL_REVISION_R8_96_OFFLINE_ANALYSIS_EVIDENCE.json
 ```
 
-正式实现：
+重建状态：
 
 ```text
-src/whole_eye_mvp/run72_analysis.py
-src/whole_eye_mvp/run72_figures.py
-scripts/analyze_task_012_run72.py
-tests/unit/test_task012_run72_analysis.py
-.github/workflows/task012-analysis.yml
-```
-
-正式分析代码基线：
-
-```text
-330b59171e1dab2ea76d1425d56d8e5175d233ef
-```
-
-派生 evidence 由专用 Web/CI 工作流生成并提交；当前 evidence commit：
-
-```text
-e92960b1f687ff844da07141f6e0aef50f32cea6
-```
-
-正式产物：
-
-```text
-docs/evidence/task012/TASK_012_ANALYSIS_EVIDENCE.json
-docs/evidence/task012/TASK_012_PAIR_ANALYSIS.csv
-docs/evidence/task012/TASK_012_INTERACTION_CONTRASTS.csv
-docs/evidence/task012/TASK_012_COUPLING_MATRIX.csv
-docs/evidence/task012/figures/*.png
-```
-
-结果审核：
-
-```text
-docs/TASK_012_RESULTS_REVIEW_2026-08-20.md
-result = PASS_WITH_SCIENTIFIC_CAVEATS
-```
-
-### Reconstruction / analysis acceptance
-
-```text
-pair_count = 36
-contrast_count = 1152
-coupling_cell_count = 9
-figure_count = 24
+accepted_config_count = 96
+accepted_through_focus_row_count = 1440
+matched_pair_count = 48
+coupling_cell_count = 12
+figure_count = 72
 reconstruction_gate_passed = true
 censor_propagation_passed = true
 opticstudio_used = false
-
-DOF50 exact pairs = 31
-DOF50 lower-bound pairs = 5
-peak-window-censored pairs = 8
+formal_scientific_lock = false
 ```
 
-最新 TASK-012 代码 gate：
+DOF50 effect 状态：
 
 ```text
-source head = 330b59171e1dab2ea76d1425d56d8e5175d233ef
-GitHub Actions offline-quality run = 32345872258
-pytest = 212 passed
-ruff = PASS
-compileall = PASS
-uv lock = PASS
-final offline gate = PASS
+exact = 25
+lower_bound = 19
+upper_bound = 3
+indeterminate = 1
+peak-window-censored pairs = 9
+```
+
+所有 paired effect 定义为 `EDOF - MONO`。当前可报告的描述性结果：
+
+```text
+ΔDOF50 recorded mean = +0.1669398601 D
+range = -0.9628294881 to +0.7425648858 D
+positive / negative = 42 / 6
+
+ΔMTFa(0 D) mean = -0.2369817544
+negative / positive = 48 / 0
+
+Δthrough-focus mean MTFa = -0.0299300131
+negative / positive = 48 / 0
+
+Δdistance-peak MTFa = -0.1721477052
+negative / positive = 48 / 0
+```
+
+解释边界保持不变：
+
+- `ΔDOF50` 的总体均值包含被删失配对的记录值，只作当前确定性矩阵的描述，不是删失校正总体估计；
+- 不能把 DOF50 增加等同临床近视力改善；
+- 不能把 MTFa 下降直接等同患者视觉质量下降；
+- 不能将 WFS/RAD/HOA surrogate 转写成商业 IOL 排名或患者级选片建议；
+- 不能把确定性 48-pair 矩阵按随机临床样本进行传统显著性推断。
+
+---
+
+## 最终论文与审核
+
+当前论文包：
+
+```text
+docs/MANUSCRIPT_FINAL_R8_2026-08-22.md
+docs/MANUSCRIPT_R8_SCIENTIFIC_QC_2026-08-22.md
+docs/MANUSCRIPT_R8_FIGURE_TABLE_PLAN_2026-08-22.md
+```
+
+最终 Web manuscript review：
+
+```text
+commit = f4f5fc4498cdf411924c36db489271bedf886d86
+review_verdict = PASS
+documents_required_correction = false
+```
+
+该审核确认论文包与已提交 R8 production/offline evidence 在 96-config / 48-pair / 1440-row 因子矩阵、DOF50 删失语义、MTFa 配对结果、12 单元 coupling matrix、R5.2/R6/R7 direct Binary4 provenance、artifact hashes 和 72 张图件追溯关系上一致。
+
+2026-08-24 又对正文 6 篇外部背景文献做了独立核验；题名、作者、期刊、年份、卷期/定位信息、DOI 与正文所承担的论证用途均得到出版商/PubMed/PMC/机构库等来源支持。核验记录：
+
+```text
+docs/MANUSCRIPT_REFERENCE_VERIFICATION_2026-08-24.md
 ```
 
 ---
 
-## TASK-012 科学结果状态
+## 历史 Run72 / TASK-012 状态
 
-所有 paired effect 定义为 `EDOF - MONO`。
+TASK-011/TASK-012 是已接受的前序 72-config 证据层，保留用于方法演化与追溯，不覆盖 R8 最终数值。其 frozen method identity（TASK-009 MTFA Grid=1、paired-MONO angular scale、sampling=128）继续被 R8 继承。
 
-当前可冻结的描述性结论：
-
-- **B0 × WFS-like**：EPD3 下存在明确 relative DOF advantage；EPD5 时 interaction 反转，因此属于 pupil-specific coupling，不是 pupil-invariant 优势。
-- **C0 × RAD-like**：相对 WFS-like 的 DOF coupling 在两个基础眼和两个瞳孔下方向较稳定，EPD5 更明显；但伴随更大的0 D质量代价，是 DOF-oriented trade-off，不是无条件优势。
-- **HOA-like**：EPD3 常出现最大 DOF expansion，同时有最大的0 D/全贯焦质量再分配；EPD5 时高度依赖 cornea/base，是最强 pupil/base-dependent mechanism。
-- **Pupil 和 Base eye 均不可先平均掉**；C0×HOA-like×EPD5 是基础眼可改变效应方向的重要例子。
-- 5个 DOF50 lower-bound pair 只作下限解释；8个 peak-window pair 的 peak/DeltaF 是边界受限，`distance_peak_mtfa` 只代表预注册窗口内观察峰值。
-- 不支持“单一最佳角膜×IOL组合”、不支持把最大 DOF50 等同最佳整体质量，也不支持品牌级临床推荐。
+R8 最终稿的任何数值不得被旧 TASK-011/TASK-012/TASK-015 数值覆盖。
 
 ---
 
-## 下一执行
+## 当前下一执行
 
-TASK-012 后不再需要新的光学 acquisition。下一阶段优先进入：
+MVP 的光学生产主线已完成。当前优先级转为投稿前收尾：
 
-1. 论文级 Results：把36-pair、3×3 coupling、pupil/base sensitivity、censor-aware trade-off 写成正式结果；
-2. Discussion：将 B0×WFS-like、C0×RAD-like、HOA-like quality redistribution 与前期定性机制假设对照；
-3. 形成主表、主图筛选及论文级图注；
-4. 必要时补充只基于现有 evidence 的 sensitivity/visualization，不重跑 OpticStudio；
-5. TASK-010 GUI 继续保持可选。
-
-PR #26 保持 Draft；不在本阶段自动合并。
+1. 在 `main` 对最终仓库运行一次完整 offline-quality gate，并保留 workflow run 记录；
+2. 冻结一个明确的最终 Git ref / release，绑定最终代码、R8 evidence、论文与图表包；
+3. 根据目标期刊要求做语言、格式、图件分辨率/尺寸、补充材料和数据可用性声明整理；
+4. 如需新增科学分析，优先使用现有 R8 evidence 做预先定义的离线敏感性分析；只有新问题确实需要新光学数据时才重新进入 OpticStudio acquisition。
 
 ---
 
 ## 当前 STOP
 
 - 不修改 TASK-005–009 frozen assets/method locks；
-- 不重跑正式72 configs；
-- 不因 censored peak/DOF 事后扩大 focus/search span 并补跑矩阵；
-- 不恢复任何已退休的 pre-TASK009 production path；
+- 不修改 R5.2 freeze identity；
+- 不重新优化 residual profile 或 IOL；
+- 不重跑 R8 96 configs 来“改善”删失结果；
+- 不事后扩大冻结的 focus/search window 并把结果替换进主分析；
 - 不使用 EDOF-state/per-state EFFL 改变 matched-pair production angular scale；
-- 不修改 B0.20；
-- 不重新优化 residual profile；
-- 不把 `DeltaF_residual` 写入 carrier physical lock identity；
-- 不把确定性36-pair矩阵直接当随机临床样本做传统显著性检验；
-- 不把 DOF50 lower bound 或 peak-window result 静默当作精确值；
-- 后续若 evidence/code inconsistency 出现，先停止解释并做 Web review，不把 OpticStudio rerun 当默认修复手段。
+- 不把 lower-bound / upper-bound / indeterminate 静默当作 exact；
+- 不把计算 surrogate 结果转写为商业产品优劣、患者级推荐或临床疗效结论；
+- 若后续出现 evidence/code inconsistency，先停止解释并做独立审核，不把 OpticStudio rerun 当默认修复手段。
