@@ -20,6 +20,21 @@ release ref = release/mvp-2026-v2-r8-final
 
 当前 GitHub 连接器不提供 tag/release 创建接口，因此本次使用独立 release branch 作为可由当前环境实际创建并核验的 Git ref。若后续在 GitHub UI/CLI 建立同名正式 tag/release，应指向完全相同的提交 SHA，不应重新生成或改写 R8 evidence。
 
+## 最终离线质量门
+
+`.github/workflows/offline-quality.yml` 已将 `main` 加入 push 触发范围，并保留 `pull_request` 与 `workflow_dispatch`。由于当前连接器只能可靠检索 PR 触发的 workflow run，本次另建 `chore/final-r8-offline-quality-gate` 验证分支；该分支只修改本说明文件，不改代码、模型、R8 evidence 或论文数值。其 PR 的 offline-quality workflow 用于留下可审计的最终仓库代码健康记录。
+
+通过条件保持：
+
+```text
+uv run pytest tests/unit
+uv run ruff check .
+uv run python -m compileall -q src tests scripts
+uv lock --check
+```
+
+只有上述四项和最终 enforce step 全部 PASS 后，验证 PR 才可合并，release ref 才前移至该合并后的 `main` HEAD。
+
 ## 绑定内容
 
 此 ref 绑定：
