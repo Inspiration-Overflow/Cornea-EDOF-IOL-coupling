@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "figure_count": 4,
+  "source_sha256": {
+    "old_config": "353ffe24965d6a7e4e8f4087c76574a377f77560acfa0775462af95086d7823f",
+    "old_pair": "eadfaa6ca0f9c7e6129a7ef32fc8ed86470feea3d4f60e4af0b78ba9a7417e04",
+    "experiment1_config": "0a04ca41e6b64f90a69f287f899711530dbddaf4b07b2c916c096ec9add8d1c2",
+    "experiment1_pair": "99c5d0c1e4bba7bbab7e2f21b722772232bc878a5a1cf4347456709f4b86309d",
+    "experiment1_through_focus": "112f1b4e5167dc70a5b3be3b82e3e5760ba6b93356e20146b283db7b874ac41f",
+    "experiment2_through_focus": "aacff338a8f14b5f93dce863efce04d09b3fb0a583a7d32cbb2607898fb456d1",
+    "common_threshold": "099310d07524dd51a737a0fa2c6031cbdf4d0a775454acc1e677eee6e75a48a3",
+    "did": "5b5354287408a6f1f8d7458c9f206fbbe8ea8b5cf2906d5b677ac92fd18a311d",
+    "calibration_comparison": "e109641c5798a98d3562039e17d24bd187985b74d57ffccc6524cafda2c383c6"
+  },
+  "output_files": [
+    {
+      "path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\figures\\SUPPLEMENTAL_FIGURE_1_EXTENDED_WINDOW_DELTA_DOF50.png",
+      "sha256": "052593fd8c2d976abfd022f1763963fee5e85aff31025cb6609dc854e8c6b22b"
+    },
+    {
+      "path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\figures\\SUPPLEMENTAL_FIGURE_1_EXTENDED_WINDOW_DELTA_DOF50.pdf",
+      "sha256": "a487e210038b3b970a25862137eb0f686ebee218fb5122f3870e35195c3658b8"
+    },
+    {
+      "path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\figures\\SUPPLEMENTAL_FIGURE_2_THRESHOLD_ROBUSTNESS.png",
+      "sha256": "a06c7ad433f992b7099e5159faab368c2e0dadf286d4c7fa3a7a54c651c04d52"
+    },
+    {
+      "path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\figures\\SUPPLEMENTAL_FIGURE_2_THRESHOLD_ROBUSTNESS.pdf",
+      "sha256": "4d589ae6be31197508c72f47e9bae01c301f0f682250804ac37c728b1f9346bc"
+    },
+    {
+      "path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\figures\\SUPPLEMENTAL_FIGURE_3_C0_CALIBRATION_STRATEGIES.png",
+      "sha256": "2aea5ff1909c91e7a9dc2b946bc02585c85c8beb7a946353e952d62cab4783b5"
+    },
+    {
+      "path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\figures\\SUPPLEMENTAL_FIGURE_3_C0_CALIBRATION_STRATEGIES.pdf",
+      "sha256": "b8730f7209eb55bac51010e2a90229abdaf296d9f1ef14ff812aa5bd5c60e5d2"
+    },
+    {
+      "path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\figures\\SUPPLEMENTAL_FIGURE_4_DID_COUPLING.png",
+      "sha256": "3fddda1db18edfc102accbbc1c6e3a7921b12d1b18278bd69baa5e054f73406e"
+    },
+    {
+      "path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\figures\\SUPPLEMENTAL_FIGURE_4_DID_COUPLING.pdf",
+      "sha256": "bb1c4a605115fe2246a756885d6b5bc490f65a22135802dd27f6b8ab8fbd8bb2"
+    }
+  ],
+  "source_row_counts": {
+    "old_pair": 48,
+    "experiment1_config": 96,
+    "supplemental_pair": 48,
+    "common_threshold": 96,
+    "did": 108,
+    "calibration_comparison": 12,
+    "experiment1_through_focus": 4704,
+    "experiment2_through_focus": 1176
+  }
+}

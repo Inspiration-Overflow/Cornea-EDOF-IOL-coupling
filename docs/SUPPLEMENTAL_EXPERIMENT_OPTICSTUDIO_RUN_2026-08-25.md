@@ -6,6 +6,8 @@
 
 ChatGPT Web 本轮没有返回可验证的代码提交或审查回执。以下代码和数值结果由当前分支的本地实现以及本地 OpticStudio 执行产生。没有在未取得新的消息确认时向网页会话发送代表用户的消息。
 
+正式结果数据已随当前分支发布到仓库的 [`data/supplemental_experiments`](../data/supplemental_experiments/) 目录，其中包括两组原始结果、合并衍生表、四类 PNG/PDF 图件和图件清单。目录说明见 [`data/supplemental_experiments/README.md`](../data/supplemental_experiments/README.md)。
+
 ## 固定分析设置
 
 - 波长：555 nm。

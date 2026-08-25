@@ -1,0 +1,1015 @@
+{
+  "schema_version": 1,
+  "formal_artifact": true,
+  "experiment": "experiment_1_extended_through_focus",
+  "task_id": "supplemental-experiments-20260824",
+  "run_id": "supplemental-1-b7a85f6f8dcc4ac9853c6a4771bac31d",
+  "code_commit": "9862fb559bfa3cdd3e4bcbdba20d6b6aecc9fd7e",
+  "opticstudio_version": "260127",
+  "source_r6_r7_evidence_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\MODEL_REVISION_R6_R7_EVIDENCE.json",
+  "source_r6_r7_evidence_sha256": "1ebf5d025d447e929af103106c946148bfcf1b9885aaa1c15e70869f084f99a9",
+  "source_model_sha256": {
+    "validated/R6_ATC_M3_AL24477_A0_HOA/ACTUAL_BINARY4_EDOF.zmx": "bf343fd89f1494f564ff3d446ce1cb96299203e7ed631ee01ff053b036af69d0",
+    "validated/R6_ATC_M3_AL24477_A0_HOA/ACTUAL_BINARY4_MONO.zmx": "251ec023ea396df9ba9e585115b4ca8f55ee4bd3f31ff337ebe3d8d245ee209f",
+    "validated/R6_ATC_M3_AL24477_A0_RAD/ACTUAL_BINARY4_EDOF.zmx": "82776c6fc4bbb5b1469092dea20d7b52744f0470cf9f6b3c47ab2f53afbed20a",
+    "validated/R6_ATC_M3_AL24477_A0_RAD/ACTUAL_BINARY4_MONO.zmx": "f4281e2ee3a102bc749e928e7cc8fe75a182e90bd49084b8febc1919d310628d",
+    "validated/R6_ATC_M3_AL24477_A0_WFS/ACTUAL_BINARY4_EDOF.zmx": "4a02a665bd8cde75dbb908c15a39c6a2dfd5b13ed9041ecf8b742a489468658e",
+    "validated/R6_ATC_M3_AL24477_A0_WFS/ACTUAL_BINARY4_MONO.zmx": "1059e44a098fce50476c90043f77c23bc3bc318d01b1e92a169693df7b03204f",
+    "validated/R6_ATC_M3_AL24477_B0_HOA/ACTUAL_BINARY4_EDOF.zmx": "e0bf27ea1ce1942b9939a49ab0ddcdffa81a0b12e3d7bdbcf4eddb2df5118471",
+    "validated/R6_ATC_M3_AL24477_B0_HOA/ACTUAL_BINARY4_MONO.zmx": "3ea4edbcda5953b448197b63fba698ca4b1370b928ae087b4e73bd520d1b0e5b",
+    "validated/R6_ATC_M3_AL24477_B0_RAD/ACTUAL_BINARY4_EDOF.zmx": "814bbc189c0f16d147502cef34c0cb48682135841ba19ba05a0b7ca179fe4e37",
+    "validated/R6_ATC_M3_AL24477_B0_RAD/ACTUAL_BINARY4_MONO.zmx": "2ceb0cc9d892bf2f980facbc4b64c283ba181c354d8c0bcdd1409948ef65cf80",
+    "validated/R6_ATC_M3_AL24477_B0_WFS/ACTUAL_BINARY4_EDOF.zmx": "7a1eaba28f58cdb1a5de3eb45add017110584e495dd58d1fd3159de1bc94053d",
+    "validated/R6_ATC_M3_AL24477_B0_WFS/ACTUAL_BINARY4_MONO.zmx": "fd7f6b1175a0665696af3efddc65c17839896df08530054f8dcd8623858a9be3",
+    "validated/R6_ATC_M3_AL24477_C0_HOA/ACTUAL_BINARY4_EDOF.zmx": "c179e7e551e443761a251817bfd8557d55c8ccab1a732b381b5ffccae01bbeb6",
+    "validated/R6_ATC_M3_AL24477_C0_HOA/ACTUAL_BINARY4_MONO.zmx": "38c2f9a485f7767de59ad1ea86e06c64afe61c7b2e729d74b0dd9eee687f6ce2",
+    "validated/R6_ATC_M3_AL24477_C0_RAD/ACTUAL_BINARY4_EDOF.zmx": "2a9dd667915888ca9ed627bfee3f56af7a84d1783a3699750a3a34e17038ce7b",
+    "validated/R6_ATC_M3_AL24477_C0_RAD/ACTUAL_BINARY4_MONO.zmx": "c6a911cb3fb1947fa06f93c54c2bd009888f31c59af6fbaf8cf8d8d0bd1885a9",
+    "validated/R6_ATC_M3_AL24477_C0_WFS/ACTUAL_BINARY4_EDOF.zmx": "974624162d50e188ac52244c6ed091957a023d22adb3f1b8e743fd705a3efa6c",
+    "validated/R6_ATC_M3_AL24477_C0_WFS/ACTUAL_BINARY4_MONO.zmx": "a0910bd712ce59b62bed641b5c7834d72d6cf773cc9e9e272d4238bfd24231e8",
+    "validated/R6_ATC_M3_AL24477_N0_HOA/ACTUAL_BINARY4_EDOF.zmx": "6b46e2e5f225a08331fa4e044b64ec62914c1a66dd9f31bc6ac5bba642144801",
+    "validated/R6_ATC_M3_AL24477_N0_HOA/ACTUAL_BINARY4_MONO.zmx": "e4240809d8d2bbbbb1b9219d95d05d3c6a6f69985b70f05c0213cb43b09138ab",
+    "validated/R6_ATC_M3_AL24477_N0_RAD/ACTUAL_BINARY4_EDOF.zmx": "a087872790924ca2704c2ade40dbc7c1af1435b5f0830b271fa3dedd96386365",
+    "validated/R6_ATC_M3_AL24477_N0_RAD/ACTUAL_BINARY4_MONO.zmx": "5fa702acf7dd308e6fbfddd15a92b79057203fedc8925c83648e251ec6871553",
+    "validated/R6_ATC_M3_AL24477_N0_WFS/ACTUAL_BINARY4_EDOF.zmx": "12f0dc739ba1f3159659b151e50f89622b26c0df6b7ea16bfaf7a4a4fcefaa0a",
+    "validated/R6_ATC_M3_AL24477_N0_WFS/ACTUAL_BINARY4_MONO.zmx": "250a156268293ad0707059cc1ebc9dfce2a8fe7de79ea86ca5cbcdafa9299632",
+    "validated/R6_LB_AL2395_A0_HOA/ACTUAL_BINARY4_EDOF.zmx": "746c7fa7b82cf59b21ca9c5eec57d7203b14ed563ca165c38ec756fd9cd1188e",
+    "validated/R6_LB_AL2395_A0_HOA/ACTUAL_BINARY4_MONO.zmx": "01edd9e4d1181584133435f777d472a4946da62867900e4fd6032e6c53d3368e",
+    "validated/R6_LB_AL2395_A0_RAD/ACTUAL_BINARY4_EDOF.zmx": "ec73d6004ee41c196bcba97641f9e2a5e1778c17b16cce29278f03b927d14fa3",
+    "validated/R6_LB_AL2395_A0_RAD/ACTUAL_BINARY4_MONO.zmx": "6ef311882ac81482b869c4b215ba42ea180114cc64bd9753d7ae7962c64a0b29",
+    "validated/R6_LB_AL2395_A0_WFS/ACTUAL_BINARY4_EDOF.zmx": "dfef188468eb2e2072f760807ab6fda37277a8ded86d124fe3b531f7a98b71ba",
+    "validated/R6_LB_AL2395_A0_WFS/ACTUAL_BINARY4_MONO.zmx": "e23a4312ac04d1bdaf3aea00545b89877ddb4e40a9da4a889cc1dc3bfd54289b",
+    "validated/R6_LB_AL2395_B0_HOA/ACTUAL_BINARY4_EDOF.zmx": "456630090994a933f154f61bb4bdd887133bcc8c292040054907b6aee39fbecb",
+    "validated/R6_LB_AL2395_B0_HOA/ACTUAL_BINARY4_MONO.zmx": "f0f5d1d6ebeda0ea70cb60424a94a37962df272d9a5687596dd919e2086a1466",
+    "validated/R6_LB_AL2395_B0_RAD/ACTUAL_BINARY4_EDOF.zmx": "7bd5d6dd428ead1346bdfd401bcbe7631cf29571f0e431a42522b4d5ba9637be",
+    "validated/R6_LB_AL2395_B0_RAD/ACTUAL_BINARY4_MONO.zmx": "2f4be71e560853f4512d4f364c212e63528c776333152217f6240e7269956a2f",
+    "validated/R6_LB_AL2395_B0_WFS/ACTUAL_BINARY4_EDOF.zmx": "26e3250cebdda26d84d93829821d906d35f9f1a666f5c5d0186681330ebc0d5f",
+    "validated/R6_LB_AL2395_B0_WFS/ACTUAL_BINARY4_MONO.zmx": "0f197f1395518787fadc4dab9e13190eb1b1cafd1d454569ace35f1e82621642",
+    "validated/R6_LB_AL2395_C0_HOA/ACTUAL_BINARY4_EDOF.zmx": "0a261a2aa2bbd8e09cd834f65664fefa1ab3847e14d5db59420a2f96c2ac7679",
+    "validated/R6_LB_AL2395_C0_HOA/ACTUAL_BINARY4_MONO.zmx": "e9a2a4ce3a846ea1a8cdc6e6060ddd4772414084499dbec597a5349656696c61",
+    "validated/R6_LB_AL2395_C0_RAD/ACTUAL_BINARY4_EDOF.zmx": "d409a4196a73a8d1e958845b5da8886178a1689a51901fca0f82a0574b866f7a",
+    "validated/R6_LB_AL2395_C0_RAD/ACTUAL_BINARY4_MONO.zmx": "9140ad3fd0be4335ac0255f9b4c02f044f3839ca1e28def2ac2e0585a420fe48",
+    "validated/R6_LB_AL2395_C0_WFS/ACTUAL_BINARY4_EDOF.zmx": "53279e0a74b443beaf82b0d283be1c07d53a78f747f9ab62bb21d292fd8b5e51",
+    "validated/R6_LB_AL2395_C0_WFS/ACTUAL_BINARY4_MONO.zmx": "517584150fd24923d93aee18cec9339345d488a9de92865a69301d14504901c4",
+    "validated/R6_LB_AL2395_N0_HOA/ACTUAL_BINARY4_EDOF.zmx": "d09bbbf84e8fc8571f91a733ffa26f6c5245408b6a924aa923182d02fa18b829",
+    "validated/R6_LB_AL2395_N0_HOA/ACTUAL_BINARY4_MONO.zmx": "7592c7a8197ea4e56c9448643bdc64d25b91453b176e267a6296b4f9f7f472aa",
+    "validated/R6_LB_AL2395_N0_RAD/ACTUAL_BINARY4_EDOF.zmx": "1aba988f219baca37f7f5b3650126d77e840ee58497cab9fd2e32654f459d019",
+    "validated/R6_LB_AL2395_N0_RAD/ACTUAL_BINARY4_MONO.zmx": "170b87d427c7177d4e8dc7c8829f3dec77ee1dfe44242cf1057628ffabea12bf",
+    "validated/R6_LB_AL2395_N0_WFS/ACTUAL_BINARY4_EDOF.zmx": "e9189011be5d0e4b7d0730808a7b6507981d55ca08a2405efe62a00f023b9d47",
+    "validated/R6_LB_AL2395_N0_WFS/ACTUAL_BINARY4_MONO.zmx": "7d6f78420f65c8de047d1afc1a7aced70532d4cedda4e9617ade5ddbeb1e8f84"
+  },
+  "analysis_settings_id": "SUPPLEMENTAL_TF_MTF_555_v1",
+  "analysis_settings_sha256": "add896f3c689e1705e437f6ac02a7b8e882dfc6838f5e480f00475129ddd155e",
+  "defocus_grid_retina_d": [
+    1.0,
+    0.875,
+    0.75,
+    0.625,
+    0.5,
+    0.375,
+    0.25,
+    0.125,
+    0.0,
+    -0.125,
+    -0.25,
+    -0.375,
+    -0.5,
+    -0.625,
+    -0.75,
+    -0.875,
+    -1.0,
+    -1.125,
+    -1.25,
+    -1.375,
+    -1.5,
+    -1.625,
+    -1.75,
+    -1.875,
+    -2.0,
+    -2.125,
+    -2.25,
+    -2.375,
+    -2.5,
+    -2.625,
+    -2.75,
+    -2.875,
+    -3.0,
+    -3.125,
+    -3.25,
+    -3.375,
+    -3.5,
+    -3.625,
+    -3.75,
+    -3.875,
+    -4.0,
+    -4.125,
+    -4.25,
+    -4.375,
+    -4.5,
+    -4.625,
+    -4.75,
+    -4.875,
+    -5.0
+  ],
+  "original_comparison_window_retina_d": [
+    0.5,
+    0.375,
+    0.25,
+    0.125,
+    0.0,
+    -0.125,
+    -0.25,
+    -0.375,
+    -0.5,
+    -0.625,
+    -0.75,
+    -0.875,
+    -1.0,
+    -1.125,
+    -1.25,
+    -1.375,
+    -1.5,
+    -1.625,
+    -1.75,
+    -1.875,
+    -2.0,
+    -2.125,
+    -2.25,
+    -2.375,
+    -2.5,
+    -2.625,
+    -2.75,
+    -2.875,
+    -3.0
+  ],
+  "peak_search_window_d": 1.0,
+  "config_count": 96,
+  "matched_pair_count": 48,
+  "through_focus_rows": 4704,
+  "expected_artifacts": [
+    "diagnostics/supplemental_experiments/experiment1_96/SUPPLEMENTAL_EXPERIMENT_1_96_EVIDENCE.json",
+    "diagnostics/supplemental_experiments/experiment1_96/SUPPLEMENTAL_EXPERIMENT_1_CONFIG_RESULTS.csv",
+    "diagnostics/supplemental_experiments/experiment1_96/SUPPLEMENTAL_EXPERIMENT_1_THROUGH_FOCUS.csv",
+    "diagnostics/supplemental_experiments/experiment1_96/SUPPLEMENTAL_EXPERIMENT_1_PAIRED_DELTAS.csv"
+  ],
+  "config_results_csv_sha256": "0a04ca41e6b64f90a69f287f899711530dbddaf4b07b2c916c096ec9add8d1c2",
+  "through_focus_csv_sha256": "112f1b4e5167dc70a5b3be3b82e3e5760ba6b93356e20146b283db7b874ac41f",
+  "paired_deltas_csv_sha256": "05bbeb142c628c573996f49c3209a740154a67087f7a0f5f177f89c51108b6c6",
+  "preflight": {
+    "task_id": "r8-96-production-runner-20260822",
+    "phase": "MODEL-REVISION-R8-96-PRODUCTION",
+    "r5_freeze_id": "MODEL-REVISION-R5.2-HOA-BOUNDARY-SAG-INVARIANT-2026-08-21",
+    "carrier_count": 24,
+    "config_count": 96,
+    "matched_pairs": 48,
+    "through_focus_planes_per_config": 49,
+    "through_focus_rows": 4704,
+    "physical_pupils_mm": [
+      3.0,
+      5.0
+    ],
+    "optic_states": [
+      "MONO",
+      "EDOF"
+    ],
+    "focus_grid_retina_d": [
+      1.0,
+      0.875,
+      0.75,
+      0.625,
+      0.5,
+      0.375,
+      0.25,
+      0.125,
+      0.0,
+      -0.125,
+      -0.25,
+      -0.375,
+      -0.5,
+      -0.625,
+      -0.75,
+      -0.875,
+      -1.0,
+      -1.125,
+      -1.25,
+      -1.375,
+      -1.5,
+      -1.625,
+      -1.75,
+      -1.875,
+      -2.0,
+      -2.125,
+      -2.25,
+      -2.375,
+      -2.5,
+      -2.625,
+      -2.75,
+      -2.875,
+      -3.0,
+      -3.125,
+      -3.25,
+      -3.375,
+      -3.5,
+      -3.625,
+      -3.75,
+      -3.875,
+      -4.0,
+      -4.125,
+      -4.25,
+      -4.375,
+      -4.5,
+      -4.625,
+      -4.75,
+      -4.875,
+      -5.0
+    ],
+    "authorization_required": true,
+    "direct_model_adapter_implemented": true,
+    "execution_ready_after_preflight": true,
+    "missing_prerequisite_id": null,
+    "r6_r7_evidence_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\MODEL_REVISION_R6_R7_EVIDENCE.json",
+    "r6_r7_evidence_sha256": "1ebf5d025d447e929af103106c946148bfcf1b9885aaa1c15e70869f084f99a9",
+    "r6_r7_serialized_model_hashes_verified": 48,
+    "input_preflight_passed": true,
+    "expected_r8_artifacts": [
+      "diagnostics/model_revision/r8_96/MODEL_REVISION_R8_96_EVIDENCE.json",
+      "diagnostics/model_revision/r8_96/MODEL_REVISION_R8_96_CONFIG_RESULTS.csv",
+      "diagnostics/model_revision/r8_96/MODEL_REVISION_R8_96_THROUGH_FOCUS.csv",
+      "diagnostics/model_revision/r8_96/MODEL_REVISION_R8_96_PAIRED_DELTAS.csv"
+    ]
+  },
+  "config_diagnostics": {
+    "R8_R6_LB_AL2395_N0_WFS_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_N0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "7d6f78420f65c8de047d1afc1a7aced70532d4cedda4e9617ade5ddbeb1e8f84",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_WFS_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "e249fcde071fa43c983ed84ceb5b0a7d3ae2ac3c4417d3359490258875060ae7",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_WFS_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_N0_WFS_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_N0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "e9189011be5d0e4b7d0730808a7b6507981d55ca08a2405efe62a00f023b9d47",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_WFS_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "a350034613e8033c5e35fee7831aedc5c060ad9beac6a38d103884091d63209c",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_WFS_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_N0_WFS_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_N0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "7d6f78420f65c8de047d1afc1a7aced70532d4cedda4e9617ade5ddbeb1e8f84",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_WFS_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "9d305eacee0922ee1002d7dd0d36ef5140e2bd3a8c99baa271b93513ba02cc0b",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_WFS_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_N0_WFS_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_N0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "e9189011be5d0e4b7d0730808a7b6507981d55ca08a2405efe62a00f023b9d47",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_WFS_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "b0791f73c04f31cc3d205d743bdd98b828bfadf6bcbe878b824a79c6d11c2a17",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_WFS_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_N0_RAD_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_N0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "170b87d427c7177d4e8dc7c8829f3dec77ee1dfe44242cf1057628ffabea12bf",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_RAD_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "6fbe1e5ca874a57dafeb34c54cfe4c6a71ea67fb6764772cb0e0aaaa2d4ecfbd",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_RAD_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_N0_RAD_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_N0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "1aba988f219baca37f7f5b3650126d77e840ee58497cab9fd2e32654f459d019",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_RAD_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "d3f6dd525df07435b3c2c90365cc4c41cfd0a0d68f4864f445b70f4ba7edfe9f",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_RAD_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_N0_RAD_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_N0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "170b87d427c7177d4e8dc7c8829f3dec77ee1dfe44242cf1057628ffabea12bf",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_RAD_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "73a48a26a0ad3e86571b2a5d44ec08cd713a8f2ee3a661a0bedba50486fdd56d",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_RAD_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_N0_RAD_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_N0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "1aba988f219baca37f7f5b3650126d77e840ee58497cab9fd2e32654f459d019",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_RAD_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "3f4e921489c78dec578103d712038e765d27252e42db24d797626bd3fcfb53ee",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_RAD_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_N0_HOA_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_N0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "7592c7a8197ea4e56c9448643bdc64d25b91453b176e267a6296b4f9f7f472aa",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_HOA_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "d0c1fdd86c0b6c5fbc05de589ed77f0131c039946636cd9aaf7b397198d3697b",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_HOA_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_N0_HOA_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_N0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "d09bbbf84e8fc8571f91a733ffa26f6c5245408b6a924aa923182d02fa18b829",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_HOA_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "a3c582a5b9cd35fb6903c89ccaf95311533db1f8deaa6426eaa351a5fe033f4c",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_HOA_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_N0_HOA_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_N0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "7592c7a8197ea4e56c9448643bdc64d25b91453b176e267a6296b4f9f7f472aa",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_HOA_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "d6427a4503d8fe422ade058525f419f7bc5eb2665e02d7f23180266cc3622450",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_HOA_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_N0_HOA_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_N0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "d09bbbf84e8fc8571f91a733ffa26f6c5245408b6a924aa923182d02fa18b829",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_HOA_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "e667d38ad4dbcef83eefc3edd3152a4176b7b533cdacae26b344a4323735c2fc",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_N0_HOA_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_A0_WFS_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_A0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "e23a4312ac04d1bdaf3aea00545b89877ddb4e40a9da4a889cc1dc3bfd54289b",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_WFS_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "37506371fbd1da2d2dee17955f0691cb1e7e3ed522980c6eca99b3c2e1780faa",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_WFS_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_A0_WFS_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_A0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "dfef188468eb2e2072f760807ab6fda37277a8ded86d124fe3b531f7a98b71ba",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_WFS_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "9bd51851c6b25d35adce506a1449f410f7df292d7f718f98c6862ed2ea8ed167",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_WFS_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_A0_WFS_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_A0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "e23a4312ac04d1bdaf3aea00545b89877ddb4e40a9da4a889cc1dc3bfd54289b",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_WFS_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "e6076e15a45ac8ff6b57de53d2f765a1ac938c068644ddddac1c6fc397598dbd",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_WFS_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_A0_WFS_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_A0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "dfef188468eb2e2072f760807ab6fda37277a8ded86d124fe3b531f7a98b71ba",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_WFS_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "a92a8073ca39b3bcde54e4e321135023ead1f8b032be70d0aee6994c5725601d",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_WFS_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_A0_RAD_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_A0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "6ef311882ac81482b869c4b215ba42ea180114cc64bd9753d7ae7962c64a0b29",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_RAD_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "bfddff3ea70dd023e21f9b7bbdb9e2a8fafd3de73350722d474b4be67ba5f8c5",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_RAD_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_A0_RAD_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_A0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "ec73d6004ee41c196bcba97641f9e2a5e1778c17b16cce29278f03b927d14fa3",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_RAD_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "bc32aa7596d119cb4d243851f638717025a22cbd7473cfc7d4d3fbf77878887b",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_RAD_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_A0_RAD_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_A0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "6ef311882ac81482b869c4b215ba42ea180114cc64bd9753d7ae7962c64a0b29",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_RAD_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "ac38327e55b9f537155a6e8f97e1ca4ba26f72553fe0f48ec31a904c2497591b",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_RAD_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_A0_RAD_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_A0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "ec73d6004ee41c196bcba97641f9e2a5e1778c17b16cce29278f03b927d14fa3",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_RAD_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "ad070661c9390e7db1db0de7c559d10f5063e99ed4b6e2bf6339979f78ae0708",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_RAD_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_A0_HOA_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_A0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "01edd9e4d1181584133435f777d472a4946da62867900e4fd6032e6c53d3368e",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_HOA_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "147cbeb5920477fecf5975f7978e84fd923d962004a3afd1c71b7d3700ae75ab",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_HOA_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_A0_HOA_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_A0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "746c7fa7b82cf59b21ca9c5eec57d7203b14ed563ca165c38ec756fd9cd1188e",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_HOA_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "13414588c90abe0f734eb84b8111184c6eb40c2ae5184627e0507d7c9366bb55",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_HOA_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_A0_HOA_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_A0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "01edd9e4d1181584133435f777d472a4946da62867900e4fd6032e6c53d3368e",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_HOA_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "97233756c4366088076a5cbb334370f089cee14bd3334d8fee89c83719ae415b",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_HOA_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_A0_HOA_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_A0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "746c7fa7b82cf59b21ca9c5eec57d7203b14ed563ca165c38ec756fd9cd1188e",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_HOA_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "979047461d468bc0dec66b22b2e7b622117a602afd6abfe102ee5c2bb4ac5f43",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_A0_HOA_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_B0_WFS_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_B0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "0f197f1395518787fadc4dab9e13190eb1b1cafd1d454569ace35f1e82621642",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_WFS_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "f493f00036af85e44ce9e1ce5be71ef4a31518ed6767a4133c4967571c45d01f",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_WFS_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_B0_WFS_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_B0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "26e3250cebdda26d84d93829821d906d35f9f1a666f5c5d0186681330ebc0d5f",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_WFS_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "d9c299df88b3f2e7853627794106b3c9cfb77b836e4970b4caea348bdd95931f",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_WFS_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_B0_WFS_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_B0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "0f197f1395518787fadc4dab9e13190eb1b1cafd1d454569ace35f1e82621642",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_WFS_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "8959ff707af49bd955ac9040e9357649139f3ed3871761dd3a177709c57d9c20",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_WFS_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_B0_WFS_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_B0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "26e3250cebdda26d84d93829821d906d35f9f1a666f5c5d0186681330ebc0d5f",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_WFS_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "1094cef4feb40b1d57bced4922773922b1b7f5bcd95f1fd302f5b507ed988b25",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_WFS_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_B0_RAD_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_B0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "2f4be71e560853f4512d4f364c212e63528c776333152217f6240e7269956a2f",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_RAD_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "2a0f0c98ad09b12368c617920c5341890a3ee9ba578150a6bf93afcf84215ba8",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_RAD_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_B0_RAD_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_B0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "7bd5d6dd428ead1346bdfd401bcbe7631cf29571f0e431a42522b4d5ba9637be",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_RAD_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "87cd6b35c50debd44960e1477eaacb2baa0121f4ab7ccaa3ed375a943166e674",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_RAD_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_B0_RAD_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_B0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "2f4be71e560853f4512d4f364c212e63528c776333152217f6240e7269956a2f",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_RAD_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "42f96662aeff52eb2cb60a3ba8168427195816e092b590d11e6ab9d92917acce",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_RAD_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_B0_RAD_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_B0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "7bd5d6dd428ead1346bdfd401bcbe7631cf29571f0e431a42522b4d5ba9637be",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_RAD_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "5755b37fefe76b05e2fb4b690079faac120169716e7eeedf4d79cc9be8ac980b",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_RAD_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_B0_HOA_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_B0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "f0f5d1d6ebeda0ea70cb60424a94a37962df272d9a5687596dd919e2086a1466",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_HOA_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "1dd80dbbd0fb14b1e51543223fcd218fcf68542a41a6f3f563fa4c536353c725",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_HOA_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_B0_HOA_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_B0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "456630090994a933f154f61bb4bdd887133bcc8c292040054907b6aee39fbecb",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_HOA_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "c9883962db73740941c51432efd8ae454985f130350a2f6f8840984cb778b270",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_HOA_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_B0_HOA_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_B0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "f0f5d1d6ebeda0ea70cb60424a94a37962df272d9a5687596dd919e2086a1466",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_HOA_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "f3376137e66ae6c78996b3d7e033750b100452f99624fbde6746eb3e1d2c9046",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_HOA_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_B0_HOA_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_B0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "456630090994a933f154f61bb4bdd887133bcc8c292040054907b6aee39fbecb",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_HOA_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "95e754a12da69a30962c4aa167081c6ac1d3b0e03060b4e6dbb512582ee3f1be",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_B0_HOA_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_C0_WFS_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_C0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "517584150fd24923d93aee18cec9339345d488a9de92865a69301d14504901c4",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_WFS_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "2de558fae76a855e0523b603ad7654632c079cdcbd294e71278bd4e524f813b8",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_WFS_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_C0_WFS_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_C0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "53279e0a74b443beaf82b0d283be1c07d53a78f747f9ab62bb21d292fd8b5e51",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_WFS_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "19e7276b5555f3bce354284d976c3bfb7c4cce5ce05a4791e810ec430bb33eba",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_WFS_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_C0_WFS_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_C0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "517584150fd24923d93aee18cec9339345d488a9de92865a69301d14504901c4",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_WFS_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "5c4d88b5271687984a789006ca147d8ddd93014aed293e619f697beea4ed1365",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_WFS_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_C0_WFS_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_C0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "53279e0a74b443beaf82b0d283be1c07d53a78f747f9ab62bb21d292fd8b5e51",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_WFS_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "6ae2305c9287f82b461cdc90ed0828999a8b0ce6ad2bd07576a5ac87d6683a0d",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_WFS_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_C0_RAD_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_C0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "9140ad3fd0be4335ac0255f9b4c02f044f3839ca1e28def2ac2e0585a420fe48",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_RAD_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "4fa289596099fc1865cfc3537e69d797720ae388393294571c606ac47e60aaa0",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_RAD_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_C0_RAD_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_C0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "d409a4196a73a8d1e958845b5da8886178a1689a51901fca0f82a0574b866f7a",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_RAD_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "280f213ab95ae5e8ad5468303b1552a4ace9d121cf8f66ec92a829a52813dda4",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_RAD_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_C0_RAD_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_C0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "9140ad3fd0be4335ac0255f9b4c02f044f3839ca1e28def2ac2e0585a420fe48",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_RAD_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "23bc55d1497ccc455469026bee7afdfd0fe5291a63173b158d6ba0c25a8664f2",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_RAD_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_C0_RAD_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_C0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "d409a4196a73a8d1e958845b5da8886178a1689a51901fca0f82a0574b866f7a",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_RAD_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "4f8c26385b6f9bd96a25d92e3fbfd837c8ea05a8155b68eada6330e23e68ef02",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_RAD_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_C0_HOA_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_C0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "e9a2a4ce3a846ea1a8cdc6e6060ddd4772414084499dbec597a5349656696c61",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_HOA_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "02b50124c8bb5c77c2a2dc50758d9b11cd35ff1b92f9aef9c0f2023335dc99ea",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_HOA_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_C0_HOA_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_C0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "0a261a2aa2bbd8e09cd834f65664fefa1ab3847e14d5db59420a2f96c2ac7679",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_HOA_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "ad2cb611db2a073d14dd2a255a3d9ae49dfc34e44db0c6b05cb972e849252555",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_HOA_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_C0_HOA_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_C0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "e9a2a4ce3a846ea1a8cdc6e6060ddd4772414084499dbec597a5349656696c61",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_HOA_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "dc95e85c42cbf019d7ab7de6a0b9ce321c6b39cfbf8078baa8590e3dae6e0b6c",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_HOA_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_LB_AL2395_C0_HOA_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_LB_AL2395_C0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "0a261a2aa2bbd8e09cd834f65664fefa1ab3847e14d5db59420a2f96c2ac7679",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_HOA_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "4b31bfd60b8303d9ccde0bdb4249cdfb828b5c99fa1fd0c0bc447ab70a942034",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_LB_AL2395_C0_HOA_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_N0_WFS_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_N0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "250a156268293ad0707059cc1ebc9dfce2a8fe7de79ea86ca5cbcdafa9299632",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_WFS_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "7b1c8975ab6950b46001672f23a9d78d936ca99e52d2fd1229318ff352cec2bb",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_WFS_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_N0_WFS_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_N0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "12f0dc739ba1f3159659b151e50f89622b26c0df6b7ea16bfaf7a4a4fcefaa0a",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_WFS_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "f4e44714f00f91688885ead833922aac7a62f735f941c28ca3a7c29f714076e9",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_WFS_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_N0_WFS_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_N0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "250a156268293ad0707059cc1ebc9dfce2a8fe7de79ea86ca5cbcdafa9299632",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_WFS_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "f98df4fd38c8ed7080cb708b5b2359144e8a7d774a0d12f092923c67a2a67794",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_WFS_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_N0_WFS_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_N0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "12f0dc739ba1f3159659b151e50f89622b26c0df6b7ea16bfaf7a4a4fcefaa0a",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_WFS_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "2d662d04205f3758272335ff73a0d6e01fc0cc3c09f5bba0f6a461afcb4144ea",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_WFS_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_N0_RAD_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_N0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "5fa702acf7dd308e6fbfddd15a92b79057203fedc8925c83648e251ec6871553",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_RAD_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "556fdc0adb09f508862f5274e64c93bc2e8b0e9c35dad8cd4ac3f17603142bf7",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_RAD_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_N0_RAD_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_N0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "a087872790924ca2704c2ade40dbc7c1af1435b5f0830b271fa3dedd96386365",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_RAD_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "4abd12eb91b64333b56ef6ba9f5a49bd0b50b53848750adb189049f5c1eaf50f",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_RAD_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_N0_RAD_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_N0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "5fa702acf7dd308e6fbfddd15a92b79057203fedc8925c83648e251ec6871553",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_RAD_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "61bcbe5d0f306fdc80eeead8d7d495d631be4a8a32a6515ad84c7a166962dd12",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_RAD_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_N0_RAD_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_N0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "a087872790924ca2704c2ade40dbc7c1af1435b5f0830b271fa3dedd96386365",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_RAD_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "0f0ca0988d7bea6292f0bfcf857e6e054ea02488b40186df93877c05633575a5",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_RAD_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_N0_HOA_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_N0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "e4240809d8d2bbbbb1b9219d95d05d3c6a6f69985b70f05c0213cb43b09138ab",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_HOA_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "5dbc48e99899aefa994e13c24ad03f14912499b50a8cbee7d9a1ebf35067fb16",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_HOA_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_N0_HOA_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_N0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "6b46e2e5f225a08331fa4e044b64ec62914c1a66dd9f31bc6ac5bba642144801",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_HOA_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "77d095115d42a363a2095b47acc533af603a3da499058af88b55cdfcb14b6cff",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_HOA_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_N0_HOA_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_N0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "e4240809d8d2bbbbb1b9219d95d05d3c6a6f69985b70f05c0213cb43b09138ab",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_HOA_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "5708b94d639c13e003a5f4489771b9e8e060a259ca916060acaa327ded7cc390",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_HOA_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_N0_HOA_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_N0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "6b46e2e5f225a08331fa4e044b64ec62914c1a66dd9f31bc6ac5bba642144801",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_HOA_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "c247cdd75ec92299bcb899807f48225764486c37b9574bae43026e4a430df167",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_N0_HOA_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_A0_WFS_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_A0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "1059e44a098fce50476c90043f77c23bc3bc318d01b1e92a169693df7b03204f",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_WFS_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "1f2abae58c5d473838c8004a50eb4c8b344a2aed944ea4dcea176622a42bec29",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_WFS_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_A0_WFS_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_A0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "4a02a665bd8cde75dbb908c15a39c6a2dfd5b13ed9041ecf8b742a489468658e",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_WFS_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "ea3a2eca8594a4f0305b78562a56955c28aa8bd44292f46c0b1f43c3de131c09",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_WFS_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_A0_WFS_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_A0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "1059e44a098fce50476c90043f77c23bc3bc318d01b1e92a169693df7b03204f",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_WFS_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "84de7a71271be80b707b4006587d792514c720ffd187ec71b7263a82f81712a8",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_WFS_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_A0_WFS_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_A0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "4a02a665bd8cde75dbb908c15a39c6a2dfd5b13ed9041ecf8b742a489468658e",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_WFS_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "95ad7d71c26cfd17c739f488ca73917d8c9f7eb6a00ddd1481f26f641e2db4e3",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_WFS_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_A0_RAD_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_A0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "f4281e2ee3a102bc749e928e7cc8fe75a182e90bd49084b8febc1919d310628d",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_RAD_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "9924a00dc09b5ebdfa67db4e36d7aaf30c3d031b5414bba42940c2f5d8fbcaef",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_RAD_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_A0_RAD_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_A0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "82776c6fc4bbb5b1469092dea20d7b52744f0470cf9f6b3c47ab2f53afbed20a",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_RAD_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "fe219d2e748c18ee0b56c9e2b90741c8ac9d2e33e563d6a2a08c24125f10fd89",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_RAD_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_A0_RAD_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_A0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "f4281e2ee3a102bc749e928e7cc8fe75a182e90bd49084b8febc1919d310628d",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_RAD_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "b33b5ca1035c8634210bfa6b662a6965bed09da5494ef8767d65a4edd31ad440",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_RAD_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_A0_RAD_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_A0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "82776c6fc4bbb5b1469092dea20d7b52744f0470cf9f6b3c47ab2f53afbed20a",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_RAD_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "13267d24c1172b3140a3619a78c91a632f7534636adb3b12b450bd3479e3cc42",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_RAD_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_A0_HOA_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_A0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "251ec023ea396df9ba9e585115b4ca8f55ee4bd3f31ff337ebe3d8d245ee209f",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_HOA_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "053ae7b93eb289347c1015e6f424a65c896c45f497b178e18ec3411271e19c09",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_HOA_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_A0_HOA_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_A0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "bf343fd89f1494f564ff3d446ce1cb96299203e7ed631ee01ff053b036af69d0",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_HOA_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "a7e5687c7cec980786d58fc44b354c9e9d8a69b6b5c09b535983a712c4402b5d",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_HOA_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_A0_HOA_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_A0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "251ec023ea396df9ba9e585115b4ca8f55ee4bd3f31ff337ebe3d8d245ee209f",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_HOA_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "f88e3185be200350e99f01a92a7d03690ebbdf9f1491075b609166be98955c3d",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_HOA_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_A0_HOA_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_A0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "bf343fd89f1494f564ff3d446ce1cb96299203e7ed631ee01ff053b036af69d0",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_HOA_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "8598f8fa648d2bdeaf39969f5a5fba1a1c02889adcd031f6452136ef2cc275a4",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_A0_HOA_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_B0_WFS_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_B0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "fd7f6b1175a0665696af3efddc65c17839896df08530054f8dcd8623858a9be3",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_WFS_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "fbdf44ef799f493a10a7e0f479e35c40fd30bd84212a40f3a4233a7bf46a551f",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_WFS_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_B0_WFS_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_B0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "7a1eaba28f58cdb1a5de3eb45add017110584e495dd58d1fd3159de1bc94053d",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_WFS_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "bb0d683150e60bf26a92c719d98e42b7f9c807bc2936bbb851935ffe924f1bba",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_WFS_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_B0_WFS_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_B0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "fd7f6b1175a0665696af3efddc65c17839896df08530054f8dcd8623858a9be3",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_WFS_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "cbb59c9a1b4bee459df41127272c86405ae1930dea5ff5cb2ae4ff840fa2e492",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_WFS_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_B0_WFS_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_B0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "7a1eaba28f58cdb1a5de3eb45add017110584e495dd58d1fd3159de1bc94053d",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_WFS_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "240b723442a9f95c2d8bfe04f0e9e68b97f4f7c13aac15a609ee552820cae0ca",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_WFS_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_B0_RAD_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_B0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "2ceb0cc9d892bf2f980facbc4b64c283ba181c354d8c0bcdd1409948ef65cf80",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_RAD_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "cbfe226fc2109f806ccc95fae0623e895a1407b0781f2ca8c365e439e73d66be",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_RAD_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_B0_RAD_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_B0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "814bbc189c0f16d147502cef34c0cb48682135841ba19ba05a0b7ca179fe4e37",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_RAD_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "0962f0aefa4a36e1ec314af6c72af1fb668883fd2ed0e8c8432cc73203b07d1c",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_RAD_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_B0_RAD_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_B0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "2ceb0cc9d892bf2f980facbc4b64c283ba181c354d8c0bcdd1409948ef65cf80",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_RAD_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "b9257c0d1239e64c49292967ba7bed54811f0ab2940fa2cda1e9f6e6c18f7d47",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_RAD_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_B0_RAD_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_B0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "814bbc189c0f16d147502cef34c0cb48682135841ba19ba05a0b7ca179fe4e37",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_RAD_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "6081632a796cf06d3c7e1a1c87c6b55515a91c429672fc41ed913a58c756ea98",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_RAD_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_B0_HOA_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_B0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "3ea4edbcda5953b448197b63fba698ca4b1370b928ae087b4e73bd520d1b0e5b",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_HOA_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "3ba9c7ad2a5270ba0a33538523c48449d02e1960d64e5a4ef042101d6b6929f3",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_HOA_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_B0_HOA_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_B0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "e0bf27ea1ce1942b9939a49ab0ddcdffa81a0b12e3d7bdbcf4eddb2df5118471",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_HOA_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "38a38dd6ab95c87807901123bc30c01f8ef91df380a9b71b32c3d6be62a5cb70",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_HOA_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_B0_HOA_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_B0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "3ea4edbcda5953b448197b63fba698ca4b1370b928ae087b4e73bd520d1b0e5b",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_HOA_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "14c57e8284ae4bd7700fa82ee9d729ef9e527849a94fb1f6d452e6a1120d199f",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_HOA_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_B0_HOA_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_B0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "e0bf27ea1ce1942b9939a49ab0ddcdffa81a0b12e3d7bdbcf4eddb2df5118471",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_HOA_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "923f00301da2528a49ddf6dd72a122c92bc8a7e393f5fcdc68313fbfd747756c",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_B0_HOA_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_C0_WFS_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_C0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "a0910bd712ce59b62bed641b5c7834d72d6cf773cc9e9e272d4238bfd24231e8",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_WFS_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "10acfc0faa690682306ffe62b826d9a36c3b5e900225a362d33d95fc6ade9cbd",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_WFS_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_C0_WFS_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_C0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "974624162d50e188ac52244c6ed091957a023d22adb3f1b8e743fd705a3efa6c",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_WFS_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "b62e42eab2c0527e0020eb8885248b6f21452583f9d8084b73ec2cdf852f488c",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_WFS_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_C0_WFS_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_C0_WFS\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "a0910bd712ce59b62bed641b5c7834d72d6cf773cc9e9e272d4238bfd24231e8",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_WFS_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "65eee0ba886bffa2adb7970fda15a6bb696c305877361c8dc1f41a061cebd327",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_WFS_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_C0_WFS_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_C0_WFS\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "974624162d50e188ac52244c6ed091957a023d22adb3f1b8e743fd705a3efa6c",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_WFS_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "227258b0aecd61f17d499fa2f0bf205cc9c2502d0183e61a67b6fa7ca132b512",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_WFS_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_C0_RAD_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_C0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "c6a911cb3fb1947fa06f93c54c2bd009888f31c59af6fbaf8cf8d8d0bd1885a9",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_RAD_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "116b0e5bdfeb120054d8b962ca8eada6ad712aa2999523fac6521981059d7bd8",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_RAD_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_C0_RAD_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_C0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "2a9dd667915888ca9ed627bfee3f56af7a84d1783a3699750a3a34e17038ce7b",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_RAD_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "4f424724c7084c6f09f113f5e844fc99f6b985e68803ef7206e45152e24be6db",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_RAD_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_C0_RAD_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_C0_RAD\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "c6a911cb3fb1947fa06f93c54c2bd009888f31c59af6fbaf8cf8d8d0bd1885a9",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_RAD_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "9f3d86d72e82c0e431287b01b08dd861e2d5b722fa2e05293f01ebd7fca58eac",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_RAD_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_C0_RAD_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_C0_RAD\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "2a9dd667915888ca9ed627bfee3f56af7a84d1783a3699750a3a34e17038ce7b",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_RAD_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "b1cfe0162335e8654a1f9437fe5a402d6035cae1d94f7976aa034a36afe7666f",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_RAD_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_C0_HOA_MONO_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_C0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "38c2f9a485f7767de59ad1ea86e06c64afe61c7b2e729d74b0dd9eee687f6ce2",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_HOA_MONO_EPD3\\config_result.json",
+      "config_result_json_sha256": "e5d5e0eedeb47b3d79f694cd2b195a1df9bab87395cd7ab4b726a77db73ae127",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_HOA_MONO_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_C0_HOA_EDOF_EPD3": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_C0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "c179e7e551e443761a251817bfd8557d55c8ccab1a732b381b5ffccae01bbeb6",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_HOA_EDOF_EPD3\\config_result.json",
+      "config_result_json_sha256": "7d697a22301e94f0e33991e58275e7f30fee5c727697938ae3835ed9588d0522",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_HOA_EDOF_EPD3\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_C0_HOA_MONO_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_C0_HOA\\ACTUAL_BINARY4_MONO.zmx",
+      "source_model_sha256": "38c2f9a485f7767de59ad1ea86e06c64afe61c7b2e729d74b0dd9eee687f6ce2",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_HOA_MONO_EPD5\\config_result.json",
+      "config_result_json_sha256": "49e0a6cd6f14e77768e8cf7c36df8a2a15c23e962f3554a6534cd6a9a6e600df",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_HOA_MONO_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    },
+    "R8_R6_ATC_M3_AL24477_C0_HOA_EDOF_EPD5": {
+      "source_model_path": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\model_revision\\r6_r7\\validated\\R6_ATC_M3_AL24477_C0_HOA\\ACTUAL_BINARY4_EDOF.zmx",
+      "source_model_sha256": "c179e7e551e443761a251817bfd8557d55c8ccab1a732b381b5ffccae01bbeb6",
+      "config_result_json": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_HOA_EDOF_EPD5\\config_result.json",
+      "config_result_json_sha256": "eeabac02f7ec191510ede4faddbc7a279eab3d937639abc301dc1c612a02ec52",
+      "through_focus_csv": "C:\\Users\\golde\\code\\inspiration-overflow\\Cornea-EDOF-IOL-coupling\\project_mvp_2026_v2_zmx\\diagnostics\\supplemental_experiments\\experiment1_96\\configs\\R8_R6_ATC_M3_AL24477_C0_HOA_EDOF_EPD5\\through_focus.csv",
+      "through_focus_rows": 49
+    }
+  },
+  "aggregate_rebuilt_from_completed_config_results": true,
+  "initial_runner_aggregate_error": "custom supplemental through-focus settings were not propagated into matched-pair validation; all 96 per-config acquisitions completed and were revalidated during aggregate rebuild",
+  "local_acquisition_passed": true,
+  "manual_web_review_required": true
+}
