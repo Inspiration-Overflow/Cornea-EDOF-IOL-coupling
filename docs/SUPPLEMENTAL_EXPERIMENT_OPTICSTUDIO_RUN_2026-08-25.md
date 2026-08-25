@@ -37,6 +37,8 @@ ChatGPT Web 本轮没有返回可验证的代码提交或审查回执。以下�
 - [贯焦结果](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment1_96\SUPPLEMENTAL_EXPERIMENT_1_THROUGH_FOCUS.csv)
 - [配对差值](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment1_96\SUPPLEMENTAL_EXPERIMENT_1_PAIRED_DELTAS.csv)
 
+实验一文件 SHA-256：证据 `903f8a9986bdb7d9b68c2d5bcfcbd006c66506a9753bacf64f93abd8c8a27fdc`，配置 CSV `0740ffdd2ac49580eb638e8650a994b66212de23e299860e2f7b623d2729061a`，贯焦 CSV `112f1b4e5167dc70a5b3be3b82e3e5760ba6b93356e20146b283db7b874ac41f`，配对 CSV `05bbeb142c628c573996f49c3209a740154a67087f7a0f5f177f89c51108b6c6`。
+
 ## 实验二：C0 距离分量锚定
 
 实验二的正式结果目录：
@@ -69,6 +71,8 @@ ChatGPT Web 本轮没有返回可验证的代码提交或审查回执。以下�
 - [配置结果](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment2_distance_anchor\SUPPLEMENTAL_EXPERIMENT_2_CONFIG_RESULTS.csv)
 - [贯焦结果](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment2_distance_anchor\SUPPLEMENTAL_EXPERIMENT_2_THROUGH_FOCUS.csv)
 - [配对差值](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment2_distance_anchor\SUPPLEMENTAL_EXPERIMENT_2_PAIRED_DELTAS.csv)
+
+实验二文件 SHA-256：证据 `16a3b8e7491cea74f94445eb2a868400acfb70b462c3362b3c9967bd993dff56`，配置 CSV `d02f922ea5e776d739a512037e2987a56d5e660315577476475cfa48024c08c7`，贯焦 CSV `aacff338a8f14b5f93dce863efce04d09b3fb0a583a7d32cbb2607898fb456d1`，配对 CSV `3cc62be81cf11001dfe7dd539d6ebe2bb229a08ae9c19ba91a27ac7969de440d`。
 
 首次实验二尝试因恢复 C0 角膜时把半径 3.25 mm 的最后一个 Binary4 区域边界误用为全眼清孔径而停止。部分校准文件已保留在：
 
@@ -114,4 +118,4 @@ uv run python scripts/analyze_supplemental_experiments.py \
   --output-dir <analysis_combined>
 ```
 
-关键证据文件在写入最终代码提交号后应重新计算 SHA-256；CSV 数值文件本身不因代码提交号更新而改变。
+两份证据文件已写入最终代码提交号 `24ab474ec0e2cb60091315e5cca66ca387f7ccb1`，并已重新计算 SHA-256。
