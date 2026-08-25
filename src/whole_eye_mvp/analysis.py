@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
-from .domain import NOMINAL_MAIN_FFT_MTF_555_V2, OpticState
+from .domain import NOMINAL_MAIN_FFT_MTF_555_V2, AnalysisSettings, OpticState
 from .manifest import NominalConfig
 from .metrics import (
     distance_anchored_dof50,
@@ -127,6 +127,8 @@ def with_shape_axis(
     defocus_retina_d: Sequence[float],
     mtfa: Sequence[float],
     mtf_columns: Sequence[Sequence[float]],
+    *,
+    peak_window_d: float = 0.5,
 ) -> tuple[ThroughFocusRow, ...]:
     if len(mtf_columns) != 6:
         raise ValueError("six MTF columns at 10/20/30/40/50/60 cpd are required")
@@ -137,7 +139,7 @@ def with_shape_axis(
         raise ValueError("defocus samples must be finite")
     if not all(_all_finite(tuple(values)) for values in (mtfa, *mtf_columns)):
         raise ValueError("through-focus metric values must be finite")
-    peak = find_distance_peak(defocus_retina_d, mtfa)
+    peak = find_distance_peak(defocus_retina_d, mtfa, window_d=peak_window_d)
     return tuple(
         ThroughFocusRow(
             float(defocus_retina_d[index]),
@@ -149,12 +151,16 @@ def with_shape_axis(
     )
 
 
-def summarize_mtfa_curve(rows: Sequence[ThroughFocusRow]) -> dict[str, float | bool | None]:
+def summarize_mtfa_curve(
+    rows: Sequence[ThroughFocusRow],
+    *,
+    peak_window_d: float = 0.5,
+) -> dict[str, float | bool | None]:
     if not rows:
         raise ValueError("through-focus rows are required")
     defocus = tuple(row.defocus_retina_d for row in rows)
     mtfa_values = tuple(row.mtfa for row in rows)
-    peak = find_distance_peak(defocus, mtfa_values)
+    peak = find_distance_peak(defocus, mtfa_values, window_d=peak_window_d)
     dof50 = distance_anchored_dof50(defocus, mtfa_values, peak=peak)
     zero_rows = [row for row in rows if abs(row.defocus_retina_d) <= 1e-12]
     if len(zero_rows) != 1:
@@ -193,6 +199,8 @@ def validate_completed_result(
     require_files: bool = False,
     expected_config: NominalConfig | None = None,
     expected_run_id: str | None = None,
+    analysis_settings: AnalysisSettings = NOMINAL_MAIN_FFT_MTF_555_V2,
+    peak_window_d: float = 0.5,
 ) -> None:
     if expected_config is not None and result.config != expected_config:
         raise AnalysisError("backend returned a result for a different manifest config")
@@ -201,9 +209,9 @@ def validate_completed_result(
     if not result.run_id.strip():
         raise AnalysisError("result run_id is required")
 
-    expected_grid = NOMINAL_MAIN_FFT_MTF_555_V2.defocus_grid()
+    expected_grid = analysis_settings.defocus_grid()
     if len(result.rows) != len(expected_grid):
-        raise AnalysisError("nominal config must contain exactly 15 through-focus rows")
+        raise AnalysisError("config does not contain the requested through-focus rows")
     actual_grid = tuple(row.defocus_retina_d for row in result.rows)
     if actual_grid != expected_grid:
         raise AnalysisError("retina-anchored defocus grid differs from frozen settings")
@@ -251,7 +259,7 @@ def validate_completed_result(
     if not _all_finite(tuple(row_values)) or not _all_finite(scalar_values + optional_dof_values):
         raise AnalysisError("completed optical results must contain only finite numeric values")
 
-    summary = summarize_mtfa_curve(result.rows)
+    summary = summarize_mtfa_curve(result.rows, peak_window_d=peak_window_d)
     numeric_summary_fields = (
         "distance_peak_retina_d",
         "distance_peak_mtfa",
@@ -283,8 +291,8 @@ def validate_completed_result(
         if abs(row.defocus_shape_d - expected_shape) > 1e-12:
             raise AnalysisError("shape-recentered defocus axis is inconsistent with distance peak")
 
-    if result.analysis_settings_hash != settings_hash(NOMINAL_MAIN_FFT_MTF_555_V2):
-        raise AnalysisError("result analysis-settings hash differs from frozen FFT-MTF v2 settings")
+    if result.analysis_settings_hash != settings_hash(analysis_settings):
+        raise AnalysisError("result analysis-settings hash differs from requested settings")
     if result.hoa_settings_id != TASK009_MFE_FULL_HOA_555_V1.settings_id:
         raise AnalysisError("result HOA settings ID differs from the frozen TASK-009 contract")
     if result.hoa_settings_hash != TASK009_MFE_FULL_HOA_555_V1.settings_hash:

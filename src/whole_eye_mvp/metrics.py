@@ -86,18 +86,25 @@ def mtfa(
     return float(np.trapezoid(m, f) / max_cpd)
 
 
-def find_distance_peak(defocus_d: Sequence[float], values: Sequence[float]) -> DistancePeak:
+def find_distance_peak(
+    defocus_d: Sequence[float],
+    values: Sequence[float],
+    *,
+    window_d: float = 0.5,
+) -> DistancePeak:
     d = np.asarray(defocus_d, dtype=float)
     y = np.asarray(values, dtype=float)
     if d.shape != y.shape or d.ndim != 1 or d.size == 0:
         raise ValueError("defocus and values must be equal non-empty vectors")
-    search = (d >= -0.5 - 1e-12) & (d <= 0.5 + 1e-12) & np.isfinite(y)
+    if not np.isfinite(window_d) or window_d <= 0.0:
+        raise ValueError("distance-peak search window must be finite and positive")
+    search = (d >= -window_d - 1e-12) & (d <= window_d + 1e-12) & np.isfinite(y)
     if not np.any(search):
         raise ValueError("no finite samples in distance-peak search window")
     max_value = np.max(y[search])
     candidates = np.flatnonzero(search & np.isclose(y, max_value, rtol=0, atol=1e-12))
     index = min(candidates, key=lambda i: (abs(d[i]), -d[i]))
-    edge = np.isclose(abs(d[index]), 0.5, atol=1e-12)
+    edge = np.isclose(abs(d[index]), window_d, atol=1e-12)
     return DistancePeak(float(d[index]), float(y[index]), int(index), bool(edge))
 
 
