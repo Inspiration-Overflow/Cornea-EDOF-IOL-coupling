@@ -372,4 +372,3 @@ def common_threshold_metrics(
 def cycles_per_degree_to_cycles_mm(value_cpd: float, effective_focal_length_mm: float) -> float:
     result = cpd_to_cycles_mm([value_cpd], effective_focal_length_mm)
     return float(result[0])
-
