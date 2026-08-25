@@ -1,0 +1,20 @@
+{
+  "schema_version": "1",
+  "task_id": "delegate-20260824-claim-task-8c184b88",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "base_commit": "3c505763882330ef7f87703903619d62d9e172fb",
+  "dispatch_commit": "d80995757285408e555f45241974c104a8648903",
+  "task_branch": "delegate/delegate-20260824-claim-task-8c184b88",
+  "task_ref": ".delegate/delegate-20260824-claim-task-8c184b88/TASK.md",
+  "result_ref": ".delegate/delegate-20260824-claim-task-8c184b88/result.json",
+  "output_refs": [
+    ".delegate/delegate-20260824-claim-task-8c184b88/CLAIMED_TASK.md",
+    ".delegate/delegate-20260824-claim-task-8c184b88/result.json"
+  ],
+  "summary": "Claimed the conversation-defined supplemental experiment implementation objective for local Codex/ChatGPT Web collaboration, including the expanded 96-configuration through-focus sweep, the 24-configuration distance-component-anchored central-near cornea calibration branch, derived sensitivity analyses, frozen-model constraints, and acceptance criteria. No source implementation or optical experiment run was performed in this claim task.",
+  "limitations": [
+    "This delegated task only records the concrete work objective and result metadata; it does not implement the supplemental experiments.",
+    "Implementation-specific repository locations, APIs, and test commands remain for local Codex to resolve within the later authorized implementation scope.",
+    "No live Zemax/OpticStudio regression or other unapproved experiment execution was performed."
+  ]
+}
