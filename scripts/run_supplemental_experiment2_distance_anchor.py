@@ -24,12 +24,11 @@ from whole_eye_mvp.analysis_zos_r8_direct import (
     write_r8_aggregate_outputs,
 )
 from whole_eye_mvp.carriers import sha256_path
-from whole_eye_mvp.cornea_assets import distance_corrected_front_radius_mm
+from whole_eye_mvp.cornea_assets import MAIN_CORNEA_SCAFFOLD, distance_corrected_front_radius_mm
 from whole_eye_mvp.domain import (
     CURRENT_SCIENTIFIC_BASELINE_ID,
     ScientificBaseline,
 )
-from whole_eye_mvp.model_revision import MAIN_CORNEA_SCAFFOLD
 from whole_eye_mvp.revision_carrier_zos import build_revision_q0_analytical_carrier
 from whole_eye_mvp.revision_r6 import R6_MAX_PQ_RECHECK_CYCLES
 from whole_eye_mvp.revision_r6_zos import (
