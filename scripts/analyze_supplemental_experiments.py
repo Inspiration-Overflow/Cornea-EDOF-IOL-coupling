@@ -13,6 +13,7 @@ from pathlib import Path
 
 from whole_eye_mvp.supplemental_experiments import (
     BASE_IDS,
+    CENTRAL_NEAR_CORNEA_ID,
     CORNEA_IDS,
     OPTIC_STATES,
     PLATFORM_IDS,
@@ -190,6 +191,12 @@ def _pair_rows(configs: tuple[SupplementalConfig, ...], metrics):
             "delta_mtfa_at_zero_d": edof_metrics.mtfa_at_zero_d - mono_metrics.mtfa_at_zero_d,
             "delta_peak_mtfa": edof_metrics.peak_mtfa - mono_metrics.peak_mtfa,
             "delta_tf_mtfa_mean": edof_metrics.tf_mtfa_mean - mono_metrics.tf_mtfa_mean,
+            "mono_tf_mtfa_mean_original_window": mono_metrics.tf_mtfa_mean_original_window,
+            "edof_tf_mtfa_mean_original_window": edof_metrics.tf_mtfa_mean_original_window,
+            "delta_tf_mtfa_mean_original_window": (
+                edof_metrics.tf_mtfa_mean_original_window
+                - mono_metrics.tf_mtfa_mean_original_window
+            ),
         }
         for fraction in (0.30, 0.50, 0.70):
             mono_dof = mono_metrics.dof_by_threshold[fraction]
@@ -289,6 +296,138 @@ def _did_rows(configs, metrics):
     return output
 
 
+def _local_subrange_max(rows: tuple[SupplementalRow, ...]) -> float:
+    values = [
+        row.mtfa
+        for row in rows
+        if -2.25 - 1.0e-9 <= row.defocus_d <= -1.25 + 1.0e-9
+    ]
+    if not values:
+        raise SupplementalExperimentError(
+            "the -1.25 to -2.25 D local-shape interval is missing"
+        )
+    return max(values)
+
+
+def _strategy_metrics(
+    record: dict[str, object],
+    *,
+    prefix: str,
+    config: SupplementalConfig,
+    rows: dict[str, tuple[SupplementalRow, ...]],
+    metrics,
+) -> None:
+    derived = metrics[config.config_id]
+    record[f"{prefix}_config_id"] = config.config_id
+    record[f"{prefix}_carrier_key"] = config.carrier_key
+    record[f"{prefix}_peak_defocus_d"] = derived.peak_defocus_d
+    record[f"{prefix}_peak_mtfa"] = derived.peak_mtfa
+    record[f"{prefix}_peak_search_censored"] = derived.peak_search_censored
+    record[f"{prefix}_mtfa_at_zero_d"] = derived.mtfa_at_zero_d
+    record[f"{prefix}_tf_mtfa_mean"] = derived.tf_mtfa_mean
+    record[f"{prefix}_tf_mtfa_mean_original_window"] = derived.tf_mtfa_mean_original_window
+    local_max = _local_subrange_max(rows[config.config_id])
+    record[f"{prefix}_near_range_max_mtfa"] = local_max
+    record[f"{prefix}_near_range_to_peak_ratio"] = (
+        local_max / derived.peak_mtfa if derived.peak_mtfa > 0.0 else ""
+    )
+    for fraction in (0.30, 0.50, 0.70):
+        interval = derived.dof_by_threshold[fraction]
+        label = int(fraction * 100)
+        record[f"{prefix}_dof{label}_d"] = interval.width_d
+        record[f"{prefix}_dof{label}_far_censored"] = interval.far_censored
+        record[f"{prefix}_dof{label}_near_censored"] = interval.near_censored
+
+
+def _calibration_strategy_rows(
+    main_configs: tuple[SupplementalConfig, ...],
+    main_rows: dict[str, tuple[SupplementalRow, ...]],
+    main_metrics,
+    distance_configs: tuple[SupplementalConfig, ...],
+    distance_rows: dict[str, tuple[SupplementalRow, ...]],
+    distance_metrics,
+) -> list[dict[str, object]]:
+    main_index = {
+        (config.base_id, config.platform_id, config.pupil_mm, config.optic_state): config
+        for config in main_configs
+        if config.cornea_id == "C0"
+    }
+    distance_index = {
+        (config.base_id, config.platform_id, config.pupil_mm, config.optic_state): config
+        for config in distance_configs
+    }
+    expected = {
+        (base, platform, pupil, state)
+        for base in BASE_IDS
+        for platform in PLATFORM_IDS
+        for pupil in PUPIL_MM
+        for state in OPTIC_STATES
+    }
+    if set(main_index) != expected or set(distance_index) != expected:
+        raise SupplementalExperimentError(
+            "C0 calibration strategy comparison does not cover the exact 24 configurations"
+        )
+    output: list[dict[str, object]] = []
+    for base in BASE_IDS:
+        for platform in PLATFORM_IDS:
+            for pupil in PUPIL_MM:
+                record: dict[str, object] = {
+                    "base_id": base,
+                    "cornea_id": CENTRAL_NEAR_CORNEA_ID,
+                    "platform_id": platform,
+                    "pupil_mm": pupil,
+                    "full_eye_pair_key": main_index[(base, platform, pupil, "MONO")].pair_key,
+                    "distance_component_anchored_pair_key": distance_index[
+                        (base, platform, pupil, "MONO")
+                    ].pair_key,
+                }
+                for state in OPTIC_STATES:
+                    _strategy_metrics(
+                        record,
+                        prefix=f"full_eye_{state.lower()}",
+                        config=main_index[(base, platform, pupil, state)],
+                        rows=main_rows,
+                        metrics=main_metrics,
+                    )
+                    _strategy_metrics(
+                        record,
+                        prefix=f"distance_component_anchored_{state.lower()}",
+                        config=distance_index[(base, platform, pupil, state)],
+                        rows=distance_rows,
+                        metrics=distance_metrics,
+                    )
+                for strategy in ("full_eye", "distance_component_anchored"):
+                    mono = f"{strategy}_mono"
+                    edof = f"{strategy}_edof"
+                    record[f"{strategy}_delta_mtfa_at_zero_d"] = (
+                        record[f"{edof}_mtfa_at_zero_d"]
+                        - record[f"{mono}_mtfa_at_zero_d"]
+                    )
+                    record[f"{strategy}_delta_peak_mtfa"] = (
+                        record[f"{edof}_peak_mtfa"] - record[f"{mono}_peak_mtfa"]
+                    )
+                    record[f"{strategy}_delta_peak_defocus_d"] = (
+                        record[f"{edof}_peak_defocus_d"]
+                        - record[f"{mono}_peak_defocus_d"]
+                    )
+                    record[f"{strategy}_delta_tf_mtfa_mean_original_window"] = (
+                        record[f"{edof}_tf_mtfa_mean_original_window"]
+                        - record[f"{mono}_tf_mtfa_mean_original_window"]
+                    )
+                    for label in (30, 50, 70):
+                        record[f"{strategy}_delta_dof{label}_d"] = (
+                            record[f"{edof}_dof{label}_d"]
+                            - record[f"{mono}_dof{label}_d"]
+                        )
+                for label in (30, 50, 70):
+                    record[f"delta_delta_dof{label}_d_distance_minus_full_eye"] = (
+                        record[f"distance_component_anchored_delta_dof{label}_d"]
+                        - record[f"full_eye_delta_dof{label}_d"]
+                    )
+                output.append(record)
+    return output
+
+
 def _write_csv(path: Path, rows: list[dict[str, object]]) -> None:
     if not rows:
         raise SupplementalExperimentError(f"refusing to write empty output: {path.name}")
@@ -330,6 +469,17 @@ def main() -> None:
         distance_metrics = _metrics_by_config(distance_configs, distance_rows)
         _write_csv(output_dir / "SUPPLEMENTAL_DISTANCE_PAIR_ANALYSIS.csv", _pair_rows(distance_configs, distance_metrics))
         _write_csv(output_dir / "SUPPLEMENTAL_DISTANCE_30CPD_THROUGH_FOCUS.csv", _curve_rows(distance_rows))
+        _write_csv(
+            output_dir / "SUPPLEMENTAL_CALIBRATION_STRATEGY_COMPARISON.csv",
+            _calibration_strategy_rows(
+                configs,
+                rows,
+                metrics,
+                distance_configs,
+                distance_rows,
+                distance_metrics,
+            ),
+        )
 
 
 if __name__ == "__main__":

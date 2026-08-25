@@ -27,6 +27,7 @@ from whole_eye_mvp.analysis_zos_r8_direct import (
 )
 from whole_eye_mvp.domain import AnalysisSettings
 from whole_eye_mvp.quality import settings_hash
+from whole_eye_mvp.supplemental_artifacts import annotate_config_csv_with_original_window_mean
 from whole_eye_mvp.supplemental_experiments import SUPPLEMENTAL_DEFOCUS_GRID
 from whole_eye_mvp.zos import open_zos_session
 
@@ -136,6 +137,9 @@ def execute(
         through_focus_csv_name=SUPPLEMENTAL_THROUGH_FOCUS_NAME,
         paired_csv_name=SUPPLEMENTAL_PAIRED_NAME,
     )
+    annotate_config_csv_with_original_window_mean(
+        aggregate_paths["config_csv"], aggregate_paths["through_focus_csv"]
+    )
     evidence = {
         "schema_version": 1,
         "formal_artifact": True,
@@ -150,6 +154,9 @@ def execute(
         "analysis_settings_id": SUPPLEMENTAL_ANALYSIS_SETTINGS.settings_id,
         "analysis_settings_sha256": settings_hash(SUPPLEMENTAL_ANALYSIS_SETTINGS),
         "defocus_grid_retina_d": list(SUPPLEMENTAL_DEFOCUS_GRID),
+        "original_comparison_window_retina_d": [
+            value for value in SUPPLEMENTAL_DEFOCUS_GRID if -3.0 <= value <= 0.5
+        ],
         "peak_search_window_d": SUPPLEMENTAL_PEAK_WINDOW_D,
         "config_count": len(direct_run.results),
         "matched_pair_count": len(direct_run.paired_deltas),

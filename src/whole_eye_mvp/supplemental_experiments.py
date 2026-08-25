@@ -26,6 +26,8 @@ SUPPLEMENTAL_DEFOCUS_GRID = tuple(
 SUPPLEMENTAL_PEAK_SEARCH_MIN_D = -1.0
 SUPPLEMENTAL_PEAK_SEARCH_MAX_D = 1.0
 SUPPLEMENTAL_RELATIVE_THRESHOLDS = (0.30, 0.50, 0.70)
+ORIGINAL_WINDOW_START_D = 0.50
+ORIGINAL_WINDOW_STOP_D = -3.00
 CENTRAL_NEAR_CORNEA_ID = "C0"
 CENTRAL_NEAR_ADD_D = 1.75
 DISTANCE_COMPONENT_ANCHORED = "distance_component_anchored"
@@ -124,6 +126,7 @@ class SupplementalMetrics:
     peak_search_censored: bool
     mtfa_at_zero_d: float
     tf_mtfa_mean: float
+    tf_mtfa_mean_original_window: float
     dof_by_threshold: Mapping[float, DofInterval]
     common_threshold_dof: DofInterval | None
     mtf30_cpd_curve: tuple[tuple[float, float], ...]
@@ -184,16 +187,42 @@ def find_supplemental_distance_peak(
     return DistancePeak(float(d[index]), float(y[index]), index, censored)
 
 
-def _mean_curve(defocus_d: Sequence[float], values: Sequence[float]) -> float:
+def _mean_curve(
+    defocus_d: Sequence[float],
+    values: Sequence[float],
+    *,
+    expected_span_d: float = 6.0,
+) -> float:
     points = sorted(zip(defocus_d, values, strict=True))
     area = sum(
         (x1 - x0) * (y0 + y1) / 2.0
         for (x0, y0), (x1, y1) in pairwise(points)
     )
     span = points[-1][0] - points[0][0]
-    if not math.isclose(span, 6.0, abs_tol=ABS_TOL):
-        raise SupplementalExperimentError("expanded through-focus span must equal 6.00 D")
+    if not math.isclose(span, expected_span_d, abs_tol=ABS_TOL):
+        raise SupplementalExperimentError(
+            f"through-focus span must equal {expected_span_d:.2f} D"
+        )
     return float(area / span)
+
+
+def original_window_mean(rows: Sequence[SupplementalRow]) -> float:
+    """Return the mean MTFa over the original +0.50 to -3.00 D window."""
+
+    selected = [
+        row
+        for row in rows
+        if ORIGINAL_WINDOW_STOP_D - ABS_TOL
+        <= row.defocus_d
+        <= ORIGINAL_WINDOW_START_D + ABS_TOL
+    ]
+    if not selected:
+        raise SupplementalExperimentError("original through-focus window is missing")
+    return _mean_curve(
+        [row.defocus_d for row in selected],
+        [row.mtfa for row in selected],
+        expected_span_d=ORIGINAL_WINDOW_START_D - ORIGINAL_WINDOW_STOP_D,
+    )
 
 
 def derive_config_metrics(
@@ -236,6 +265,7 @@ def derive_config_metrics(
         peak_search_censored=peak.peak_search_censored,
         mtfa_at_zero_d=zero_rows[0].mtfa,
         tf_mtfa_mean=_mean_curve([row.defocus_d for row in ordered], mtfa),
+        tf_mtfa_mean_original_window=original_window_mean(ordered),
         dof_by_threshold=dof_by_threshold,
         common_threshold_dof=common_dof,
         mtf30_cpd_curve=tuple((row.defocus_d, row.mtf30_cpd) for row in ordered),

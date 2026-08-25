@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import csv
 import math
 from dataclasses import replace
+from itertools import pairwise
 
 import pytest
 
+from whole_eye_mvp.supplemental_artifacts import annotate_config_csv_with_original_window_mean
 from whole_eye_mvp.supplemental_experiments import (
     BASE_IDS,
     CENTRAL_NEAR_CORNEA_ID,
@@ -22,6 +25,7 @@ from whole_eye_mvp.supplemental_experiments import (
     derive_config_metrics,
     derive_difference_in_differences,
     find_supplemental_distance_peak,
+    original_window_mean,
     validate_distance_component_anchored_plan,
 )
 
@@ -82,6 +86,17 @@ def test_metrics_derive_three_relative_thresholds_and_30_cpd_curve() -> None:
     assert metrics.mtfa_at_zero_d == pytest.approx(1.0)
     assert len(metrics.mtf30_cpd_curve) == 49
     assert metrics.tf_mtfa_mean > 0.0
+
+    selected = sorted(
+        (row for row in _rows("config-1") if -3.0 <= row.defocus_d <= 0.5),
+        key=lambda row: row.defocus_d,
+    )
+    expected_area = sum(
+        (right.defocus_d - left.defocus_d) * (left.mtfa + right.mtfa) / 2.0
+        for left, right in pairwise(selected)
+    )
+    assert metrics.tf_mtfa_mean_original_window == pytest.approx(expected_area / 3.5)
+    assert original_window_mean(tuple(selected)) == pytest.approx(expected_area / 3.5)
 
 
 @pytest.mark.unit
@@ -190,3 +205,49 @@ def test_config_rejects_unknown_factor() -> None:
     )
     with pytest.raises(SupplementalExperimentError, match="unsupported cornea"):
         config.validate()
+
+
+@pytest.mark.unit
+def test_config_artifact_records_original_window_mean(tmp_path) -> None:
+    points = _rows("config-1")
+    config_path = tmp_path / "config.csv"
+    through_focus_path = tmp_path / "through_focus.csv"
+    with config_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=["config_id"])
+        writer.writeheader()
+        writer.writerow({"config_id": "config-1"})
+    with through_focus_path.open("w", encoding="utf-8", newline="") as handle:
+        fieldnames = [
+            "config_id",
+            "pair_key",
+            "base_id",
+            "cornea_id",
+            "platform_id",
+            "pupil_mm",
+            "optic_state",
+            "defocus_d",
+            "mtfa",
+            "mtf30_cpd",
+        ]
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(
+            {
+                "config_id": row.config_id,
+                "pair_key": row.pair_key,
+                "base_id": row.base_id,
+                "cornea_id": row.cornea_id,
+                "platform_id": row.platform_id,
+                "pupil_mm": row.pupil_mm,
+                "optic_state": row.optic_state,
+                "defocus_d": row.defocus_d,
+                "mtfa": row.mtfa,
+                "mtf30_cpd": row.mtf30_cpd,
+            }
+            for row in points
+        )
+
+    assert annotate_config_csv_with_original_window_mean(config_path, through_focus_path) == 1
+    with config_path.open("r", encoding="utf-8", newline="") as handle:
+        result = next(csv.DictReader(handle))
+    assert float(result["tf_mtfa_mean_original_window"]) > 0.0

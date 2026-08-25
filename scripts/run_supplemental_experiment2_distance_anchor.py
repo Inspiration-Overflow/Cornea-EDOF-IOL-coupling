@@ -38,6 +38,7 @@ from whole_eye_mvp.revision_r6_zos import (
     solve_revision_platform_carrier,
 )
 from whole_eye_mvp.standard_eye import RELATIVE_PATH as STANDARD_EYE_RELATIVE_PATH
+from whole_eye_mvp.supplemental_artifacts import annotate_config_csv_with_original_window_mean
 from whole_eye_mvp.zos import Binary4Zone, SequentialEditor, open_zos_session
 from whole_eye_mvp.zos.primitives import binary4_zone_columns
 
@@ -331,6 +332,9 @@ def execute(*, install_dir: Path, project_dir: Path) -> dict[str, object]:
         paired_csv_name=PAIRED_NAME,
     )
     _annotate_distance_config_csv(aggregate_paths["config_csv"])
+    annotate_config_csv_with_original_window_mean(
+        aggregate_paths["config_csv"], aggregate_paths["through_focus_csv"]
+    )
     evidence = {
         "schema_version": 1,
         "formal_artifact": True,
@@ -344,6 +348,11 @@ def execute(*, install_dir: Path, project_dir: Path) -> dict[str, object]:
         "distance_only_cornea_sha256": _sha256(distance_cornea),
         "analysis_settings_id": SUPPLEMENTAL_ANALYSIS_SETTINGS.settings_id,
         "defocus_grid_retina_d": list(SUPPLEMENTAL_ANALYSIS_SETTINGS.defocus_grid()),
+        "original_comparison_window_retina_d": [
+            value
+            for value in SUPPLEMENTAL_ANALYSIS_SETTINGS.defocus_grid()
+            if -3.0 <= value <= 0.5
+        ],
         "peak_search_window_d": SUPPLEMENTAL_PEAK_WINDOW_D,
         "config_count": len(direct_run.results),
         "matched_pair_count": len(direct_run.paired_deltas),
