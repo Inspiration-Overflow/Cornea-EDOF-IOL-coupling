@@ -1,0 +1,27 @@
+{
+  "schema_version": "1",
+  "task_id": "delegate-20260824-claim-task-8c184b88",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "base_commit": "3c505763882330ef7f87703903619d62d9e172fb",
+  "task_branch": "delegate/delegate-20260824-claim-task-8c184b88",
+  "task_ref": ".delegate/delegate-20260824-claim-task-8c184b88/TASK.md",
+  "result_ref": ".delegate/delegate-20260824-claim-task-8c184b88/result.json",
+  "authorized_read_paths": [
+    "README.md",
+    "pyproject.toml",
+    "docs/"
+  ],
+  "authorized_write_paths": [
+    ".delegate/delegate-20260824-claim-task-8c184b88/CLAIMED_TASK.md",
+    ".delegate/delegate-20260824-claim-task-8c184b88/result.json"
+  ],
+  "expected_outputs": [
+    ".delegate/delegate-20260824-claim-task-8c184b88/CLAIMED_TASK.md",
+    ".delegate/delegate-20260824-claim-task-8c184b88/result.json"
+  ],
+  "conversation_mode": "existing",
+  "conversation_url": "https://chatgpt.com/g/g-p-6a80c8f34f808191bf8b0b22dc82e922-jiao-mo-qu-guang-shou-zhu-yu-edof-iol/c/6a8d0ace-5bc8-83e8-81cf-6dbf2d86b482",
+  "timeout_policy": "one bounded browser observation period; stop on missing capability, permission request, or ambiguous page state",
+  "retry_policy": "no resend after a verified send; no result retry unless the first attempt is explicitly failed before any result commit",
+  "transport_mode": "github_direct"
+}
