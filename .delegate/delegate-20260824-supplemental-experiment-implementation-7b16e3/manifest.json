@@ -1,0 +1,37 @@
+{
+  "schema_version": "1",
+  "task_id": "delegate-20260824-supplemental-experiment-implementation-7b16e3",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "base_ref": "origin/main",
+  "base_commit": "ef407958303be8736f56b17a8c43de3398343466",
+  "task_branch": "delegate/supplemental-experiment-implementation-20260824",
+  "task_ref": ".delegate/delegate-20260824-supplemental-experiment-implementation-7b16e3/TASK.md",
+  "result_ref": ".delegate/delegate-20260824-supplemental-experiment-implementation-7b16e3/result.json",
+  "authorized_read_paths": [
+    "README.md",
+    "pyproject.toml",
+    "docs/",
+    "src/whole_eye_mvp/",
+    "scripts/",
+    "tests/unit/"
+  ],
+  "authorized_write_paths": [
+    "src/whole_eye_mvp/supplemental_experiments.py",
+    "scripts/analyze_supplemental_experiments.py",
+    "tests/unit/test_supplemental_experiments.py",
+    "docs/SUPPLEMENTAL_EXPERIMENT_IMPLEMENTATION_2026-08-24.md",
+    ".delegate/delegate-20260824-supplemental-experiment-implementation-7b16e3/"
+  ],
+  "expected_outputs": [
+    "src/whole_eye_mvp/supplemental_experiments.py",
+    "scripts/analyze_supplemental_experiments.py",
+    "tests/unit/test_supplemental_experiments.py",
+    "docs/SUPPLEMENTAL_EXPERIMENT_IMPLEMENTATION_2026-08-24.md",
+    ".delegate/delegate-20260824-supplemental-experiment-implementation-7b16e3/result.json"
+  ],
+  "transport_mode": "github_direct",
+  "conversation_mode": "existing",
+  "conversation_url": "https://chatgpt.com/g/g-p-6a80c8f34f808191bf8b0b22dc82e922-jiao-mo-qu-guang-shou-zhu-yu-edof-iol/c/6a8d0ace-5bc8-83e8-81cf-6dbf2d86b482",
+  "timeout_policy": "bounded observation; no repeated send after a verified receipt",
+  "retry_policy": "one dispatch only; stop on capability, scope, branch, or page mismatch"
+}
