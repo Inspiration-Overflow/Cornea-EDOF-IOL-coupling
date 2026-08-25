@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
 import os
@@ -191,6 +192,45 @@ def _make_specs(model_paths: dict[tuple[str, str, str], Path]) -> tuple[DirectMo
     return tuple(specs)
 
 
+def _annotate_distance_config_csv(path: Path) -> None:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    if len(rows) != 24:
+        raise RuntimeError(f"experiment 2 config CSV must contain 24 rows, got {len(rows)}")
+    fields = list(rows[0])
+    for field in (
+        "calibration_strategy",
+        "carrier_key",
+        "near_add_d",
+        "near_add_zeroed_for_solve",
+        "carrier_frozen",
+        "near_add_restored",
+        "post_restore_iol_power_solves",
+        "post_restore_refocus_count",
+        "post_restore_carrier_optimizations",
+    ):
+        if field not in fields:
+            fields.append(field)
+    for row in rows:
+        row.update(
+            {
+                "calibration_strategy": "distance_component_anchored",
+                "carrier_key": row["carrier_id"],
+                "near_add_d": str(CENTRAL_NEAR_ADD_D),
+                "near_add_zeroed_for_solve": "True",
+                "carrier_frozen": "True",
+                "near_add_restored": "True",
+                "post_restore_iol_power_solves": "0",
+                "post_restore_refocus_count": "0",
+                "post_restore_carrier_optimizations": "0",
+            }
+        )
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
 def execute(*, install_dir: Path, project_dir: Path) -> dict[str, object]:
     source = (project_dir / C0_SOURCE_RELATIVE).resolve()
     standard_eye = (project_dir / STANDARD_EYE_RELATIVE_PATH).resolve()
@@ -289,6 +329,7 @@ def execute(*, install_dir: Path, project_dir: Path) -> dict[str, object]:
         through_focus_csv_name=THROUGH_FOCUS_NAME,
         paired_csv_name=PAIRED_NAME,
     )
+    _annotate_distance_config_csv(aggregate_paths["config_csv"])
     evidence = {
         "schema_version": 1,
         "formal_artifact": True,
