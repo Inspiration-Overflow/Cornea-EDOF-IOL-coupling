@@ -30,6 +30,7 @@ from whole_eye_mvp.domain import (
     CURRENT_SCIENTIFIC_BASELINE_ID,
     ScientificBaseline,
 )
+from whole_eye_mvp.model_revision import CORNEA_CLEAR_SEMI_DIAMETER_MM
 from whole_eye_mvp.revision_carrier_zos import build_revision_q0_analytical_carrier
 from whole_eye_mvp.revision_r6 import R6_MAX_PQ_RECHECK_CYCLES
 from whole_eye_mvp.revision_r6_zos import (
@@ -136,7 +137,7 @@ def _build_distance_only_cornea(session, source: Path, destination: Path) -> tup
     editor = SequentialEditor(session.system, session.zosapi)
     editor.configure_binary4(1, zones)
     editor.set_radius_conic(1, radius_mm=distance_radius, conic=MAIN_CORNEA_SCAFFOLD.front_conic)
-    editor.surface(1).SemiDiameter = zones[-1].radial_aperture
+    editor.surface(1).SemiDiameter = CORNEA_CLEAR_SEMI_DIAMETER_MM
     destination.parent.mkdir(parents=True, exist_ok=True)
     editor.save_as(destination)
     return original_zones
@@ -156,7 +157,7 @@ def _restore_c0_cornea(
         radius_mm=original_zones[0].radius,
         conic=original_zones[0].conic,
     )
-    editor.surface(1).SemiDiameter = original_zones[-1].radial_aperture
+    editor.surface(1).SemiDiameter = CORNEA_CLEAR_SEMI_DIAMETER_MM
     editor.save_as(destination)
 
 

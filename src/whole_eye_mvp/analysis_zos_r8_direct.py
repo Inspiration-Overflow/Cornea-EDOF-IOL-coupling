@@ -917,12 +917,20 @@ class R8DirectModelAcquisitionAdapter:
 def matched_pair_delta_direct(
     mono: ConfigResult,
     edof: ConfigResult,
+    *,
+    analysis_settings: AnalysisSettings = NOMINAL_MAIN_FFT_MTF_555_V2,
+    peak_search_window_d: float = 0.5,
 ) -> MatchedPairDelta:
     """Use the existing delta contract after direct-model provenance is attached to configs."""
 
     from .analysis import matched_pair_delta
 
-    return matched_pair_delta(mono, edof)
+    return matched_pair_delta(
+        mono,
+        edof,
+        analysis_settings=analysis_settings,
+        peak_window_d=peak_search_window_d,
+    )
 
 
 def build_direct_run(
@@ -933,6 +941,8 @@ def build_direct_run(
     references: Mapping[str, PairAngularScaleReference],
     source_model_sha256: Mapping[str, str],
     through_focus_planes: int = 15,
+    analysis_settings: AnalysisSettings = NOMINAL_MAIN_FFT_MTF_555_V2,
+    peak_search_window_d: float = 0.5,
 ) -> R8DirectRun:
     config_count = len(results)
     pair_count = len(pairs)
@@ -954,7 +964,14 @@ def build_direct_run(
             raise R8DirectAcquisitionError(
                 f"R8 matched pair result is missing: {pair.pair_key}"
             ) from exc
-        deltas.append(matched_pair_delta_direct(mono, edof))
+        deltas.append(
+            matched_pair_delta_direct(
+                mono,
+                edof,
+                analysis_settings=analysis_settings,
+                peak_search_window_d=peak_search_window_d,
+            )
+        )
     if len(deltas) != pair_count:
         raise R8DirectAcquisitionError(
             "direct run did not reconstruct every matched pair delta"
@@ -1053,6 +1070,8 @@ def run_r8_direct_acquisition(
         references=references,
         source_model_sha256=source_map,
         through_focus_planes=len(analysis_settings.defocus_grid()),
+        analysis_settings=analysis_settings,
+        peak_search_window_d=peak_search_window_d,
     )
     return direct_run, backend.diagnostics
 

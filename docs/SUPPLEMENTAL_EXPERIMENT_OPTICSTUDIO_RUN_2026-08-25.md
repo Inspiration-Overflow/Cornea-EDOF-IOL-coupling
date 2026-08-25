@@ -1,0 +1,117 @@
+# 补充实验 OpticStudio 本地执行记录
+
+## 状态
+
+实验一和实验二均已在本地 OpticStudio 2026 R1.00 完成。结果文件位于原项目的 `project_mvp_2026_v2_zmx/diagnostics/supplemental_experiments` 目录；主分析目录未被覆盖。
+
+ChatGPT Web 本轮没有返回可验证的代码提交或审查回执。以下代码和数值结果由当前分支的本地实现以及本地 OpticStudio 执行产生。没有在未取得新的消息确认时向网页会话发送代表用户的消息。
+
+## 固定分析设置
+
+- 波长：555 nm。
+- 瞳孔：3 mm、5 mm。
+- 贯焦网格：`+1.000 D` 到 `-5.000 D`，步长 `-0.125 D`，共 49 个平面。
+- 远焦峰值搜索范围：`[-1.000 D, +1.000 D]`。
+- MTF 频率网格：0 到 60 cpd，步长 1 cpd。
+- 远焦峰值和阈值交点的删失标记保留在结果中；没有扩展 `-5.000 D` 以外的采样范围。
+
+## 实验一：96 配置
+
+实验一的正式结果目录：
+
+`C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment1_96`
+
+结果规模：
+
+- 配置：96。
+- MONO/EDOF 配对：48。
+- 贯焦数据：4704 行，即 `96 × 49`。
+- 本地采集校验：通过。
+
+96 个配置的 OpticStudio 采集均已完成。首次运行在汇总阶段发现匹配配对校验仍使用默认 15 平面设置；因此保留已完成的 96 个配置结果，修正设置传递后重新构建汇总文件，没有重新计算光学结果。
+
+文件：
+
+- [实验一证据](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment1_96\SUPPLEMENTAL_EXPERIMENT_1_96_EVIDENCE.json)
+- [配置结果](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment1_96\SUPPLEMENTAL_EXPERIMENT_1_CONFIG_RESULTS.csv)
+- [贯焦结果](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment1_96\SUPPLEMENTAL_EXPERIMENT_1_THROUGH_FOCUS.csv)
+- [配对差值](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment1_96\SUPPLEMENTAL_EXPERIMENT_1_PAIRED_DELTAS.csv)
+
+## 实验二：C0 距离分量锚定
+
+实验二的正式结果目录：
+
+`C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment2_distance_anchor`
+
+结果规模：
+
+- 配置：24，即 `2 bases × 3 platforms × 2 optic states × 2 pupils`。
+- MONO/EDOF 配对：12。
+- 贯焦数据：1176 行，即 `24 × 49`。
+- 校准记录：6，即 `2 bases × 3 platforms`。
+- 本地采集校验：通过。
+
+每一行配置结果均满足以下字段：
+
+- `calibration_strategy=distance_component_anchored`。
+- `near_add_d=1.75`。
+- `near_add_zeroed_for_solve=True`。
+- `carrier_frozen=True`。
+- `near_add_restored=True`。
+- 恢复近附加后 IOL 度数求解、重新定焦和载体优化次数均为 0。
+- 每个配置均有 49 行贯焦数据。
+
+实验路径使用 5 mm 的全眼角膜清孔径，同时保留 C0 Binary4 区域边界；这与 R6/R7 冻结几何一致。MONO 和 EDOF 使用相同 `carrier_key`，EDOF 只保留其自身延焦结构。
+
+文件：
+
+- [实验二证据](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment2_distance_anchor\SUPPLEMENTAL_EXPERIMENT_2_DISTANCE_ANCHOR_EVIDENCE.json)
+- [配置结果](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment2_distance_anchor\SUPPLEMENTAL_EXPERIMENT_2_CONFIG_RESULTS.csv)
+- [贯焦结果](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment2_distance_anchor\SUPPLEMENTAL_EXPERIMENT_2_THROUGH_FOCUS.csv)
+- [配对差值](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment2_distance_anchor\SUPPLEMENTAL_EXPERIMENT_2_PAIRED_DELTAS.csv)
+
+首次实验二尝试因恢复 C0 角膜时把半径 3.25 mm 的最后一个 Binary4 区域边界误用为全眼清孔径而停止。部分校准文件已保留在：
+
+`C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment2_distance_anchor_failed_geometry_20260825`
+
+正式结果来自修正后的第二次运行。
+
+## 联合派生分析
+
+联合分析输出目录：
+
+`C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\analysis_combined`
+
+输出规模：
+
+- `SUPPLEMENTAL_30CPD_THROUGH_FOCUS.csv`：4704 行。
+- `SUPPLEMENTAL_COMMON_THRESHOLD.csv`：96 行。
+- `SUPPLEMENTAL_DID.csv`：108 行。
+- `SUPPLEMENTAL_PAIR_ANALYSIS.csv`：48 行。
+- `SUPPLEMENTAL_DISTANCE_30CPD_THROUGH_FOCUS.csv`：1176 行。
+- `SUPPLEMENTAL_DISTANCE_PAIR_ANALYSIS.csv`：12 行。
+
+共同阈值使用每个 base、pupil、mechanism 下 N0+MONO 的 50% 峰值作为参考。DID 和 DOF 汇总保留 `exact`、`lower_bound`、`indeterminate` 等状态以及远近端删失字段；删失结果没有被改写成精确数值。
+
+## 代码和验证
+
+本次收尾涉及：
+
+- `src/whole_eye_mvp/analysis.py`：匹配配对校验支持自定义贯焦设置和峰值搜索窗口。
+- `src/whole_eye_mvp/analysis_zos_r8_direct.py`：直接采集汇总将自定义设置传递到配对差值校验，并支持动态配置数、配对数和平面数。
+- `scripts/run_supplemental_experiment2_distance_anchor.py`：距离分量锚定路径使用冻结的 5 mm 全眼清孔径。
+- `tests/unit/test_analysis.py`：增加 49 平面匹配配对回归测试。
+
+验证命令：
+
+```text
+uv run pytest tests/unit/test_analysis.py tests/unit/test_analysis_zos_r8_direct.py -q
+uv run python scripts/analyze_supplemental_experiments.py \
+  --config-csv <experiment1_96/SUPPLEMENTAL_EXPERIMENT_1_CONFIG_RESULTS.csv> \
+  --through-focus-csv <experiment1_96/SUPPLEMENTAL_EXPERIMENT_1_THROUGH_FOCUS.csv> \
+  --distance-config-csv <experiment2_distance_anchor/SUPPLEMENTAL_EXPERIMENT_2_CONFIG_RESULTS.csv> \
+  --distance-through-focus-csv <experiment2_distance_anchor/SUPPLEMENTAL_EXPERIMENT_2_THROUGH_FOCUS.csv> \
+  --output-dir <analysis_combined>
+```
+
+关键证据文件在写入最终代码提交号后应重新计算 SHA-256；CSV 数值文件本身不因代码提交号更新而改变。

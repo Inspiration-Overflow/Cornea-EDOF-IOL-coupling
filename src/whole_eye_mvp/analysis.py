@@ -372,9 +372,23 @@ def _validate_matched_config_invariants(mono: NominalConfig, edof: NominalConfig
         raise AnalysisError("matched EDOF config is missing residual provenance")
 
 
-def matched_pair_delta(mono: ConfigResult, edof: ConfigResult) -> MatchedPairDelta:
-    validate_completed_result(mono)
-    validate_completed_result(edof)
+def matched_pair_delta(
+    mono: ConfigResult,
+    edof: ConfigResult,
+    *,
+    analysis_settings: AnalysisSettings = NOMINAL_MAIN_FFT_MTF_555_V2,
+    peak_window_d: float = 0.5,
+) -> MatchedPairDelta:
+    validate_completed_result(
+        mono,
+        analysis_settings=analysis_settings,
+        peak_window_d=peak_window_d,
+    )
+    validate_completed_result(
+        edof,
+        analysis_settings=analysis_settings,
+        peak_window_d=peak_window_d,
+    )
     if mono.config.pair_key != edof.config.pair_key:
         raise AnalysisError("results are not a matched pair")
     if mono.config.optic_state != OpticState.MONO or edof.config.optic_state != OpticState.EDOF:
