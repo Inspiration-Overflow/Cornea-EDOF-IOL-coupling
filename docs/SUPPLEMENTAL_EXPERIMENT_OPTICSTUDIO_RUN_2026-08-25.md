@@ -38,7 +38,7 @@ ChatGPT Web 本轮没有返回可验证的代码提交或审查回执。以下�
 - [贯焦结果](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment1_96\SUPPLEMENTAL_EXPERIMENT_1_THROUGH_FOCUS.csv)
 - [配对差值](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment1_96\SUPPLEMENTAL_EXPERIMENT_1_PAIRED_DELTAS.csv)
 
-实验一文件 SHA-256：证据 `01e53f7d7bd8b68ca97831d84846b426c9f3b4663b3c53be64cec8dd0551db25`，配置 CSV `0a04ca41e6b64f90a69f287f899711530dbddaf4b07b2c916c096ec9add8d1c2`，贯焦 CSV `112f1b4e5167dc70a5b3be3b82e3e5760ba6b93356e20146b283db7b874ac41f`，配对 CSV `05bbeb142c628c573996f49c3209a740154a67087f7a0f5f177f89c51108b6c6`。
+实验一文件 SHA-256：证据 `2c9c26bda3c38aa67cdec4a0601f98043ca86d382ceee719f9f8ccc635cbd659`，配置 CSV `0a04ca41e6b64f90a69f287f899711530dbddaf4b07b2c916c096ec9add8d1c2`，贯焦 CSV `112f1b4e5167dc70a5b3be3b82e3e5760ba6b93356e20146b283db7b874ac41f`，配对 CSV `05bbeb142c628c573996f49c3209a740154a67087f7a0f5f177f89c51108b6c6`。
 
 ## 实验二：C0 距离分量锚定
 
@@ -73,7 +73,7 @@ ChatGPT Web 本轮没有返回可验证的代码提交或审查回执。以下�
 - [贯焦结果](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment2_distance_anchor\SUPPLEMENTAL_EXPERIMENT_2_THROUGH_FOCUS.csv)
 - [配对差值](C:\Users\golde\code\inspiration-overflow\Cornea-EDOF-IOL-coupling\project_mvp_2026_v2_zmx\diagnostics\supplemental_experiments\experiment2_distance_anchor\SUPPLEMENTAL_EXPERIMENT_2_PAIRED_DELTAS.csv)
 
-实验二文件 SHA-256：证据 `cf3eda62385cdb89f637fc160b7caee43df2b3b7e304fa2c01e403af4237e665`，配置 CSV `063c3aebea019bac3b5ce7bad3039e274a0406e8a9822ded4a08d7256cf8b19a`，贯焦 CSV `aacff338a8f14b5f93dce863efce04d09b3fb0a583a7d32cbb2607898fb456d1`，配对 CSV `3cc62be81cf11001dfe7dd539d6ebe2bb229a08ae9c19ba91a27ac7969de440d`。
+实验二文件 SHA-256：证据 `1749da6cb154dc801a3d724aacf9e364c0bd7cd661bb7d4c68744f233fe16e22`，配置 CSV `063c3aebea019bac3b5ce7bad3039e274a0406e8a9822ded4a08d7256cf8b19a`，贯焦 CSV `aacff338a8f14b5f93dce863efce04d09b3fb0a583a7d32cbb2607898fb456d1`，配对 CSV `3cc62be81cf11001dfe7dd539d6ebe2bb229a08ae9c19ba91a27ac7969de440d`。
 
 首次实验二尝试因恢复 C0 角膜时把半径 3.25 mm 的最后一个 Binary4 区域边界误用为全眼清孔径而停止。部分校准文件已保留在：
 
@@ -132,4 +132,4 @@ uv run python scripts/analyze_supplemental_experiments.py \
   --output-dir <analysis_combined>
 ```
 
-两份证据文件已写入最终代码提交号 `24ab474ec0e2cb60091315e5cca66ca387f7ccb1`，并已重新计算 SHA-256。
+两份证据文件已写入最终实现提交号 `9862fb559bfa3cdd3e4bcbdba20d6b6aecc9fd7e`，并已重新计算 SHA-256。
