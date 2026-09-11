@@ -28,7 +28,7 @@ from whole_eye_mvp.analysis_zos_r8_direct import (
     verify_direct_model_sources,
     write_r8_aggregate_outputs,
 )
-from whole_eye_mvp.domain import NOMINAL_MAIN_FFT_MTF_555_V2, OpticState
+from whole_eye_mvp.domain import NOMINAL_MAIN_FFT_MTF_555_V2, AnalysisSettings, OpticState
 from whole_eye_mvp.extension96_analysis import EXPECTED_DEFOCUS_GRID, PUPIL_MM
 from whole_eye_mvp.quality import settings_hash
 from whole_eye_mvp.revision_r5_2 import R5_2_FREEZE_ID
@@ -104,13 +104,19 @@ def _pupil_values() -> tuple[float, ...]:
     return tuple(float(value) for value in PUPIL_MM)
 
 
-def focus_grid_d() -> tuple[float, ...]:
-    """Return the accepted 15-plane through-focus grid without redefining it."""
+def focus_grid_d(
+    analysis_settings: AnalysisSettings = NOMINAL_MAIN_FFT_MTF_555_V2,
+) -> tuple[float, ...]:
+    """Return the through-focus grid belonging to the supplied settings."""
 
-    return tuple(float(value) for value in EXPECTED_DEFOCUS_GRID)
+    if analysis_settings == NOMINAL_MAIN_FFT_MTF_555_V2:
+        return tuple(float(value) for value in EXPECTED_DEFOCUS_GRID)
+    return tuple(float(value) for value in analysis_settings.defocus_grid())
 
 
-def build_r8_plan() -> tuple[R8ConfigPlan, ...]:
+def build_r8_plan(
+    analysis_settings: AnalysisSettings = NOMINAL_MAIN_FFT_MTF_555_V2,
+) -> tuple[R8ConfigPlan, ...]:
     """Build the deterministic 24-carrier x 2-state x 2-pupil R8 plan."""
 
     rows: list[R8ConfigPlan] = []
@@ -135,11 +141,15 @@ def build_r8_plan() -> tuple[R8ConfigPlan, ...]:
                     )
                 )
     plan = tuple(rows)
-    validate_r8_plan(plan)
+    validate_r8_plan(plan, analysis_settings=analysis_settings)
     return plan
 
 
-def validate_r8_plan(plan: Sequence[R8ConfigPlan]) -> None:
+def validate_r8_plan(
+    plan: Sequence[R8ConfigPlan],
+    *,
+    analysis_settings: AnalysisSettings = NOMINAL_MAIN_FFT_MTF_555_V2,
+) -> None:
     """Fail closed unless the plan is the exact approved 96-config factorial."""
 
     if len(plan) != R8_EXPECTED_CONFIG_COUNT:
@@ -201,17 +211,25 @@ def validate_r8_plan(plan: Sequence[R8ConfigPlan]) -> None:
         raise R8PlanError("R8 physical pupil set differs from the accepted R6 3/5-mm set")
     if {row.optic_state for row in plan} != expected_states:
         raise R8PlanError("R8 optic-state set drift")
-    grid = focus_grid_d()
-    if len(grid) != 15:
-        raise R8PlanError(f"R8 requires 15 through-focus planes, got {len(grid)}")
-    if len(plan) * len(grid) != R8_EXPECTED_THROUGH_FOCUS_ROWS:
-        raise R8PlanError("R8 through-focus row count is not exactly 1440")
+    grid = focus_grid_d(analysis_settings)
+    expected_rows = len(plan) * len(grid)
+    if not grid:
+        raise R8PlanError("R8 requires a non-empty through-focus grid")
+    if analysis_settings == NOMINAL_MAIN_FFT_MTF_555_V2:
+        if len(grid) != 15:
+            raise R8PlanError(f"R8 requires 15 through-focus planes, got {len(grid)}")
+        if expected_rows != R8_EXPECTED_THROUGH_FOCUS_ROWS:
+            raise R8PlanError("R8 through-focus row count is not exactly 1440")
     if len({row.model_artifact_key for row in plan}) != R8_EXPECTED_MODEL_COUNT:
         raise R8PlanError("R8 must resolve exactly 48 immutable MONO/EDOF model inputs")
 
 
-def r8_contract_summary(plan: Sequence[R8ConfigPlan]) -> dict[str, object]:
-    validate_r8_plan(plan)
+def r8_contract_summary(
+    plan: Sequence[R8ConfigPlan],
+    *,
+    analysis_settings: AnalysisSettings = NOMINAL_MAIN_FFT_MTF_555_V2,
+) -> dict[str, object]:
+    validate_r8_plan(plan, analysis_settings=analysis_settings)
     return {
         "task_id": TASK_ID,
         "phase": R8_PHASE,
@@ -219,11 +237,11 @@ def r8_contract_summary(plan: Sequence[R8ConfigPlan]) -> dict[str, object]:
         "carrier_count": R6_EXPECTED_CARRIER_COUNT,
         "config_count": len(plan),
         "matched_pairs": len({row.pair_key for row in plan}),
-        "through_focus_planes_per_config": len(focus_grid_d()),
-        "through_focus_rows": len(plan) * len(focus_grid_d()),
+        "through_focus_planes_per_config": len(focus_grid_d(analysis_settings)),
+        "through_focus_rows": len(plan) * len(focus_grid_d(analysis_settings)),
         "physical_pupils_mm": list(_pupil_values()),
         "optic_states": list(_state_values()),
-        "focus_grid_retina_d": list(focus_grid_d()),
+        "focus_grid_retina_d": list(focus_grid_d(analysis_settings)),
         "authorization_required": True,
         "direct_model_adapter_implemented": True,
         "execution_ready_after_preflight": True,
@@ -254,10 +272,12 @@ def _is_sha256(value: object) -> bool:
 def validate_r6_r7_evidence_payload(
     payload: Mapping[str, object],
     plan: Sequence[R8ConfigPlan],
+    *,
+    analysis_settings: AnalysisSettings = NOMINAL_MAIN_FFT_MTF_555_V2,
 ) -> dict[str, str]:
     """Validate the completed R6/R7 evidence needed as immutable R8 input."""
 
-    validate_r8_plan(plan)
+    validate_r8_plan(plan, analysis_settings=analysis_settings)
     expected = {
         "schema_version": 1,
         "formal_artifact": False,
@@ -389,18 +409,23 @@ def _load_json(path: Path) -> Mapping[str, object]:
 def _preflight_inputs(
     project_dir: Path,
     evidence_path: Path | None = None,
+    analysis_settings: AnalysisSettings = NOMINAL_MAIN_FFT_MTF_555_V2,
 ) -> tuple[tuple[R8ConfigPlan, ...], dict[str, str], Path, dict[str, object]]:
-    plan = build_r8_plan()
+    plan = build_r8_plan(analysis_settings)
     report_path = (
         evidence_path.resolve()
         if evidence_path is not None
         else project_dir / R6_R7_OUTPUT_RELATIVE / R6_R7_REPORT_NAME
     )
     payload = _load_json(report_path)
-    hashes = validate_r6_r7_evidence_payload(payload, plan)
+    hashes = validate_r6_r7_evidence_payload(
+        payload,
+        plan,
+        analysis_settings=analysis_settings,
+    )
     verify_r6_r7_model_files(project_dir, hashes)
     status = {
-        **r8_contract_summary(plan),
+        **r8_contract_summary(plan, analysis_settings=analysis_settings),
         "r6_r7_evidence_path": str(report_path.resolve()),
         "r6_r7_evidence_sha256": _sha256(report_path),
         "r6_r7_serialized_model_hashes_verified": len(hashes),
@@ -410,8 +435,12 @@ def _preflight_inputs(
     return plan, hashes, report_path.resolve(), status
 
 
-def preflight(project_dir: Path, evidence_path: Path | None = None) -> dict[str, object]:
-    return _preflight_inputs(project_dir, evidence_path)[3]
+def preflight(
+    project_dir: Path,
+    evidence_path: Path | None = None,
+    analysis_settings: AnalysisSettings = NOMINAL_MAIN_FFT_MTF_555_V2,
+) -> dict[str, object]:
+    return _preflight_inputs(project_dir, evidence_path, analysis_settings)[3]
 
 
 def _clean_git_head() -> str:

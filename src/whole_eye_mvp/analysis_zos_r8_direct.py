@@ -44,7 +44,7 @@ from .analysis_zos_pair_scale import (
 )
 from .b0_zos import object_thickness_for_defocus_d
 from .carrier_scaffold import CONTROLLED_IOL_CARRIER_546_V1
-from .domain import NOMINAL_MAIN_FFT_MTF_555_V2, OpticState
+from .domain import NOMINAL_MAIN_FFT_MTF_555_V2, AnalysisSettings, OpticState
 from .manifest import NominalConfig
 from .metrics import mm_per_degree, mtfa
 from .model_revision import physical_stop_semi_diameter_mm
@@ -315,6 +315,8 @@ def build_direct_model_specs(
     model_hashes: Mapping[str, str],
     *,
     r6_r7_output_relative: Path,
+    expected_config_count: int = 96,
+    expected_model_count: int = 48,
 ) -> tuple[DirectModelSpec, ...]:
     """Map the validated R8 plan to immutable serialized R6/R7 model inputs."""
 
@@ -348,14 +350,22 @@ def build_direct_model_specs(
                 source_sha256=str(expected_sha),
             )
         )
-    if len(specs) != 96:
-        raise R8DirectAcquisitionError(f"direct R8 input count must be 96, got {len(specs)}")
-    if len({item.model_artifact_key for item in specs}) != 48:
-        raise R8DirectAcquisitionError("direct R8 inputs must resolve exactly 48 serialized models")
+    if len(specs) != expected_config_count:
+        raise R8DirectAcquisitionError(
+            f"direct input count must be {expected_config_count}, got {len(specs)}"
+        )
+    if len({item.model_artifact_key for item in specs}) != expected_model_count:
+        raise R8DirectAcquisitionError(
+            f"direct inputs must resolve exactly {expected_model_count} serialized models"
+        )
     return tuple(specs)
 
 
-def verify_direct_model_sources(specs: Sequence[DirectModelSpec]) -> None:
+def verify_direct_model_sources(
+    specs: Sequence[DirectModelSpec],
+    *,
+    expected_model_count: int = 48,
+) -> None:
     """Verify each unique serialized source exists and matches its R6/R7 SHA-256."""
 
     checked: dict[Path, str] = {}
@@ -378,19 +388,24 @@ def verify_direct_model_sources(specs: Sequence[DirectModelSpec]) -> None:
                 f"{actual} != {spec.source_sha256}"
             )
         checked[spec.source_path] = actual
-    if len(checked) != 48:
+    if len(checked) != expected_model_count:
         raise R8DirectAcquisitionError(
-            f"direct source verification expected 48 files, got {len(checked)}"
+            "direct source verification expected "
+            f"{expected_model_count} files, got {len(checked)}"
         )
 
 
-def group_direct_pairs(specs: Sequence[DirectModelSpec]) -> tuple[DirectMatchedPair, ...]:
+def group_direct_pairs(
+    specs: Sequence[DirectModelSpec],
+    *,
+    expected_pair_count: int = 48,
+) -> tuple[DirectMatchedPair, ...]:
     grouped: dict[str, list[DirectModelSpec]] = defaultdict(list)
     for spec in specs:
         grouped[spec.pair_key].append(spec)
-    if len(grouped) != 48:
+    if len(grouped) != expected_pair_count:
         raise R8DirectAcquisitionError(
-            f"R8 direct acquisition requires 48 pairs, got {len(grouped)}"
+            f"direct acquisition requires {expected_pair_count} pairs, got {len(grouped)}"
         )
     pairs: list[DirectMatchedPair] = []
     for pair_key in sorted(grouped):
@@ -482,13 +497,24 @@ def validate_aggregate_rows(
     config_rows: Sequence[Mapping[str, object]],
     tf_rows: Sequence[Mapping[str, object]],
     paired_rows: Sequence[Mapping[str, object]],
+    *,
+    through_focus_planes: int = 15,
+    config_count: int = 96,
+    pair_count: int = 48,
 ) -> None:
     """Validate exact R8 aggregate counts and row schemas before formal evidence is written."""
 
+    if through_focus_planes <= 0:
+        raise R8DirectAcquisitionError("through-focus plane count must be positive")
     expectations = (
-        (config_rows, 96, R8_CONFIG_REQUIRED_COLUMNS, "config"),
-        (tf_rows, 1440, R8_THROUGH_FOCUS_REQUIRED_COLUMNS, "through-focus"),
-        (paired_rows, 48, R8_PAIRED_REQUIRED_COLUMNS, "paired"),
+        (config_rows, config_count, R8_CONFIG_REQUIRED_COLUMNS, "config"),
+        (
+            tf_rows,
+            config_count * through_focus_planes,
+            R8_THROUGH_FOCUS_REQUIRED_COLUMNS,
+            "through-focus",
+        ),
+        (paired_rows, pair_count, R8_PAIRED_REQUIRED_COLUMNS, "paired"),
     )
     for rows, count, columns, label in expectations:
         if len(rows) != count:
@@ -503,16 +529,18 @@ def validate_aggregate_rows(
                     f"{sorted(row)} != {sorted(expected_columns)}"
                 )
 
-    if len({str(row["config_id"]) for row in config_rows}) != 96:
+    if len({str(row["config_id"]) for row in config_rows}) != config_count:
         raise R8DirectAcquisitionError("R8 aggregate config IDs are not unique")
     by_config: dict[str, int] = defaultdict(int)
     for row in tf_rows:
         by_config[str(row["config_id"])] += 1
     if set(by_config) != {str(row["config_id"]) for row in config_rows}:
         raise R8DirectAcquisitionError("R8 through-focus config IDs differ from config rows")
-    if set(by_config.values()) != {15}:
-        raise R8DirectAcquisitionError("R8 requires exactly 15 through-focus rows per config")
-    if len({str(row["pair_key"]) for row in paired_rows}) != 48:
+    if set(by_config.values()) != {through_focus_planes}:
+        raise R8DirectAcquisitionError(
+            f"R8 requires exactly {through_focus_planes} through-focus rows per config"
+        )
+    if len({str(row["pair_key"]) for row in paired_rows}) != pair_count:
         raise R8DirectAcquisitionError("R8 aggregate pair IDs are not unique")
 
 
@@ -559,10 +587,15 @@ class R8DirectModelAcquisitionAdapter:
     pair_reference_effl_mm: Mapping[str, float]
     sampling: int = NOMINAL_MAIN_FFT_MTF_555_V2.fft_mtf_sampling
     diagnostics: dict[str, dict[str, object]] = field(default_factory=dict)
+    analysis_settings: AnalysisSettings = NOMINAL_MAIN_FFT_MTF_555_V2
+    peak_search_window_d: float = 0.5
 
     def __post_init__(self) -> None:
-        if self.sampling != NOMINAL_MAIN_FFT_MTF_555_V2.fft_mtf_sampling:
-            raise ValueError("R8 production sampling is frozen to 128")
+        self.analysis_settings.validate()
+        if self.sampling != self.analysis_settings.fft_mtf_sampling:
+            raise ValueError("acquisition sampling differs from analysis settings")
+        if not math.isfinite(self.peak_search_window_d) or self.peak_search_window_d <= 0.0:
+            raise ValueError("distance-peak search window must be finite and positive")
         normalized = {
             str(key): float(value) for key, value in self.pair_reference_effl_mm.items()
         }
@@ -699,7 +732,7 @@ class R8DirectModelAcquisitionAdapter:
         reference_effl_mm = self._reference_effl_mm(spec)
         pair_scale = mm_per_degree(reference_effl_mm)
         state_scale = mm_per_degree(state_effl_mm)
-        settings = NOMINAL_MAIN_FFT_MTF_555_V2
+        settings = self.analysis_settings
         cpd_grid = settings.mtf_frequency_grid_cpd()
         frequencies_mm = frequencies_for_pair_reference(reference_effl_mm, cpd_grid)
         runner = MfeMtfGridRunner(self.session.system, self.session.zosapi)
@@ -777,8 +810,9 @@ class R8DirectModelAcquisitionAdapter:
                 tuple(fixed_columns[frequency])
                 for frequency in settings.mtf_sample_frequencies_cpd
             ),
+            peak_window_d=self.peak_search_window_d,
         )
-        summary = summarize_mtfa_curve(rows)
+        summary = summarize_mtfa_curve(rows, peak_window_d=self.peak_search_window_d)
         hoa = MfeFullHoaRunner(self.session.system, self.session.zosapi).run()
         if int(self.session.system.MFE.NumberOfOperands) != baseline_mfe:
             raise R8DirectAcquisitionError("HOA acquisition left the MFE modified")
@@ -865,6 +899,8 @@ class R8DirectModelAcquisitionAdapter:
             require_files=True,
             expected_config=config,
             expected_run_id=run_id,
+            analysis_settings=settings,
+            peak_window_d=self.peak_search_window_d,
         )
         config_result_path = output / "config_result.json"
         config_result_path.write_text(
@@ -881,12 +917,20 @@ class R8DirectModelAcquisitionAdapter:
 def matched_pair_delta_direct(
     mono: ConfigResult,
     edof: ConfigResult,
+    *,
+    analysis_settings: AnalysisSettings = NOMINAL_MAIN_FFT_MTF_555_V2,
+    peak_search_window_d: float = 0.5,
 ) -> MatchedPairDelta:
     """Use the existing delta contract after direct-model provenance is attached to configs."""
 
     from .analysis import matched_pair_delta
 
-    return matched_pair_delta(mono, edof)
+    return matched_pair_delta(
+        mono,
+        edof,
+        analysis_settings=analysis_settings,
+        peak_window_d=peak_search_window_d,
+    )
 
 
 def build_direct_run(
@@ -896,12 +940,19 @@ def build_direct_run(
     pairs: Sequence[DirectMatchedPair],
     references: Mapping[str, PairAngularScaleReference],
     source_model_sha256: Mapping[str, str],
+    through_focus_planes: int = 15,
+    analysis_settings: AnalysisSettings = NOMINAL_MAIN_FFT_MTF_555_V2,
+    peak_search_window_d: float = 0.5,
 ) -> R8DirectRun:
-    if len(results) != 96:
-        raise R8DirectAcquisitionError(f"R8 requires 96 completed configs, got {len(results)}")
+    config_count = len(results)
+    pair_count = len(pairs)
+    if config_count != pair_count * 2:
+        raise R8DirectAcquisitionError(
+            "direct run requires exactly two optic states per matched pair"
+        )
     by_id = {result.config.config_id: result for result in results}
-    if len(by_id) != 96:
-        raise R8DirectAcquisitionError("R8 completed config IDs are not unique")
+    if len(by_id) != config_count:
+        raise R8DirectAcquisitionError("direct completed config IDs are not unique")
     validate_pair_reference_map(pairs, references)
 
     deltas: list[MatchedPairDelta] = []
@@ -913,9 +964,18 @@ def build_direct_run(
             raise R8DirectAcquisitionError(
                 f"R8 matched pair result is missing: {pair.pair_key}"
             ) from exc
-        deltas.append(matched_pair_delta_direct(mono, edof))
-    if len(deltas) != 48:
-        raise R8DirectAcquisitionError("R8 did not reconstruct exactly 48 matched deltas")
+        deltas.append(
+            matched_pair_delta_direct(
+                mono,
+                edof,
+                analysis_settings=analysis_settings,
+                peak_search_window_d=peak_search_window_d,
+            )
+        )
+    if len(deltas) != pair_count:
+        raise R8DirectAcquisitionError(
+            "direct run did not reconstruct every matched pair delta"
+        )
 
     config_rows = tuple(config_scalar_row(result) for result in results)
     tf_rows = tuple(
@@ -924,7 +984,14 @@ def build_direct_run(
         for row in through_focus_rows(result)
     )
     paired_rows = tuple(paired_delta_row(delta) for delta in deltas)
-    validate_aggregate_rows(config_rows, tf_rows, paired_rows)
+    validate_aggregate_rows(
+        config_rows,
+        tf_rows,
+        paired_rows,
+        through_focus_planes=through_focus_planes,
+        config_count=config_count,
+        pair_count=pair_count,
+    )
     return R8DirectRun(
         run_id=run_id,
         results=tuple(results),
@@ -944,11 +1011,15 @@ def run_r8_direct_acquisition(
     specs: Sequence[DirectModelSpec],
     output_root: Path,
     run_id: str,
+    analysis_settings: AnalysisSettings = NOMINAL_MAIN_FFT_MTF_555_V2,
+    peak_search_window_d: float = 0.5,
+    expected_pair_count: int = 48,
+    expected_model_count: int = 48,
 ) -> tuple[R8DirectRun, dict[str, dict[str, object]]]:
     """Execute the 48 pair references and 96 direct-model configs after offline preflight."""
 
-    verify_direct_model_sources(specs)
-    pairs = group_direct_pairs(specs)
+    verify_direct_model_sources(specs, expected_model_count=expected_model_count)
+    pairs = group_direct_pairs(specs, expected_pair_count=expected_pair_count)
     root = Path(output_root).resolve()
     if root.exists() and any(root.iterdir()):
         raise R8DirectAcquisitionError(
@@ -959,6 +1030,8 @@ def run_r8_direct_acquisition(
     reference_adapter = R8DirectModelAcquisitionAdapter(
         session,
         pair_reference_effl_mm={"__bootstrap__": 1.0},
+        analysis_settings=analysis_settings,
+        peak_search_window_d=peak_search_window_d,
     )
     references: dict[str, PairAngularScaleReference] = {}
     for pair in pairs:
@@ -973,6 +1046,8 @@ def run_r8_direct_acquisition(
         pair_reference_effl_mm={
             key: value.reference_effl_mm for key, value in references.items()
         },
+        analysis_settings=analysis_settings,
+        peak_search_window_d=peak_search_window_d,
     )
     results: list[ConfigResult] = []
     for spec in specs:
@@ -994,6 +1069,9 @@ def run_r8_direct_acquisition(
         pairs=pairs,
         references=references,
         source_model_sha256=source_map,
+        through_focus_planes=len(analysis_settings.defocus_grid()),
+        analysis_settings=analysis_settings,
+        peak_search_window_d=peak_search_window_d,
     )
     return direct_run, backend.diagnostics
 

@@ -17,7 +17,7 @@ from whole_eye_mvp.analysis import (
     validate_selection,
     with_shape_axis,
 )
-from whole_eye_mvp.domain import NOMINAL_MAIN_FFT_MTF_555_V2, OpticState
+from whole_eye_mvp.domain import NOMINAL_MAIN_FFT_MTF_555_V2, AnalysisSettings, OpticState
 from whole_eye_mvp.manifest import NominalConfig
 from whole_eye_mvp.quality import settings_hash
 from whole_eye_mvp.zos import TASK009_MFE_FULL_HOA_555_V1
@@ -41,17 +41,24 @@ def config(state: str) -> NominalConfig:
     )
 
 
-def rows(peak_d: float = 0.0):
-    defocus = NOMINAL_MAIN_FFT_MTF_555_V2.defocus_grid()
+def rows(peak_d: float = 0.0, *, analysis_settings=NOMINAL_MAIN_FFT_MTF_555_V2):
+    defocus = analysis_settings.defocus_grid()
     peak_i = defocus.index(peak_d)
     mtfa = tuple(max(0.05, 0.8 - abs(index - peak_i) * 0.10) for index in range(len(defocus)))
     columns = [tuple(value * (1 - index * 0.05) for value in mtfa) for index in range(6)]
     return with_shape_axis(defocus, mtfa, columns)
 
 
-def result(state: str, *, peak_d: float = 0.0, run_id: str = "run") -> ConfigResult:
-    tf_rows = rows(peak_d)
-    summary = summarize_mtfa_curve(tf_rows)
+def result(
+    state: str,
+    *,
+    peak_d: float = 0.0,
+    run_id: str = "run",
+    analysis_settings=NOMINAL_MAIN_FFT_MTF_555_V2,
+    peak_window_d: float = 0.5,
+) -> ConfigResult:
+    tf_rows = rows(peak_d, analysis_settings=analysis_settings)
+    summary = summarize_mtfa_curve(tf_rows, peak_window_d=peak_window_d)
     return ConfigResult(
         config=config(state),
         run_id=run_id,
@@ -67,7 +74,7 @@ def result(state: str, *, peak_d: float = 0.0, run_id: str = "run") -> ConfigRes
         tf_mtfa_mean=float(summary["tf_mtfa_mean"]),
         peak_search_censored=bool(summary["peak_search_censored"]),
         aberrations=AberrationSummary(0.1, 0.02, 0.15),
-        analysis_settings_hash=settings_hash(NOMINAL_MAIN_FFT_MTF_555_V2),
+        analysis_settings_hash=settings_hash(analysis_settings),
         hoa_settings_id=TASK009_MFE_FULL_HOA_555_V1.settings_id,
         hoa_settings_hash=TASK009_MFE_FULL_HOA_555_V1.settings_hash,
         cornea_footprint_mm=5.5,
@@ -168,3 +175,32 @@ def test_matched_pair_delta_is_edof_minus_mono_with_full_pair_invariants() -> No
 
     with pytest.raises(AnalysisError, match="carrier_lock_hash"):
         matched_pair_delta(mono, replace(edof, config=replace(edof.config, carrier_lock_hash="other")))
+
+
+@pytest.mark.unit
+def test_matched_pair_delta_accepts_supplemental_49_plane_settings() -> None:
+    settings = AnalysisSettings(
+        settings_id="SUPPLEMENTAL_TF_MTF_555_v1",
+        wavelength_nm=555.0,
+        pupils_mm=(3.0, 5.0),
+        defocus_start_d=1.0,
+        defocus_stop_d=-5.0,
+        defocus_step_d=-0.125,
+    )
+    mono = result("MONO", analysis_settings=settings, peak_window_d=1.0)
+    edof = result(
+        "EDOF",
+        peak_d=0.125,
+        analysis_settings=settings,
+        peak_window_d=1.0,
+    )
+
+    delta = matched_pair_delta(
+        mono,
+        edof,
+        analysis_settings=settings,
+        peak_window_d=1.0,
+    )
+
+    assert len(mono.rows) == 49
+    assert delta.deltas["distance_peak_retina_d"] == pytest.approx(0.125)

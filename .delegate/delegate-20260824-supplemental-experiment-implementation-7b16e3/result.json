@@ -1,0 +1,29 @@
+{
+  "schema_version": "1",
+  "task_id": "delegate-20260824-supplemental-experiment-implementation-7b16e3",
+  "repository": "Inspiration-Overflow/Cornea-EDOF-IOL-coupling",
+  "base_commit": "ef407958303be8736f56b17a8c43de3398343466",
+  "dispatch_commit": "4374303fce8f12331d847dd87e14fab38591dea6",
+  "task_branch": "delegate/supplemental-experiment-implementation-20260824",
+  "task_ref": ".delegate/delegate-20260824-supplemental-experiment-implementation-7b16e3/TASK.md",
+  "result_ref": ".delegate/delegate-20260824-supplemental-experiment-implementation-7b16e3/result.json",
+  "output_refs": [
+    "src/whole_eye_mvp/supplemental_experiments.py",
+    "scripts/analyze_supplemental_experiments.py",
+    "tests/unit/test_supplemental_experiments.py",
+    "docs/SUPPLEMENTAL_EXPERIMENT_IMPLEMENTATION_2026-08-24.md"
+  ],
+  "summary": "Implemented the bounded supplemental experiment contract as a pure offline layer. It validates the exact 49-plane +1.00 to -5.00 D grid and ±1.00 D peak window, validates the exact 96-config main matrix and 24-config C0 distance-component-anchored branch, enforces frozen MONO/EDOF carrier provenance and zero post-restoration adjustments, derives 30/50/70% relative DOF, common-reference threshold, 30 cpd curves, difference-in-differences, and explicit censoring states, and documents the local OpticStudio handoff. No optical data was fabricated and no live OpticStudio run was performed.",
+  "tests": [
+    "uv run pytest tests/unit/test_supplemental_experiments.py -q: 13 passed",
+    "uv run ruff check src/whole_eye_mvp/supplemental_experiments.py scripts/analyze_supplemental_experiments.py tests/unit/test_supplemental_experiments.py: passed",
+    "uv run ruff check .: passed",
+    "uv run python -m compileall -q src/whole_eye_mvp/supplemental_experiments.py scripts/analyze_supplemental_experiments.py: passed"
+  ],
+  "limitations": [
+    "The ChatGPT Web implementation attempt completed its local analysis narrative but stalled during the GitHub write/receipt step; the verified branch result was completed locally under the same task contract and then pushed.",
+    "The full tests/unit suite was started but interrupted after reaching approximately 38% without a failure report because the remaining run was long-running; it is not claimed as passed.",
+    "No OpticStudio acquisition, 96-config optical run, 24-config optical run, or generated optical evidence was performed in this software task.",
+    "The result commit SHA is intentionally omitted from this file by contract."
+  ]
+}
