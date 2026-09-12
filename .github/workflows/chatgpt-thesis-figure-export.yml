@@ -1,0 +1,113 @@
+name: ChatGPT thesis figure export
+
+on:
+  push:
+    branches:
+      - chatgpt/thesis-figure-export-20260911
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install plotting dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk
+          python -m pip install --upgrade pip
+          python -m pip install pandas matplotlib
+      - name: Generate all 48 paired through-focus curves
+        shell: bash
+        run: |
+          mkdir -p thesis_curve_export
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import pandas as pd
+          import matplotlib.pyplot as plt
+          from matplotlib import font_manager
+
+          src = Path('docs/evidence/r8_96/production/MODEL_REVISION_R8_96_THROUGH_FOCUS.csv')
+          out = Path('thesis_curve_export')
+          df = pd.read_csv(src)
+
+          assert len(df) == 1440, len(df)
+          assert df['pair_key'].nunique() == 48, df['pair_key'].nunique()
+          assert df['config_id'].nunique() == 96, df['config_id'].nunique()
+          counts = df.groupby(['pair_key','optic_state']).size()
+          assert counts.eq(15).all(), counts[counts.ne(15)].to_dict()
+          assert set(df['defocus_retina_d'].unique()) == set([0.5,0.25,0.0,-0.25,-0.5,-0.75,-1.0,-1.25,-1.5,-1.75,-2.0,-2.25,-2.5,-2.75,-3.0])
+
+          # CJK font for Chinese axes/captions in the exported figures.
+          cjk = [f for f in font_manager.findSystemFonts() if 'NotoSansCJK' in f or 'NotoSansCJK' in Path(f).name]
+          if cjk:
+              font_manager.fontManager.addfont(cjk[0])
+              fp = font_manager.FontProperties(fname=cjk[0])
+              plt.rcParams['font.family'] = fp.get_name()
+          plt.rcParams['axes.unicode_minus'] = False
+
+          corneas = [('N0','未治疗参照角膜'),('A0','近视术后准单焦角膜'),('B0','连续非球面角膜延焦原型'),('C0','中央近用径向多焦角膜原型')]
+          platforms = [('WFS','波前塑形型'),('RAD','径向屈光力调制型'),('HOA','高阶像差调制型')]
+          panels = [
+              ('LB_AL2395',3.0,'Liou–Brennan，3 mm'),
+              ('LB_AL2395',5.0,'Liou–Brennan，5 mm'),
+              ('ATC_M3_AL24477',3.0,'Atchison近视模型，3 mm'),
+              ('ATC_M3_AL24477',5.0,'Atchison近视模型，5 mm'),
+          ]
+          letters = list('abcdefghijkl')
+          global_ymax = float(df['mtfa'].max()) * 1.06
+          manifest = {
+              'source': str(src),
+              'rows': int(len(df)),
+              'configs': int(df['config_id'].nunique()),
+              'pairs': int(df['pair_key'].nunique()),
+              'defocus_coordinate': 'defocus_retina_d',
+              'ordinate': 'mtfa',
+              'figures': []
+          }
+
+          k = 0
+          for cornea_id, cornea_cn in corneas:
+              for platform_id, platform_cn in platforms:
+                  fig, axes = plt.subplots(2, 2, figsize=(10.8, 7.7), sharex=True, sharey=True)
+                  for ax, (base_id, pupil, panel_title) in zip(axes.ravel(), panels):
+                      sub = df[(df.cornea_id == cornea_id) & (df.platform_id == platform_id) &
+                               (df.base_id == base_id) & (df.pupil_mm == pupil)]
+                      assert sub['pair_key'].nunique() == 1
+                      for state, label in [('MONO','匹配单焦'),('EDOF','EDoF')]:
+                          s = sub[sub.optic_state == state].sort_values('defocus_retina_d', ascending=False)
+                          assert len(s) == 15
+                          ax.plot(s['defocus_retina_d'], s['mtfa'], marker='o', markersize=3.2,
+                                  linewidth=1.6, label=label)
+                      ax.axvline(0, linewidth=0.8, linestyle='--')
+                      ax.set_xlim(0.5, -3.0)
+                      ax.set_ylim(0, global_ymax)
+                      ax.grid(True, linewidth=0.45, alpha=0.35)
+                      ax.set_title(panel_title, fontsize=10)
+                      ax.set_xlabel('视网膜离焦 / D')
+                      ax.set_ylabel('MTFa')
+                  handles, labels = axes[0,0].get_legend_handles_labels()
+                  fig.legend(handles, labels, loc='upper center', ncol=2, frameon=False, bbox_to_anchor=(0.5,0.985))
+                  fig.suptitle(f'{cornea_cn} × {platform_cn}延焦机制：MTFa离焦响应', fontsize=13, y=1.02)
+                  fig.tight_layout(rect=(0,0,1,0.95))
+                  fn = f'fig3_1{letters[k]}_{cornea_id}_{platform_id}.png'
+                  fig.savefig(out/fn, dpi=220, bbox_inches='tight')
+                  plt.close(fig)
+                  manifest['figures'].append({'file': fn, 'cornea_id': cornea_id, 'platform_id': platform_id,
+                                               'pairs_in_figure': 4, 'curves_in_figure': 8})
+                  k += 1
+
+          assert k == 12
+          (out/'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
+          print(json.dumps(manifest, ensure_ascii=False, indent=2))
+          PY
+      - name: Upload thesis curves
+        uses: actions/upload-artifact@v4
+        with:
+          name: thesis-r8-all-through-focus-curves
+          path: thesis_curve_export/
+          if-no-files-found: error
+          retention-days: 1
